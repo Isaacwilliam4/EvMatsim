@@ -31,7 +31,12 @@ import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.TransportMode;
 import org.matsim.contrib.ev.EvConfigGroup;
 import org.matsim.contrib.ev.EvModule;
+import org.matsim.contrib.ev.charging.ChargingPower;
+import org.matsim.contrib.ev.discharging.AuxEnergyConsumption;
+import org.matsim.contrib.ev.discharging.DriveEnergyConsumption;
 import org.matsim.contrib.ev.fleet.ElectricFleet;
+import org.matsim.contrib.ev.fleet.ElectricFleetSpecification;
+import org.matsim.contrib.ev.fleet.ElectricFleetUtils;
 import org.matsim.contrib.ev.routing.EvNetworkRoutingProvider;
 import org.matsim.contrib.ev.scoring.EvScoringFunctionFactory;
 import org.matsim.core.config.Config;
@@ -41,6 +46,9 @@ import org.matsim.core.controler.Controler;
 import org.matsim.core.controler.OutputDirectoryHierarchy;
 import org.matsim.core.scenario.ScenarioUtils;
 // import org.matsim.core.scoring.ScoringFunctionFactory;
+
+import com.google.inject.Inject;
+import com.google.inject.Provider;
 
 public class RunEvExampleWithEvScoring {
 	static final String DEFAULT_CONFIG_FILE = "test/input/org/matsim/contrib/ev/example/RunEvExample/config.xml";
@@ -71,6 +79,20 @@ public class RunEvExampleWithEvScoring {
 		Controler controler = new Controler(scenario);
 		controler.addOverridingModule( new AbstractModule(){
 			@Override public void install(){
+				bind(ElectricFleet.class).toProvider(new Provider<>() {
+					@Inject private ElectricFleetSpecification fleetSpecification;
+					@Inject private DriveEnergyConsumption.Factory driveConsumptionFactory;
+					@Inject private AuxEnergyConsumption.Factory auxConsumptionFactory;
+					@Inject private ChargingPower.Factory chargingPowerFactory;
+	
+					@Override
+					public ElectricFleet get() {
+						return ElectricFleetUtils.createDefaultFleet(fleetSpecification, driveConsumptionFactory, auxConsumptionFactory,
+								chargingPowerFactory );
+					}
+				}).asEagerSingleton();
+	
+				bindScoringFunctionFactory().to(EvScoringFunctionFactory.class);
 				install( new EvModule() );
 
 				addRoutingModuleBinding( TransportMode.car ).toProvider(new EvNetworkRoutingProvider(TransportMode.car) );
@@ -81,13 +103,6 @@ public class RunEvExampleWithEvScoring {
 				// kai, dec'22
 			}
 		} );
-		controler.addOverridingModule(new AbstractModule() {
-
-			@Override
-			public void install() {
-				bindScoringFunctionFactory().to(EvScoringFunctionFactory.class);
-			}
-		});
 
 		controler.run();
 	}

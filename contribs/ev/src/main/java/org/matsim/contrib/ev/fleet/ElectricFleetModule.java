@@ -25,6 +25,7 @@ import org.matsim.contrib.ev.EvModule;
 import org.matsim.contrib.ev.charging.ChargingPower;
 import org.matsim.contrib.ev.discharging.AuxEnergyConsumption;
 import org.matsim.contrib.ev.discharging.DriveEnergyConsumption;
+import org.matsim.contrib.ev.scoring.EvScoringFunctionFactory;
 import org.matsim.core.controler.AbstractModule;
 import org.matsim.core.mobsim.framework.events.MobsimBeforeCleanupEvent;
 import org.matsim.core.mobsim.framework.listeners.MobsimBeforeCleanupListener;
@@ -52,22 +53,11 @@ public final class ElectricFleetModule extends AbstractModule {
 				return fleetSpecification;
 			}
 		}).asEagerSingleton();
-
+		
 		installQSimModule(new AbstractQSimModule() {
 			@Override
 			protected void configureQSim() {
-				bind(ElectricFleet.class).toProvider(new Provider<>() {
-					@Inject private ElectricFleetSpecification fleetSpecification;
-					@Inject private DriveEnergyConsumption.Factory driveConsumptionFactory;
-					@Inject private AuxEnergyConsumption.Factory auxConsumptionFactory;
-					@Inject private ChargingPower.Factory chargingPowerFactory;
 
-					@Override
-					public ElectricFleet get() {
-						return ElectricFleetUtils.createDefaultFleet(fleetSpecification, driveConsumptionFactory, auxConsumptionFactory,
-								chargingPowerFactory );
-					}
-				}).asEagerSingleton();
 
 				if (evCfg.transferFinalSoCToNextIteration) {
 					addQSimComponentBinding(EvModule.EV_COMPONENT).toInstance(new MobsimBeforeCleanupListener() {
