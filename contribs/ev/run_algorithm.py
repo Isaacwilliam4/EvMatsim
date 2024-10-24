@@ -10,6 +10,12 @@ from util import *
 ## The number of iterations your algorithm will go through
 num_runs = 50
 
+num_experiments = len(os.listdir('./python/algorithm_results/csvs/'))
+
+## The number of matsim iterations the agents will try to optimize for
+NUM_MATSIM_ITERS = 5
+update_last_iteration('./scenarios/tinytown/ev_tiny_town_config.xml', NUM_MATSIM_ITERS)
+
 algorithm_results = pd.DataFrame(columns=['iteration','avg_score','selected_links'])
 
 # Get the available link ids
@@ -19,7 +25,7 @@ link_ids = get_link_ids('./scenarios/tinytown/tiny_town_network.xml')
 NUM_CHARGERS = 10
 
 # Name your algorithm, this is used for creating files and saving results, so make sure to change if you don't want to overwrite anything
-algorithm_name = f"monte_carlo_{num_runs}"
+algorithm_name = f"mc_runs{num_runs}_exp{num_experiments + 1}"
 
 # Min and max memory allocation, as you can tell I was using a nice computer (64G of ram), you'll probably want to lower this
 os.environ['MAVEN_OPTS'] = '-Xms40g -Xmx50g'

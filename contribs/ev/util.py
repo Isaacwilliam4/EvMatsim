@@ -36,3 +36,21 @@ def create_chargers_xml(link_ids, output_file_path):
 
         # Write the tree structure
         tree.write(f)
+
+def update_last_iteration(xml_file, new_value):
+    # Parse the XML file
+    tree = ET.parse(xml_file)
+    root = tree.getroot()
+
+    # Find the 'controler' module
+    for module in root.findall(".//module"):
+        if module.get('name') == 'controler':
+            # Find the 'lastIteration' parameter and update its value
+            for param in module.findall("param"):
+                if param.get('name') == 'lastIteration':
+                    param.set('value', str(new_value))
+                    print(f"Updated lastIteration to {new_value}")
+                    break
+
+    # Write the updated tree back to the file
+    tree.write(xml_file)
