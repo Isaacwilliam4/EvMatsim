@@ -4,7 +4,7 @@ import xml.etree.ElementTree as ET
 import random
 import numpy as np
 import matplotlib.pyplot as plt
-
+import os
 
 def get_link_ids(network_file):
     # Parse the network XML file
@@ -45,11 +45,12 @@ def create_chargers_xml(link_ids, output_file_path):
     print(f"{num_chargers} chargers written to {output_file_path}")
 
 
-num_runs = 1
-algorithm_results = pd.DataFrame(columns=['iteration','avg_score','selected_chargers'])
+num_runs = 50
+algorithm_results = pd.DataFrame(columns=['iteration','avg_score','selected_links'])
 link_ids = get_link_ids('./scenarios/tinytown/tiny_town_network.xml')
 num_chargers = 10
-algorithm_name = "Monte_Carlo_1_run"
+algorithm_name = f"monte_carlo_{num_runs}"
+os.environ['MAVEN_OPTS'] = '-Xms40g -Xmx50g'
 
 for i in range(1, num_runs+1):
   RESET = "\033[0m"
@@ -73,11 +74,11 @@ for i in range(1, num_runs+1):
   scores = pd.read_csv('./scenarios/tinytown/output/scorestats.csv',sep=';')
 
   average_score = scores['avg_average'].iloc[-1]
-  row = pd.DataFrame({'iteration':i, 'avg_score':average_score,'selected_chargers':chosen_links.tolist()})
+  row = pd.DataFrame({'iteration':[i], 'avg_score':[average_score],'selected_links':[chosen_links.tolist()]})
 
   algorithm_results = pd.concat([algorithm_results, row], ignore_index=True)
 
-algorithm_results.to_csv(f'./python/algorithm_results/csvs/algorithm_results_{algorithm_name}.csv', index=False)
+algorithm_results.to_csv(f'./python/algorithm_results/csvs/{algorithm_name}_results.csv', index=False)
 
 plt.plot(algorithm_results['iteration'], algorithm_results['avg_score'])
 plt.xlabel('Iteration')
