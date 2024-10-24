@@ -34,7 +34,7 @@ public class EvScoringFunction extends org.matsim.core.scoring.functions.Charypa
 			double soc = ev.getBattery().getCharge();
 			double maxcharge = ev.getBattery().getCapacity();
 			double percentCharge = soc / maxcharge;
-			tmpScore *= percentCharge;
+			tmpScore += 100*percentCharge;
 		}
 
 		return tmpScore;
