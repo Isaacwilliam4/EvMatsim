@@ -109,7 +109,7 @@ for i in range(1, num_runs+1):
     max_score = average_score
     src_dir = args.output_path
     dest_dir = os.path.join(os.path.dirname(src_dir), 'bestoutput')
-    shutil.copytree(src_dir, dest_dir)
+    shutil.copytree(src_dir, dest_dir, dirs_exist_ok=True)
 
 
 
