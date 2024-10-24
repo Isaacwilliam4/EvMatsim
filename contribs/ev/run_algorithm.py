@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import os
 from python.util import *
 import argparse
+import shutil
 
 argparser = argparse.ArgumentParser()
 
@@ -61,6 +62,7 @@ for filename in results_dir:
     num_exps += 1
 algorithm_name = algorithm_name + str(num_exps+1) 
 
+max_score = 0
 
 # Min and max memory allocation, as you can tell I was using a nice computer (64G of ram), you'll probably want to lower this
 os.environ['MAVEN_OPTS'] = f'-Xms{args.min_ram}g -Xmx{args.max_ram}g'
@@ -102,5 +104,12 @@ for i in range(1, num_runs+1):
 
   #path for where your score/iteration figure will go
   plt.savefig(os.path.join(figs_path, f'{algorithm_name}_plot.png'))
+
+  if average_score > max_score:
+    max_score = average_score
+    src_dir = args.output_path
+    dest_dir = os.path.join(os.path.dirname(src_dir), 'bestoutput')
+    shutil.copytree(src_dir, dest_dir)
+
 
 
