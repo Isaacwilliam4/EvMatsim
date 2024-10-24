@@ -49,8 +49,17 @@ def update_last_iteration(xml_file, new_value):
             for param in module.findall("param"):
                 if param.get('name') == 'lastIteration':
                     param.set('value', str(new_value))
-                    print(f"Updated lastIteration to {new_value}")
                     break
+                
+        # Manually write the header to the output file
+    with open(xml_file, "wb") as f:
+        # Write the XML declaration and DOCTYPE
+        f.write(b'<?xml version="1.0" ?>\n')
+        f.write(b'<!DOCTYPE config SYSTEM "http://www.matsim.org/files/dtd/config_v2.dtd">\n')
 
-    # Write the updated tree back to the file
-    tree.write(xml_file)
+        # Write the tree structure
+        tree.write(f)
+
+def monte_carlo_algorithm(num_chargers, link_ids, algorithm_results):
+    return np.random.choice(link_ids, num_chargers)
+    
