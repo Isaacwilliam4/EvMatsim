@@ -31,6 +31,7 @@ import org.matsim.contrib.ev.EvConfigGroup;
 import org.matsim.contrib.ev.charging.VehicleChargingHandler;
 import org.matsim.contrib.ev.discharging.AuxEnergyConsumption;
 import org.matsim.contrib.ev.discharging.DriveEnergyConsumption;
+import org.matsim.contrib.ev.fleet.ElectricFleet;
 import org.matsim.contrib.ev.fleet.ElectricFleetSpecification;
 import org.matsim.contrib.ev.fleet.ElectricFleetUtils;
 import org.matsim.contrib.ev.fleet.ElectricVehicle;
@@ -50,6 +51,7 @@ import org.matsim.core.router.util.LeastCostPathCalculator;
 import org.matsim.core.router.util.TravelTime;
 import org.matsim.facilities.Facility;
 import org.matsim.vehicles.Vehicle;
+import com.google.common.collect.ImmutableMap;
 
 import java.util.*;
 
@@ -67,7 +69,8 @@ final class EvNetworkRoutingModule implements RoutingModule {
 
 	private final Network network;
 	private final RoutingModule delegate;
-	private final ElectricFleetSpecification electricFleet;
+	private final ImmutableMap<Id<Vehicle>, ElectricVehicle> electricFleet;
+	private final ElectricFleetSpecification electricFleetSpecifications;
 	private final ChargingInfrastructureSpecification chargingInfrastructureSpecification;
 	private final Random random = MatsimRandom.getLocalInstance();
 	private final TravelTime travelTime;
@@ -78,7 +81,7 @@ final class EvNetworkRoutingModule implements RoutingModule {
 	private final EvConfigGroup evConfigGroup;
 
 	EvNetworkRoutingModule(final String mode, final Network network, RoutingModule delegate,
-			ElectricFleetSpecification electricFleet,
+			ElectricFleet electricFleet, ElectricFleetSpecification electricFleetSpecifications,
 			ChargingInfrastructureSpecification chargingInfrastructureSpecification, TravelTime travelTime,
 			DriveEnergyConsumption.Factory driveConsumptionFactory, AuxEnergyConsumption.Factory auxConsumptionFactory,
 			EvConfigGroup evConfigGroup) {
@@ -87,7 +90,8 @@ final class EvNetworkRoutingModule implements RoutingModule {
 		this.delegate = delegate;
 		this.network = network;
 		this.mode = mode;
-		this.electricFleet = electricFleet;
+		this.electricFleet = electricFleet.getElectricVehicles();
+		this.electricFleetSpecifications = electricFleetSpecifications;
 		this.chargingInfrastructureSpecification = chargingInfrastructureSpecification;
 		this.driveConsumptionFactory = driveConsumptionFactory;
 		this.auxConsumptionFactory = auxConsumptionFactory;
@@ -105,18 +109,19 @@ final class EvNetworkRoutingModule implements RoutingModule {
 
 		List<? extends PlanElement> basicRoute = delegate.calcRoute(request);
 		Id<Vehicle> evId = Id.create(person.getId() + vehicleSuffix, Vehicle.class);
-		if (!electricFleet.getVehicleSpecifications().containsKey(evId)) {
+		if (!electricFleetSpecifications.getVehicleSpecifications().containsKey(evId)) {
 			return basicRoute;
 		} else {
 			Leg basicLeg = (Leg)basicRoute.get(0);
-			ElectricVehicleSpecification ev = electricFleet.getVehicleSpecifications().get(evId);
-
-			Map<Link, Double> estimatedEnergyConsumption = estimateConsumption(ev, basicLeg);
+			ElectricVehicleSpecification evspecs = electricFleetSpecifications.getVehicleSpecifications().get(evId);
+			ElectricVehicle ev = electricFleet.get(evId);
+			Map<Link, Double> estimatedEnergyConsumption = estimateConsumption(evspecs, basicLeg);
 			double estimatedOverallConsumption = estimatedEnergyConsumption.values()
 					.stream()
 					.mapToDouble(Number::doubleValue)
 					.sum();
-			double capacity = ev.getBatteryCapacity() * (0.8 + random.nextDouble() * 0.18);
+			double charge = ev.getBattery().getCharge();
+			double capacity = charge * (0.8 + random.nextDouble() * 0.18);
 			double numberOfStops = Math.floor(estimatedOverallConsumption / capacity);
 			if (numberOfStops < 1) {
 				return basicRoute;
@@ -158,8 +163,8 @@ final class EvNetworkRoutingModule implements RoutingModule {
 					// createStageActivity... creates a InteractionActivity where duration cannot be set.
 					chargeAct = PopulationUtils.createActivity(chargeAct);
 					// assume that the battery is compatible with a power that allows for full charge within one hour (cf. FixedSpeedCharging)
-					double maxPowerEstimate = Math.min(selectedCharger.getPlugPower(), ev.getBatteryCapacity() / 3600);
-					double estimatedChargingTime = (ev.getBatteryCapacity() * 1.5) / maxPowerEstimate;
+					double maxPowerEstimate = Math.min(selectedCharger.getPlugPower(), evspecs.getBatteryCapacity() / 3600);
+					double estimatedChargingTime = (evspecs.getBatteryCapacity() * 1.5) / maxPowerEstimate;
 					chargeAct.setMaximumDuration(Math.max(evConfigGroup.minimumChargeTime, estimatedChargingTime));
 					lastArrivaltime += chargeAct.getMaximumDuration().seconds();
 					stagedRoute.add(chargeAct);

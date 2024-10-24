@@ -11,6 +11,7 @@ import org.matsim.api.core.v01.population.PopulationFactory;
 import org.matsim.contrib.ev.EvConfigGroup;
 import org.matsim.contrib.ev.discharging.AuxEnergyConsumption;
 import org.matsim.contrib.ev.discharging.DriveEnergyConsumption;
+import org.matsim.contrib.ev.fleet.ElectricFleet;
 import org.matsim.contrib.ev.fleet.ElectricFleetSpecification;
 import org.matsim.contrib.ev.infrastructure.ChargingInfrastructureSpecification;
 import org.matsim.core.config.Config;
@@ -19,6 +20,7 @@ import org.matsim.core.config.groups.RoutingConfigGroup.AccessEgressType;
 import org.matsim.core.network.NetworkUtils;
 import org.matsim.core.network.algorithms.TransportModeNetworkFilter;
 import org.matsim.core.router.DefaultRoutingModules;
+import org.matsim.core.router.NetworkRoutingInclAccessEgressModule;
 import org.matsim.core.router.RoutingModule;
 import org.matsim.core.router.SingleModeNetworksCache;
 import org.matsim.core.router.costcalculators.TravelDisutilityFactory;
@@ -53,6 +55,9 @@ public class EvNetworkRoutingProvider implements Provider<RoutingModule> {
 
 	@Inject
 	private PopulationFactory populationFactory;
+
+	@Inject 
+	private ElectricFleet electricFleet;
 
 	@Inject
 	private LeastCostPathCalculatorFactory leastCostPathCalculatorFactory;
@@ -133,7 +138,7 @@ public class EvNetworkRoutingProvider implements Provider<RoutingModule> {
 			throw new IllegalArgumentException("Bushwacking is not currently supported by the EV routing module");
 		} else {
 			return new EvNetworkRoutingModule(mode, filteredNetwork,
-					DefaultRoutingModules.createPureNetworkRouter(mode, populationFactory, filteredNetwork, routeAlgo),
+					DefaultRoutingModules.createPureNetworkRouter(mode, populationFactory, filteredNetwork, routeAlgo), electricFleet,
 					electricFleetSpecification, chargingInfrastructureSpecification, travelTime,
 					driveConsumptionFactory, auxConsumptionFactory, EvConfigGroup.get(config));
 		}
