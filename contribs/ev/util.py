@@ -1,5 +1,5 @@
 import xml.etree.ElementTree as ET
-
+import numpy as np
 
 def get_link_ids(network_file):
     # Parse the network XML file
