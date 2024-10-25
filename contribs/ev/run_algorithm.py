@@ -20,8 +20,8 @@ argparser.add_argument('--alg_prefix', help='Prefix for your algorithm', default
 argparser.add_argument('--num_runs', help='The number of iterations your algorithm will run for', default=50, type=int)
 argparser.add_argument('--num_matsim_iters', help='The number of iterations the matsim simulator will run for', default=5, type=int)
 argparser.add_argument('--num_chargers', help='The number of chargers that will be placed on the network', type=int, default=10)
-argparser.add_argument('--min_ram', help='The minimum memory in gigs used by the program', type=int, required=True)
-argparser.add_argument('--max_ram', help='The maximum memory in gigs used by the program', type=int, required=True)
+argparser.add_argument('--min_ram', help='The minimum memory in gigs used by the program', type=int)
+argparser.add_argument('--max_ram', help='The maximum memory in gigs used by the program', type=int)
 
 
 args = argparser.parse_args()
@@ -64,8 +64,8 @@ algorithm_name = algorithm_name + str(num_exps+1)
 
 max_score = 0
 
-# Min and max memory allocation, as you can tell I was using a nice computer (64G of ram), you'll probably want to lower this
-os.environ['MAVEN_OPTS'] = f'-Xms{args.min_ram}g -Xmx{args.max_ram}g'
+if args.min_ram and args.max_ram:
+  os.environ['MAVEN_OPTS'] = f'-Xms{args.min_ram}g -Xmx{args.max_ram}g'
 
 for i in range(1, num_runs+1):
 
@@ -89,7 +89,7 @@ for i in range(1, num_runs+1):
   subprocess.run(['mvn','exec:java'])
   scores = pd.read_csv(os.path.join(args.output_path, 'scorestats.csv'), sep=';')
 
-  average_score = scores['avg_average'].iloc[-1]
+  average_score = scores['avg_executed'].iloc[-1]
   row = pd.DataFrame({'iteration':[i], 'avg_score':[average_score],'selected_links':[chosen_links.tolist()]})
 
   algorithm_results = pd.concat([algorithm_results, row], ignore_index=True)
@@ -97,7 +97,7 @@ for i in range(1, num_runs+1):
   #Save results every iteration in case something goes wrong
   algorithm_results.to_csv(os.path.join(csvs_path, f'{algorithm_name}_results.csv'), index=False)
 
-  plt.plot(algorithm_results['iteration'], algorithm_results['avg_score'])
+  plt.plot(algorithm_results['iteration'].values, algorithm_results['avg_score'].values)
   plt.xlabel('Iteration')
   plt.ylabel('AvgScore')
   plt.title(algorithm_name)
