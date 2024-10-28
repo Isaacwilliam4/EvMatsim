@@ -11,11 +11,26 @@ mvn clean install -DskipTests
 
 # Usage
 
+First you need to create a conda environment with the appropriate dependencies
+
+Linux
+```
+conda create -n matsimenv python=3.8
+conda activate matsimenv
+conda install pandas numpy matplotlib -y
+```
+Windows
+```
+conda create -n matsimenv python=3.8
+source activate matsimenv
+conda install pandas numpy matplotlib -y
+```
+
 The `monte_carlo_algorithm.py` serves as a basis on how to implement your own algorithm for optimizing the charger placement. The code is well commented so you can refer to it in order implement your own algorithm. But this will give you an understanding of the structure of the code and how it works.
 
 ```
 cd EvMatsim/contribs/ev
-python run_algorithm.py --config_path ./scenarios/tinytown/ev_tiny_town_config.xml --network_path ./scenarios/tinytown/tiny_town_network.xml --chargers_path ./scenarios/tinytown/tiny_town_chargers.xml --results_path ./python/algorithm_results --output_path ./scenarios/tinytown/output --alg_prefix mc --num_runs 50 --num_matsim_iters 5 --num_chargers 10
+python run_algorithm.py --config_path ./scenarios/tinytown/ev_tiny_town_config.xml --network_path ./scenarios/tinytown/tiny_town_network.xml --chargers_path ./scenarios/tinytown/tiny_town_chargers.xml --results_path ./python/algorithm_results --output_path ./scenarios/tinytown/output --alg_prefix mc --num_runs 10 --num_matsim_iters 5 --num_chargers 10
 ```
 The above script shows how to run the algorithm, make sure to change whatever params you need. You can run the following to see the help.
 ```
@@ -30,8 +45,8 @@ The MATsim simulator uses xml files to run the simulation and setup the configur
 
 The MATsim simulator works by simulating plans for agents specified in the `tiny_town_plans.xml` file. Each iteration each agent will keep a memory of $m$ length, here $m$ = 5, and run a greedy epsilon algorithm where $\epsilon=0.2$, meaning there is a 20% probability the agent will explore a new path, and an 80% probability the agent will select the path with the maximum utility score from its memory. The MATsim simulator will run for `NUM_MATSIM_ITERS` iterations trying to maximize the following function, from the MATsim book.
 
-![Utility Math1](./utilility_math1.png)
-![Utility Math2](./matsimmath2.png)
+![Utility Math1](./figs/utilility_math1.png)
+![Utility Math2](./figs/matsimmath2.png)
 
 To handle electric vehicles the utility has been modified to be 
 
