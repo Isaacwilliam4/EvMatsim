@@ -30,9 +30,9 @@ def main(station_data_folder, station_path, outputpath, year, scale_factor, name
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Process UDOT flow data and generate XML counts.")
-    parser.add_argument('station_data_folder', type=str, help="Path to the folder containing station data files.", required=True)
-    parser.add_argument('station_path', type=str, help="Path to the CSV file containing station information.", required=True)
-    parser.add_argument('outputpath', type=str, help="Path to save the generated XML file.", required=True)
+    parser.add_argument('station_data_folder', type=str, help="Path to the folder containing station data files.")
+    parser.add_argument('station_path', type=str, help="Path to the CSV file containing station information.")
+    parser.add_argument('outputpath', type=str, help="Path to save the generated XML file.")
     parser.add_argument('--year', type=int, default=2024, help="Year for the counts (default: 2024).")
     parser.add_argument('--scale_factor', type=int, default=10, help="Scale factor for counts (default: 10).")
     parser.add_argument('--name', type=str, default="default", help="Name for the counts (default: 'default').")

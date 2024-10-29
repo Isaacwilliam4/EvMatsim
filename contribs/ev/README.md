@@ -182,6 +182,16 @@ Once Via is open:
 Next, add the **Vehicle From Events** layer and click **Load Data**. You can adjust the simulation speed at the bottom right of the interface to see green agents moving throughout the day.
 
 
+# Creating the Counts XML
+
+Matsim lets you provide a counts xml to compare the simulation data against real observed data.
+
+
+```
+cd EvMatsim/contribs/ev
+python python/scripts/create_counts.py ./scenarios/utahev/udot_flow_data/ ./scenarios/utahev/station_data.csv ./scenarios/utahev/utahevcounts.xml 
+```
+
 ---
 
 # Important info
