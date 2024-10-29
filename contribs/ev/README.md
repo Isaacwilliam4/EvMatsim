@@ -53,3 +53,6 @@ To handle electric vehicles the utility has been modified to be
 $S_{plan}=\sum_{q=0}^{N-1}S_{act,q}+\sum_{q=0}^{N-1}(S_{trav,mode(q)}+100c)$
 
 Where $0\leq c \leq1$ is the state of charge of the battery for each agent.
+
+## UDOT data
+[link to udot data](https://udot.iteris-pems.com/?chart_x=47&report_form=1&dow_0=on&dow_1=on&dow_2=on&dow_3=on&dow_4=on&dow_5=on&dow_6=on&tod=all&tod_from=0&tod_to=0&holidays=on&agg=on&s_time_id=1729641600&e_time_id=1730066340&fwy=15&dir=N&county_id=49035&station_id=6008&dnode=VDS)
