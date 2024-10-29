@@ -1,172 +1,117 @@
 import subprocess
 import pandas as pd
 import xml.etree.ElementTree as ET
-import random
-import numpy as np
-import matplotlib.pyplot as plt
 import os
-from python.util import *
 import argparse
 import shutil
+import matplotlib.pyplot as plt
+from python.util import *
 
-argparser = argparse.ArgumentParser()
+def update_arguments(pom_file, new_argument):
+    # Parse the POM file
+    tree = ET.parse(pom_file)
+    root = tree.getroot()
 
-argparser.add_argument(
-    "--config_path",
-    help="The path to the matsim config.xml file",
-    required=True,
-    type=str,
-)
-argparser.add_argument(
-    "--network_path",
-    help="The path to the matsim network.xml file",
-    required=True,
-    type=str,
-)
-argparser.add_argument(
-    "--chargers_path",
-    help="The path to the matsim chargers.xml file",
-    required=True,
-    type=str,
-)
-argparser.add_argument(
-    "--results_path",
-    help="The path to the directory where your results will be saved",
-    required=True,
-    type=str,
-)
-argparser.add_argument(
-    "--output_path",
-    help="The path to the output directory created by matsim",
-    required=True,
-    type=str,
-)
-argparser.add_argument(
-    "--alg_prefix",
-    help="Prefix for your algorithm",
-    default="my_algorithm",
-    required=True,
-    type=str,
-)
-argparser.add_argument(
-    "--num_runs",
-    help="The number of iterations your algorithm will run for",
-    default=50,
-    type=int,
-)
-argparser.add_argument(
-    "--num_matsim_iters",
-    help="The number of iterations the matsim simulator will run for",
-    default=5,
-    type=int,
-)
-argparser.add_argument(
-    "--num_chargers",
-    help="The number of chargers that will be placed on the network",
-    type=int,
-    default=10,
-)
-argparser.add_argument(
-    "--min_ram", help="The minimum memory in gigs used by the program", type=int
-)
-argparser.add_argument(
-    "--max_ram", help="The maximum memory in gigs used by the program", type=int
-)
+    # Define the namespace
+    ns = {'maven': 'http://maven.apache.org/POM/4.0.0'}
 
+    # Find the <arguments> element
+    arguments_element = root.find('.//maven:arguments', ns)
 
-args = argparser.parse_args()
+    if arguments_element is not None:
+        # Clear existing arguments
+        arguments_element.clear()
+        
+        # Create new argument element
+        argument_element = ET.SubElement(arguments_element, 'argument')
+        argument_element.text = new_argument
+        
+        # Write changes back to the POM file
+        tree.write(pom_file, xml_declaration=True, encoding='utf-8')
+        print(f'Updated arguments to: {new_argument}')
+    else:
+        print('No <arguments> element found.')
 
-## The number of iterations your algorithm will go through
-num_runs = args.num_runs
+def main(args):
+    num_runs = args.num_runs
+    NUM_MATSIM_ITERS = args.num_matsim_iters
+    update_last_iteration(args.config_path, NUM_MATSIM_ITERS)
+    update_arguments(args.pomxml_path, args.config_path)
 
-## The number of matsim iterations the agents will try to optimize for DON'T CHANGE
-NUM_MATSIM_ITERS = args.num_matsim_iters
-update_last_iteration(args.config_path, NUM_MATSIM_ITERS)
+    algorithm_results = pd.DataFrame(columns=["iteration", "avg_score", "selected_links"])
+    link_ids = get_link_ids(args.network_path)
+    
+    if not os.path.isdir(args.results_path):
+        os.makedirs(args.results_path, exist_ok=False)
 
-algorithm_results = pd.DataFrame(columns=["iteration", "avg_score", "selected_links"])
+    csvs_path = os.path.join(args.results_path, "csvs")
+    figs_path = os.path.join(args.results_path, "figs")
+    
+    os.makedirs(csvs_path, exist_ok=True)
+    os.makedirs(figs_path, exist_ok=True)
 
-# Get the available link ids
-link_ids = get_link_ids(args.network_path)
+    algorithm_name = f"{args.alg_prefix}_runs{num_runs}_exp"
+    num_exps = sum(1 for filename in os.listdir(csvs_path) if algorithm_name in filename)
+    algorithm_name += str(num_exps + 1)
 
-# The number of chargers we will be placing DON'T CHANGE, so we can be consistent across different algorithms
-NUM_CHARGERS = 10
+    max_score = 0
 
-if not os.path.isdir(args.results_path):
-    os.makedirs(args.results_path, exist_ok=False)
+    if args.min_ram and args.max_ram:
+        os.environ["MAVEN_OPTS"] = f"-Xms{args.min_ram}g -Xmx{args.max_ram}g"
 
-csvs_path = os.path.join(args.results_path, "csvs")
-figs_path = os.path.join(args.results_path, "figs")
+    for i in range(1, num_runs + 1):
+        print_run_info(i, num_runs)
 
-if not os.path.isdir(csvs_path):
-    os.makedirs(csvs_path, exist_ok=False)
+        chosen_links = monte_carlo_algorithm(args.num_chargers, link_ids, algorithm_results)
+        create_chargers_xml(chosen_links, args.chargers_path)
 
-if not os.path.isdir(figs_path):
-    os.makedirs(figs_path, exist_ok=False)
+        subprocess.run(["mvn exec:java"], shell=True)
+        scores = pd.read_csv(os.path.join(args.output_path, "scorestats.csv"), sep=";")
 
+        average_score = scores["avg_executed"].iloc[-1]
+        row = pd.DataFrame({"iteration": [i], "avg_score": [average_score], "selected_links": [chosen_links.tolist()]})
+        algorithm_results = pd.concat([algorithm_results, row], ignore_index=True)
 
-algorithm_name = f"{args.alg_prefix}_runs{num_runs}_exp"
-num_exps = 0
-results_dir = os.listdir(csvs_path)
-for filename in results_dir:
-    if algorithm_name in filename:
-        num_exps += 1
-algorithm_name = algorithm_name + str(num_exps + 1)
+        # Save results every iteration
+        algorithm_results.to_csv(os.path.join(csvs_path, f"{algorithm_name}_results.csv"), index=False)
 
-max_score = 0
+        plt.plot(algorithm_results["iteration"], algorithm_results["avg_score"])
+        plt.xlabel("Iteration")
+        plt.ylabel("AvgScore")
+        plt.title(algorithm_name)
+        plt.savefig(os.path.join(figs_path, f"{algorithm_name}_plot.png"))
 
-if args.min_ram and args.max_ram:
-    os.environ["MAVEN_OPTS"] = f"-Xms{args.min_ram}g -Xmx{args.max_ram}g"
+        if average_score > max_score:
+            max_score = average_score
+            dest_dir = os.path.join(os.path.dirname(args.output_path), "bestoutput")
+            shutil.copytree(args.output_path, dest_dir, dirs_exist_ok=True)
 
-for i in range(1, num_runs + 1):
-
-    # Number of run display block
+def print_run_info(current_run, total_runs):
     RESET = "\033[0m"
     BOLD = "\033[1m"
     GREEN = "\033[32m"
-    YELLOW = "\033[33m"
     CYAN = "\033[36m"
 
     print(f"{CYAN}\n" + "#" * 62 + RESET)
     print(f"{BOLD}{GREEN}# {'RUN':^58} #{RESET}")
-    print(f"{BOLD}{GREEN}# {f'{i}/{num_runs}':^58} #{RESET}")
+    print(f"{BOLD}{GREEN}# {f'{current_run}/{total_runs}':^58} #{RESET}")
     print(f"{CYAN}#" * 62 + RESET + "\n")
 
-    # here the links are chosen randomly implement your own algorithm and reference it here
-    chosen_links = monte_carlo_algorithm(NUM_CHARGERS, link_ids, algorithm_results)
-    create_chargers_xml(chosen_links, args.chargers_path)
+if __name__ == "__main__":
+    argparser = argparse.ArgumentParser()
 
-    # run the matsim in java
-    subprocess.run(["mvn", "exec:java"], shell=True)
-    scores = pd.read_csv(os.path.join(args.output_path, "scorestats.csv"), sep=";")
+    argparser.add_argument("pomxml_path", type=str, help="Path to the pom.xml file that handles maven dependencies")
+    argparser.add_argument("config_path", type=str, help="Path to the matsim config.xml file")
+    argparser.add_argument("network_path", type=str, help="Path to the matsim network.xml file")
+    argparser.add_argument("chargers_path", type=str, help="Path to the matsim chargers.xml file")
+    argparser.add_argument("results_path", type=str, help="Directory where results will be saved")
+    argparser.add_argument("output_path", type=str, help="Path to the output directory created by matsim")
+    argparser.add_argument("--alg_prefix", required=True, default="my_algorithm", type=str, help="Prefix for your algorithm")
+    argparser.add_argument("--num_runs", default=50, type=int, help="Number of iterations for the algorithm")
+    argparser.add_argument("--num_matsim_iters", default=5, type=int, help="Number of iterations for the matsim simulator")
+    argparser.add_argument("--num_chargers", default=10, type=int, help="Number of chargers on the network")
+    argparser.add_argument("--min_ram", type=int, help="Minimum memory in gigs used by the program")
+    argparser.add_argument("--max_ram", type=int, help="Maximum memory in gigs used by the program")
 
-    average_score = scores["avg_executed"].iloc[-1]
-    row = pd.DataFrame(
-        {
-            "iteration": [i],
-            "avg_score": [average_score],
-            "selected_links": [chosen_links.tolist()],
-        }
-    )
-
-    algorithm_results = pd.concat([algorithm_results, row], ignore_index=True)
-
-    # Save results every iteration in case something goes wrong
-    algorithm_results.to_csv(
-        os.path.join(csvs_path, f"{algorithm_name}_results.csv"), index=False
-    )
-
-    plt.plot(
-        algorithm_results["iteration"].values, algorithm_results["avg_score"].values
-    )
-    plt.xlabel("Iteration")
-    plt.ylabel("AvgScore")
-    plt.title(algorithm_name)
-
-    # path for where your score/iteration figure will go
-    plt.savefig(os.path.join(figs_path, f"{algorithm_name}_plot.png"))
-
-    if average_score > max_score:
-        max_score = average_score
-        src_dir = args.output_path
-        dest_dir = os.path.join(os.path.dirname(src_dir), "bestoutput")
-        shutil.copytree(src_dir, dest_dir, dirs_exist_ok=True)
+    args = argparser.parse_args()
+    main(args)
