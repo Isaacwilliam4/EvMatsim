@@ -11,7 +11,7 @@ def create_vehicle_definitions(num_vehicles):
     })
 
     # Create the vehicle type
-    vehicle_type = ET.SubElement(root, "vehicleType", id="EV_5.0kWh")
+    vehicle_type = ET.SubElement(root, "vehicleType", id="EV_65.0kWh")
     
     # Add capacity
     ET.SubElement(vehicle_type, "capacity", seats="0", standingRoomInPersons="0")
