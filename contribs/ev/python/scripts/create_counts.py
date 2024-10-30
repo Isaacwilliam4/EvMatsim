@@ -9,7 +9,8 @@ def get_str(num):
     return str(int(num)).replace(',', '').replace('.0', '')
 
 def main(station_data_folder, station_path, outputpath, year, scale_factor, name, desc):
-    counts = ET.Element("counts", {"name": name, "desc": desc, "year": get_str(year), 'countsScaleFactor': get_str(scale_factor)})
+    
+    counts = ET.Element("counts", {"xmlns:xsi":"http://www.w3.org/2001/XMLSchema-instance", "xsi:noNamespaceSchemaLocation":"http://matsim.org/files/dtd/counts_v1.xsd", "name": name, "desc": desc, "year": get_str(year)})
 
     station_df = pd.read_csv(station_path)
     counts_data = []

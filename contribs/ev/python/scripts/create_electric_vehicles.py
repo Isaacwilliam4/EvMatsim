@@ -14,7 +14,7 @@ def create_vehicle_definitions(num_vehicles):
     vehicle_type = ET.SubElement(root, "vehicleType", id="EV_5.0kWh")
     
     # Add capacity
-    capacity = ET.SubElement(vehicle_type, "capacity", seats="0", standingRoomInPersons="0")
+    ET.SubElement(vehicle_type, "capacity", seats="0", standingRoomInPersons="0")
 
     # Add length and width
     ET.SubElement(vehicle_type, "length", meter="7.5")
@@ -26,7 +26,7 @@ def create_vehicle_definitions(num_vehicles):
     
     ET.SubElement(attributes, "attribute", name="HbefaTechnology", **{"class": "java.lang.String"}).text = "electricity"
     ET.SubElement(attributes, "attribute", name="chargerTypes", **{"class": "java.util.Collections$UnmodifiableCollection"}).text = '["default"]'
-    ET.SubElement(attributes, "attribute", name="energyCapacityInKWhOrLiters", **{"class": "java.lang.Double"}).text = "5.0"
+    ET.SubElement(attributes, "attribute", name="energyCapacityInKWhOrLiters", **{"class": "java.lang.Double"}).text = "65.0"
 
     # Add cost information (empty for now)
     ET.SubElement(vehicle_type, "costInformation")
@@ -38,7 +38,7 @@ def create_vehicle_definitions(num_vehicles):
 
     # Create vehicles with varying initial states of charge (SoC)
     for i in range(1, num_vehicles + 1):
-        vehicle = ET.SubElement(root, "vehicle", id=str(i), type="EV_5.0kWh")
+        vehicle = ET.SubElement(root, "vehicle", id=str(i), type="EV_65.0kWh")
         attributes = ET.SubElement(vehicle, "attributes")
         
         # Set initial SoC based on the vehicle ID
@@ -53,16 +53,21 @@ def save_xml(tree, output_file):
     # Save the XML to a file
     tree.write(output_file, encoding="UTF-8", xml_declaration=True)
 
+def main(num_vehicles, output_file):
+    # Create the XML tree
+    vehicle_definitions_tree = create_vehicle_definitions(num_vehicles)
+
+    # Save to the specified output file
+    save_xml(vehicle_definitions_tree, output_file)
+    print(f"Vehicle definitions XML file '{output_file}' generated with {num_vehicles} vehicles.")
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Generate MATSim vehicleDefinitions XML.")
-    parser.add_argument("--numvehicles", type=int, required=True, help="Number of vehicles to generate.")
-    parser.add_argument("--output", type=str, default="vehicle_definitions.xml", help="Output XML file name.")
+    
+    # Define positional arguments
+    parser.add_argument('numvehicles', type=int, help="Number of vehicles to generate.")
+    parser.add_argument('output', type=str, nargs='?', default="vehicle_definitions.xml", help="Output XML file name.")
 
     args = parser.parse_args()
 
-    # Create the XML tree
-    vehicle_definitions_tree = create_vehicle_definitions(args.numvehicles)
-
-    # Save to the specified output file
-    save_xml(vehicle_definitions_tree, args.output)
-    print(f"Vehicle definitions XML file '{args.output}' generated with {args.numvehicles} vehicles.")
+    main(args.numvehicles, args.output)

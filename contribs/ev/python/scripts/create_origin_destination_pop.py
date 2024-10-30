@@ -1,17 +1,7 @@
 import xml.etree.ElementTree as ET
 import random
-import argparse
 import os
-
-parser = argparse.ArgumentParser(description='Generate population and plans XML files')
-
-parser.add_argument('--input', type=str, help='Input matsim xml network', required=True)
-parser.add_argument('--output', type=str, help='Output path of plans network', required=True)
-parser.add_argument('--numagents', type=int, help='Number of agents to generate', required=True)
-
-
-args = parser.parse_args()
-
+import argparse
 
 def load_network_xml(network_file):
     # Parse the network XML file
@@ -52,18 +42,17 @@ def create_population_and_plans_xml(num_agents, node_coords, output_file_path):
         dest_node_id = random.choice(node_ids)
 
         origin_node = node_coords[origin_node_id]
-        dest_node_id = node_coords[dest_node_id]
+        dest_node = node_coords[dest_node_id]
 
         # Define the agent's activities and legs
         home_activity = ET.SubElement(plan, "act", type="h", 
                                       x=str(origin_node[0]), y=str(origin_node[1]), end_time="09:00:00")
         leg_to_work = ET.SubElement(plan, "leg", mode="car")
-        home_activity_2 = ET.SubElement(plan, "act", type="h", 
-                                        x=str(dest_node_id[0]), y=str(dest_node_id[1]), end_time="18:00:00")
+        work_activity = ET.SubElement(plan, "act", type="w", 
+                                      x=str(dest_node[0]), y=str(dest_node[1]), start_time="09:00:00", end_time="18:00:00")
         leg_to_home = ET.SubElement(plan, "leg", mode="car")
         return_home_act = ET.SubElement(plan, "act", type="h", 
-                                x=str(dest_node_id[1]), y=str(dest_node_id[0]))
-        
+                                        x=str(origin_node[0]), y=str(origin_node[1]))
 
     # Convert the ElementTree to a string
     tree = ET.ElementTree(plans)
@@ -77,5 +66,18 @@ def create_population_and_plans_xml(num_agents, node_coords, output_file_path):
         # Write the tree structure
         tree.write(f)
 
-node_coords = load_network_xml(os.path.abspath(args.input))
-create_population_and_plans_xml(args.numagents, node_coords, os.path.abspath(args.output))
+def main(input_file, output_file, num_agents):
+    node_coords = load_network_xml(os.path.abspath(input_file))
+    create_population_and_plans_xml(num_agents, node_coords, os.path.abspath(output_file))
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='Generate population and plans XML files')
+
+    # Define positional arguments
+    parser.add_argument('input', type=str, help='Input matsim xml network')
+    parser.add_argument('output', type=str, help='Output path of plans network')
+    parser.add_argument('numagents', type=int, help='Number of agents to generate')
+
+    args = parser.parse_args()
+
+    main(args.input, args.output, args.numagents)

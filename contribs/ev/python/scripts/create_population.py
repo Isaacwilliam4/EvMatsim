@@ -1,17 +1,7 @@
 import xml.etree.ElementTree as ET
 import random
-import argparse
 import os
-
-parser = argparse.ArgumentParser(description='Generate population and plans XML files')
-
-parser.add_argument('--input', type=str, help='Input matsim xml network', required=True)
-parser.add_argument('--output', type=str, help='Output path of plans network', required=True)
-parser.add_argument('--numagents', type=int, help='Number of agents to generate', required=True)
-
-
-args = parser.parse_args()
-
+import argparse
 
 def load_network_xml(network_file):
     # Parse the network XML file
@@ -76,5 +66,18 @@ def create_population_and_plans_xml(num_agents, node_coords, output_file_path):
         # Write the tree structure
         tree.write(f)
 
-node_coords = load_network_xml(os.path.abspath(args.input))
-create_population_and_plans_xml(args.numagents, node_coords, os.path.abspath(args.output))
+def main(input_file, output_file, num_agents):
+    node_coords = load_network_xml(os.path.abspath(input_file))
+    create_population_and_plans_xml(num_agents, node_coords, os.path.abspath(output_file))
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='Generate population and plans XML files')
+
+    # Define positional arguments
+    parser.add_argument('input', type=str, help='Input matsim xml network')
+    parser.add_argument('output', type=str, help='Output path of plans network')
+    parser.add_argument('numagents', type=int, help='Number of agents to generate')
+
+    args = parser.parse_args()
+
+    main(args.input, args.output, args.numagents)
