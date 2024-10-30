@@ -7,37 +7,10 @@ import shutil
 import matplotlib.pyplot as plt
 from python.util import *
 
-def update_arguments(pom_file, new_argument):
-    # Parse the POM file
-    tree = ET.parse(pom_file)
-    root = tree.getroot()
-
-    # Define the namespace
-    ns = {'maven': 'http://maven.apache.org/POM/4.0.0'}
-
-    # Find the <arguments> element
-    arguments_element = root.find('.//maven:arguments', ns)
-
-    if arguments_element is not None:
-        # Clear existing arguments
-        arguments_element.clear()
-        
-        # Create new argument element
-        argument_element = ET.SubElement(arguments_element, 'argument')
-        argument_element.text = new_argument
-        
-        # Write changes back to the POM file
-        tree.write(pom_file, xml_declaration=True, encoding='utf-8')
-        print(f'Updated arguments to: {new_argument}')
-    else:
-        print('No <arguments> element found.')
-
 def main(args):
     num_runs = args.num_runs
     NUM_MATSIM_ITERS = args.num_matsim_iters
     update_last_iteration(args.config_path, NUM_MATSIM_ITERS)
-    update_arguments(args.pomxml_path, args.config_path)
-
     algorithm_results = pd.DataFrame(columns=["iteration", "avg_score", "selected_links"])
     link_ids = get_link_ids(args.network_path)
     
@@ -100,7 +73,6 @@ def print_run_info(current_run, total_runs):
 if __name__ == "__main__":
     argparser = argparse.ArgumentParser()
 
-    argparser.add_argument("pomxml_path", type=str, help="Path to the pom.xml file that handles maven dependencies")
     argparser.add_argument("config_path", type=str, help="Path to the matsim config.xml file")
     argparser.add_argument("network_path", type=str, help="Path to the matsim network.xml file")
     argparser.add_argument("chargers_path", type=str, help="Path to the matsim chargers.xml file")

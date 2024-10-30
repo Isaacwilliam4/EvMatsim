@@ -19,7 +19,7 @@
 					<configuration>
 							<mainClass>org.matsim.contrib.ev.example.RunEvExampleWithEvScoring</mainClass>
 							<arguments>
-									<argument>./scenarios/tinytown/ev_tiny_town_config.xml</argument>
+									<argument>./scenarios/utahev/utahevconfig.xml</argument>
 							</arguments>
 					</configuration>
 			</plugin>
