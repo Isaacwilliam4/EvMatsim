@@ -12,11 +12,11 @@ import org.matsim.core.scoring.functions.ScoringParameters;
 import org.matsim.vehicles.Vehicle;
 
 
-public class EvScoringFunction extends org.matsim.core.scoring.functions.CharyparNagelLegScoring {
+public class EvLegScoringFunction extends org.matsim.core.scoring.functions.CharyparNagelLegScoring {
 	private Person person;
 	private final Map<Id<Vehicle>, ? extends ElectricVehicle> eVehicles;
 
-	public EvScoringFunction(Person person, ScoringParameters params, Network network, ElectricFleet fleet)
+	public EvLegScoringFunction(Person person, ScoringParameters params, Network network, ElectricFleet fleet)
 	{
 		super(params, network);
 		this.person = person;
