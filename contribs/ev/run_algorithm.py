@@ -112,7 +112,7 @@ for filename in results_dir:
         num_exps += 1
 algorithm_name = algorithm_name + str(num_exps + 1)
 
-max_score = 0
+max_score = -np.inf
 
 if args.min_ram and args.max_ram:
     os.environ["MAVEN_OPTS"] = f"-Xms{args.min_ram}g -Xmx{args.max_ram}g"
@@ -136,7 +136,7 @@ for i in range(1, num_runs + 1):
     create_chargers_xml(chosen_links, args.chargers_path)
 
     # run the matsim in java
-    subprocess.run(["mvn", "exec:java"], shell=True)
+    subprocess.run(["mvn exec:java"], shell=True)
     scores = pd.read_csv(os.path.join(args.output_path, "scorestats.csv"), sep=";")
 
     average_score = scores["avg_executed"].iloc[-1]
