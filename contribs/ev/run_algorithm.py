@@ -27,7 +27,7 @@ def main(args):
     num_exps = sum(1 for filename in os.listdir(csvs_path) if algorithm_name in filename)
     algorithm_name += str(num_exps + 1)
 
-    max_score = 0
+    max_score = -np.inf
 
     if args.min_ram and args.max_ram:
         os.environ["MAVEN_OPTS"] = f"-Xms{args.min_ram}g -Xmx{args.max_ram}g"

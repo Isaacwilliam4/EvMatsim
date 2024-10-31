@@ -32,7 +32,7 @@ public class EvScoringFunctionFactory implements ScoringFunctionFactory {
 	    //this is the main difference, since we need a special scoring for carsharing legs
 
 		scoringFunctionSum.addScoringFunction(
-	    new EvScoringFunction(person, params.getScoringParameters(person), this.scenario.getNetwork(), this.evFleet));
+	    new EvLegScoringFunction(person, params.getScoringParameters(person), this.scenario.getNetwork(), this.evFleet));
 		// scoringFunctionSum.addScoringFunction(
 		// 		new CharyparNagelLegScoring(
 		// 				params.getScoringParameters( person ),
@@ -44,6 +44,10 @@ public class EvScoringFunctionFactory implements ScoringFunctionFactory {
 				new CharyparNagelActivityScoring(
 						params.getScoringParameters(
 								person ) ) );
+		scoringFunctionSum.addScoringFunction(
+			new EvActivityScoringFunction(
+					params.getScoringParameters(
+							person ) ) );
 		scoringFunctionSum.addScoringFunction(
 				new CharyparNagelAgentStuckScoring(
 						params.getScoringParameters(
