@@ -90,11 +90,11 @@
 	<module name="strategy">
 		<param name="maxAgentPlanMemorySize" value="5" /> 
 
-		<param name="ModuleProbability_1" value="0.6" />
+		<param name="ModuleProbability_1" value="0.9" />
 		<param name="Module_1" value="BestScore" />
 
-		<param name="ModuleProbability_2" value="0.4" />
-		<param name="Module_2" value="ReRoute" />
+		<param name="ModuleProbability_2" value="0.1" />
+		<param name="Module_2" value="ReRoute"/>
 	</module>
 
 
