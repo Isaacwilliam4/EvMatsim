@@ -26,7 +26,7 @@ source activate matsimenv
 conda install pandas numpy matplotlib -y
 ```
 
-The `monte_carlo_algorithm.py` serves as a basis on how to implement your own algorithm for optimizing the charger placement. The code is well commented so you can refer to it in order implement your own algorithm. But this will give you an understanding of the structure of the code and how it works.
+The `run_algorithm.py` serves as a basis on how to implement your own algorithm for optimizing the charger placement. The code is well commented so you can refer to it in order implement your own algorithm. But this will give you an understanding of the structure of the code and how it works.
 
 ```
 cd EvMatsim/contribs/ev
@@ -39,7 +39,7 @@ python run_algorithm.py -h
 
 ## XML files
 
-The MATsim simulator uses xml files to run the simulation and setup the configurations. In `scenarios/tinytown` you'll see the following xml files. The `monte_carlo_algorithm.py` file automatically references these files and updates them according to your parameters.
+The MATsim simulator uses xml files to run the simulation and setup the configurations. In `scenarios/tinytown` you'll see the following xml files. The `run_algorithm.py` file automatically references these files and updates them according to your parameters.
 
 ## MATSim
 
