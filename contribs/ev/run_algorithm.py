@@ -7,6 +7,7 @@ import shutil
 import matplotlib.pyplot as plt
 from evsim.util import *
 from evsim.scripts.create_population import *
+from pathlib import Path
 
 def main(args):
     if args.num_agents:
@@ -60,7 +61,8 @@ def main(args):
 
         if average_score > max_score:
             max_score = average_score
-            dest_dir = os.path.join(os.path.dirname(args.output_path), "bestoutput")
+            output_path = Path(args.output_path)
+            dest_dir = os.path.join(os.path.join(output_path.parent), "bestoutput")
             shutil.copytree(args.output_path, dest_dir, dirs_exist_ok=True)
 
 def print_run_info(current_run, total_runs):
