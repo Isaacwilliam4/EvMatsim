@@ -26,11 +26,11 @@ source activate matsimenv
 conda install pandas numpy matplotlib -y
 ```
 
-The `monte_carlo_algorithm.py` serves as a basis on how to implement your own algorithm for optimizing the charger placement. The code is well commented so you can refer to it in order implement your own algorithm. But this will give you an understanding of the structure of the code and how it works.
+The `run_algorithm.py` serves as a basis on how to implement your own algorithm for optimizing the charger placement. The code is well commented so you can refer to it in order implement your own algorithm. But this will give you an understanding of the structure of the code and how it works.
 
 ```
 cd EvMatsim/contribs/ev
-python run_algorithm.py --config_path ./scenarios/tinytown/ev_tiny_town_config.xml --network_path ./scenarios/tinytown/tiny_town_network.xml --chargers_path ./scenarios/tinytown/tiny_town_chargers.xml --results_path ./python/algorithm_results --output_path ./scenarios/tinytown/output --alg_prefix mc --num_runs 10 --num_matsim_iters 5 --num_chargers 10
+python run_algorithm.py ./scenarios/utahev/utahevconfig.xml ./scenarios/utahev/utahevnetwork.xml ./scenarios/utahev/utahevplans.xml ./scenarios/utahev/utahevchargers.xml ./scenarios/utahev/results ./scenarios/utahev/output/ --alg_prefix counts --num_runs 1 --num_matsim_iters 1 --num_chargers 10 --min_ram 10 --max_ram 20
 ```
 The above script shows how to run the algorithm, make sure to change whatever params you need. You can run the following to see the help.
 ```
@@ -39,7 +39,7 @@ python run_algorithm.py -h
 
 ## XML files
 
-The MATsim simulator uses xml files to run the simulation and setup the configurations. In `scenarios/tinytown` you'll see the following xml files. The `monte_carlo_algorithm.py` file automatically references these files and updates them according to your parameters.
+The MATsim simulator uses xml files to run the simulation and setup the configurations. In `scenarios/tinytown` you'll see the following xml files. The `run_algorithm.py` file automatically references these files and updates them according to your parameters.
 
 ## MATSim
 
