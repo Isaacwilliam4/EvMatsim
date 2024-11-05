@@ -35,7 +35,7 @@
     <module name="controler">
         <param name="outputDirectory" value="./scenarios/utahev/output" />
         <param name="firstIteration" value="0" />
-        <param name="lastIteration" value="0" />
+        <param name="lastIteration" value="4" />
         <param name="eventsFileFormat" value="xml" />
         <param name="mobsim" value="qsim" />
     </module>
