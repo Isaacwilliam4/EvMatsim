@@ -5,15 +5,16 @@ import os
 import argparse
 import shutil
 import matplotlib.pyplot as plt
-from python.util import *
-from python.scripts.create_population import *
+from evsim.util import *
+from evsim.scripts.create_population import *
 
 def main(args):
-    node_coords = get_node_coords(args.network_path)
-    create_population_and_plans_xml(args.num_agents, node_coords, args.plans_path)
+    if args.num_agents:
+        node_coords = get_node_coords(args.network_path)
+        create_population_and_plans_xml(args.num_agents, node_coords, args.plans_path)
     num_runs = args.num_runs
     NUM_MATSIM_ITERS = args.num_matsim_iters
-    update_last_iteration(args.config_path, NUM_MATSIM_ITERS)
+    update_last_iteration(args.config_path, NUM_MATSIM_ITERS - 1)
     algorithm_results = pd.DataFrame(columns=["iteration", "avg_score", "selected_links"])
     link_ids = get_link_ids(args.network_path)
     
@@ -86,7 +87,7 @@ if __name__ == "__main__":
     argparser.add_argument("--alg_prefix", required=True, default="my_algorithm", type=str, help="Prefix for your algorithm")
     argparser.add_argument("--num_runs", default=50, type=int, help="Number of iterations for the algorithm")
     argparser.add_argument("--num_matsim_iters", default=5, type=int, help="Number of iterations for the matsim simulator")
-    argparser.add_argument("--num_agents", default=10, type=int, help="Number of agents on the network")
+    argparser.add_argument("--num_agents", type=int, help="Number of agents on the network")
     argparser.add_argument("--num_chargers", default=10, type=int, help="Number of chargers on the network")
     argparser.add_argument("--min_ram", type=int, help="Minimum memory in gigs used by the program")
     argparser.add_argument("--max_ram", type=int, help="Maximum memory in gigs used by the program")
