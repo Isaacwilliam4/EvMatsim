@@ -18,12 +18,14 @@
 
     <module name="counts">
         <param name="inputCountsFile" value="utahcounts.xml" />
+		<param name="writeCountsInterval" value="1" />
+        <param name="averageCountsOverIterations" value="1" />
     </module>
 
 	<module name="controler">
-		<param name="outputDirectory" value="./scenarios/utah/output" />
+		<param name="outputDirectory" value="./output" />
 		<param name="firstIteration" value="0" />
-		<param name="lastIteration" value="10" />
+		<param name="lastIteration" value="0" />
 	</module>
 
 	<module name="qsim">

@@ -6,8 +6,11 @@ import argparse
 import shutil
 import matplotlib.pyplot as plt
 from python.util import *
+from python.scripts.create_population import *
 
 def main(args):
+    node_coords = get_node_coords(args.network_path)
+    create_population_and_plans_xml(args.num_agents, node_coords, args.plans_path)
     num_runs = args.num_runs
     NUM_MATSIM_ITERS = args.num_matsim_iters
     update_last_iteration(args.config_path, NUM_MATSIM_ITERS)
@@ -38,7 +41,7 @@ def main(args):
         chosen_links = monte_carlo_algorithm(args.num_chargers, link_ids, algorithm_results)
         create_chargers_xml(chosen_links, args.chargers_path)
 
-        subprocess.run(["mvn exec:java"], shell=True)
+        subprocess.run([f"mvn exec:java -Dexec.args={os.path.abspath(args.config_path)}"], shell=True)
         scores = pd.read_csv(os.path.join(args.output_path, "scorestats.csv"), sep=";")
 
         average_score = scores["avg_executed"].iloc[-1]
@@ -75,12 +78,15 @@ if __name__ == "__main__":
 
     argparser.add_argument("config_path", type=str, help="Path to the matsim config.xml file")
     argparser.add_argument("network_path", type=str, help="Path to the matsim network.xml file")
-    argparser.add_argument("chargers_path", type=str, help="Path to the matsim chargers.xml file")
+    argparser.add_argument("plans_path", type=str, help="Path to the output plans.xml file")
+    argparser.add_argument("chargers_path", type=str, help="Path to the output matsim chargers.xml file")
     argparser.add_argument("results_path", type=str, help="Directory where results will be saved")
     argparser.add_argument("output_path", type=str, help="Path to the output directory created by matsim")
+
     argparser.add_argument("--alg_prefix", required=True, default="my_algorithm", type=str, help="Prefix for your algorithm")
     argparser.add_argument("--num_runs", default=50, type=int, help="Number of iterations for the algorithm")
     argparser.add_argument("--num_matsim_iters", default=5, type=int, help="Number of iterations for the matsim simulator")
+    argparser.add_argument("--num_agents", default=10, type=int, help="Number of agents on the network")
     argparser.add_argument("--num_chargers", default=10, type=int, help="Number of chargers on the network")
     argparser.add_argument("--min_ram", type=int, help="Minimum memory in gigs used by the program")
     argparser.add_argument("--max_ram", type=int, help="Maximum memory in gigs used by the program")
