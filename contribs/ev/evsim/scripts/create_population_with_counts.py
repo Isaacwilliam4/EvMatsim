@@ -3,7 +3,7 @@ import random
 import os
 import argparse
 import pandas as pd
-from ..util import get_str
+from ..util import *
 
 def get_node_coords(network_file):
     # Parse the network XML file
@@ -33,6 +33,7 @@ def create_population_and_plans_xml(alpha, node_coords, counts_path, output_file
 
     # List of node IDs to randomly select for activities
     node_ids = list(node_coords.keys())
+    person_ids = []
     person_count = 1
 
     for i, count in enumerate(counts):
@@ -44,6 +45,7 @@ def create_population_and_plans_xml(alpha, node_coords, counts_path, output_file
             origin_node = node_coords[origin_node_id]
             dest_node = node_coords[dest_node_id]
             person = ET.SubElement(plans, "person", id=str(person_count))
+            person_ids.append(person_count)
             person_count += 1
             plan = ET.SubElement(person, "plan", selected="yes")
             start_time = (i+1) % 24
@@ -55,6 +57,8 @@ def create_population_and_plans_xml(alpha, node_coords, counts_path, output_file
             work_activity = ET.SubElement(plan, "act", type="h", 
                                       x=str(dest_node[0]), y=str(dest_node[1]), start_time=start_time_str, end_time=end_time_str)
 
+    vehicle_tree = create_vehicle_definitions(person_ids)
+    save_xml(vehicle_tree, )
 
     # Convert the ElementTree to a string
     tree = ET.ElementTree(plans)
@@ -77,11 +81,12 @@ if __name__ == "__main__":
 
     # Define positional arguments
     parser.add_argument('input', type=str, help='Input matsim xml network')
-    parser.add_argument('countsinput', type=str, help='Counts file to use for creating population')
-    parser.add_argument('output', type=str, help='Output path of plans network')
+    parser.add_argument('counts_input', type=str, help='Counts file to use for creating population')
+    parser.add_argument('vehicles_output', type=str, help='Counts file to use for creating population')
+    parser.add_argument('plans_output', type=str, help='Output path of plans network')
     parser.add_argument('alpha', type=int, help='How much to mulitply population by based on the counts file')
 
 
     args = parser.parse_args()
 
-    main(args.input, args.countsinput, args.output, args.alpha)
+    main(args.input, args.countsinput, args.vehiclesoutput, args.plansoutput, args.alpha)

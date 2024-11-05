@@ -2,7 +2,7 @@ import argparse
 import xml.etree.ElementTree as ET
 import random
 
-def create_vehicle_definitions(num_vehicles):
+def create_vehicle_definitions(ids):
     # Create the root element with namespaces
     root = ET.Element("vehicleDefinitions", attrib={
         "xmlns": "http://www.matsim.org/files/dtd",
@@ -37,15 +37,15 @@ def create_vehicle_definitions(num_vehicles):
     ET.SubElement(vehicle_type, "flowEfficiencyFactor", factor="1.0")
 
     # Create vehicles with varying initial states of charge (SoC)
-    for i in range(1, num_vehicles + 1):
-        vehicle = ET.SubElement(root, "vehicle", id=str(i), type="EV_65.0kWh")
+    for id in ids:
+        vehicle = ET.SubElement(root, "vehicle", id=str(id), type="EV_65.0kWh")
         attributes = ET.SubElement(vehicle, "attributes")
         
-        # Set initial SoC based on the vehicle ID
-        soc = round(random.uniform(0.2, 0.8), 2)
+        # # Set initial SoC based on the vehicle ID
+        # soc = round(random.uniform(0.2, 0.8), 2)
 
         # Add the initialSoc attribute
-        ET.SubElement(attributes, "attribute", name="initialSoc", **{"class": "java.lang.Double"}).text = str(soc)
+        ET.SubElement(attributes, "attribute", name="initialSoc", **{"class": "java.lang.Double"}).text = str(1)
 
     return ET.ElementTree(root)
 
