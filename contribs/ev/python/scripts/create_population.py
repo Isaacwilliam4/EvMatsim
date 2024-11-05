@@ -3,7 +3,7 @@ import random
 import os
 import argparse
 
-def load_network_xml(network_file):
+def get_node_coords(network_file):
     # Parse the network XML file
     tree = ET.parse(network_file)
     root = tree.getroot()
@@ -38,21 +38,21 @@ def create_population_and_plans_xml(num_agents, node_coords, output_file_path):
         plan = ET.SubElement(person, "plan", selected="yes")
 
         # Randomly choose home and work nodes
-        home_node_id = random.choice(node_ids)
-        work_node_id = random.choice(node_ids)
+        origin_node_id = random.choice(node_ids)
+        dest_node_id = random.choice(node_ids)
 
-        home_node = node_coords[home_node_id]
-        work_node = node_coords[work_node_id]
+        origin_node = node_coords[origin_node_id]
+        dest_node = node_coords[dest_node_id]
 
         # Define the agent's activities and legs
         home_activity = ET.SubElement(plan, "act", type="h", 
-                                      x=str(home_node[0]), y=str(home_node[1]), end_time="08:00:00")
+                                      x=str(origin_node[0]), y=str(origin_node[1]), end_time="08:00:00")
         leg_to_work = ET.SubElement(plan, "leg", mode="car")
         work_activity = ET.SubElement(plan, "act", type="w", 
-                                      x=str(work_node[0]), y=str(work_node[1]), start_time="08:30:00", end_time="17:00:00")
+                                      x=str(dest_node[0]), y=str(dest_node[1]), start_time="08:00:00", end_time="17:00:00")
         leg_to_home = ET.SubElement(plan, "leg", mode="car")
-        home_activity_2 = ET.SubElement(plan, "act", type="h", 
-                                        x=str(home_node[0]), y=str(home_node[1]))
+        return_home_act = ET.SubElement(plan, "act", type="h", 
+                                        x=str(origin_node[0]), y=str(origin_node[1]))
 
     # Convert the ElementTree to a string
     tree = ET.ElementTree(plans)
@@ -67,7 +67,7 @@ def create_population_and_plans_xml(num_agents, node_coords, output_file_path):
         tree.write(f)
 
 def main(input_file, output_file, num_agents):
-    node_coords = load_network_xml(os.path.abspath(input_file))
+    node_coords = get_node_coords(os.path.abspath(input_file))
     create_population_and_plans_xml(num_agents, node_coords, os.path.abspath(output_file))
 
 if __name__ == "__main__":
