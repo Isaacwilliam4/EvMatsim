@@ -166,7 +166,7 @@ for i in range(args.explore_steps):
     print(f"\033[1m\033[32m# {f'{i+1}/{args.explore_steps}':^58} #\033[0m")
     print(f"\033[36m{'#' * 62}\033[0m\n")
     if len(explored_links) < NUM_CHARGERS:
-        break
+        explored_links = np.random.permutation(link_ids)
     chosen_links, explored_links = (
         explored_links[:NUM_CHARGERS],
         explored_links[NUM_CHARGERS:],

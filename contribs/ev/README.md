@@ -30,7 +30,7 @@ The `run_algorithm.py` serves as a basis on how to implement your own algorithm 
 
 ```
 cd EvMatsim/contribs/ev
-python run_algorithm.py --config_path ./scenarios/tinytown/ev_tiny_town_config.xml --network_path ./scenarios/tinytown/tiny_town_network.xml --chargers_path ./scenarios/tinytown/tiny_town_chargers.xml --results_path ./python/algorithm_results --output_path ./scenarios/tinytown/output --q_path ./scenarios/tinytown/Q.npz --explore_steps 10 --alg_prefix mc --num_runs 10 --num_matsim_iters 5 --num_chargers 10
+python run_algorithm.py --config_path ./scenarios/tinytown/ev_tiny_town_config.xml --network_path ./scenarios/tinytown/tiny_town_network.xml --chargers_path ./scenarios/tinytown/tiny_town_chargers.xml --results_path ./python/algorithm_results --output_path ./scenarios/tinytown/output --q_path ./scenarios/tinytown/Q.csv --explore_steps 10 --alg_prefix mc --num_runs 10 --num_matsim_iters 5 --num_chargers 10
 ```
 The above script shows how to run the algorithm, make sure to change whatever params you need. You can run the following to see the help.
 ```
