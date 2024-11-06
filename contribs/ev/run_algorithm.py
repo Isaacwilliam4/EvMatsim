@@ -147,14 +147,14 @@ for i in range(args.explore_steps):
     )
 
     create_chargers_xml(chosen_links, args.chargers_path)
-
     # Run matsim in Java
-    subprocess.run([f"mvn exec:java {os.path.abspath(args.config_path)}"], shell=True)
+    subprocess.run([f"mvn exec:java"], shell=True)
     scores = pd.read_csv(os.path.join(args.output_path, "scorestats.csv"), sep=";")
     average_score = scores["avg_executed"].iloc[-1]
 
     # Update Q values
     update_Q(Q, chosen_links, average_score)
+    save_Q(Q, args.q_path)
 
 # Main algorithm run loop
 for i in range(1, num_runs + 1):
@@ -171,12 +171,12 @@ for i in range(1, num_runs + 1):
     create_chargers_xml(chosen_links, args.chargers_path)
 
     # Run matsim in Java
-    subprocess.run(["mvn exec:java"], shell=True)
+    subprocess.run([f"mvn exec:java"], shell=True)
     scores = pd.read_csv(os.path.join(args.output_path, "scorestats.csv"), sep=";")
     average_score = scores["avg_executed"].iloc[-1]
 
     update_Q(Q, chosen_links, average_score)
-
+    save_Q(Q, args.q_path)
     # Record and save results
     row = pd.DataFrame(
         {
