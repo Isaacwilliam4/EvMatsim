@@ -1,4 +1,3 @@
-import subprocess
 import pandas as pd
 import xml.etree.ElementTree as ET
 import random
@@ -41,7 +40,7 @@ argparser.add_argument(
 )
 argparser.add_argument(
     "--q_path",
-    help="Path to q file containing dictionary hold link average reward, will be created if doesn't exist, should be .npz file",
+    help="Path to q file containing dataframe hold link average reward, will be created if doesn't exist, should be .csv file",
     required=True,
     type=str,
 )
@@ -78,22 +77,37 @@ argparser.add_argument("--min_ram", help="Minimum memory (GB) for program", type
 argparser.add_argument("--max_ram", help="Maximum memory (GB) for program", type=int)
 
 
-# Q dictionary update function
-def update_Q(Q, chosen_links, score):
+def update_Q(Q: pd.DataFrame, chosen_links, score):
+    # Set 'link_id' as the index for faster lookups
+    Q = Q.set_index("link_id")
+
     for link in chosen_links:
-        Q[link][1] = (Q[link][1] * Q[link][0] + score) / (
-            Q[link][0] + 1
-        )  # Update average score
-        Q[link][0] += 1  # Increment count for this link
+        if link in Q.index:
+            row = Q.loc[link]
+            avg_score = row["average_reward"]
+            count = row["count"]
+
+            new_score = ((avg_score * count) + score) / (count + 1)
+            count += 1
+
+            # Update the row with new values
+            Q.loc[link, "average_reward"] = new_score
+            Q.loc[link, "count"] = count
+        else:
+            raise KeyError(f"Link {link} not found in Q DataFrame")
+
+    # Reset the index if you need to work with the 'link_id' as a column again
+    Q = Q.reset_index()
+
+    return Q
 
 
-def save_Q(Q, q_path):
-    np.savez(os.path.abspath(q_path), Q=Q)
+def save_Q(Q: pd.DataFrame, q_path):
+    Q.to_csv(q_path, index=False)
 
 
 def load_Q(q_path):
-    npz_Q = np.load(q_path)
-    return npz_Q.Q
+    return pd.read_csv(q_path)
 
 
 # Parse arguments
@@ -102,12 +116,13 @@ args = argparser.parse_args()
 # Set up iteration and matsim configuration
 num_runs = args.num_runs
 NUM_MATSIM_ITERS = args.num_matsim_iters
-update_last_iteration(args.config_path, NUM_MATSIM_ITERS)
+update_last_iteration(args.config_path, NUM_MATSIM_ITERS - 1)
 
 algorithm_results = pd.DataFrame(columns=["iteration", "avg_score", "selected_links"])
 
 # Get available link IDs and setup for consistency
 link_ids = get_link_ids(args.network_path)
+
 NUM_CHARGERS = 10  # Constant for consistency across algorithms
 
 # Set up results directories
@@ -134,11 +149,22 @@ if os.path.exists(args.q_path):
     Q = load_Q(args.q_path)
 else:
     # Initialize Q dictionary: [count, average score]
-    Q = dict(zip(link_ids, [[0, 0] for _ in range(len(link_ids))]))
+    Q = pd.DataFrame(
+        {
+            "link_id": link_ids,
+            "average_reward": np.zeros_like(link_ids, dtype=float),
+            "count": np.zeros_like(link_ids, dtype=int),
+        }
+    )
 
 # Explore phase: random link selection without replacement
 explored_links = np.random.permutation(link_ids)
 for i in range(args.explore_steps):
+    # Display run status
+    print(f"\033[36m\n{'#' * 62}\033[0m")
+    print(f"\033[1m\033[32m# {'EXPLORATION':^58} #\033[0m")
+    print(f"\033[1m\033[32m# {f'{i+1}/{args.explore_steps}':^58} #\033[0m")
+    print(f"\033[36m{'#' * 62}\033[0m\n")
     if len(explored_links) < NUM_CHARGERS:
         break
     chosen_links, explored_links = (
@@ -148,12 +174,12 @@ for i in range(args.explore_steps):
 
     create_chargers_xml(chosen_links, args.chargers_path)
     # Run matsim in Java
-    subprocess.run([f"mvn exec:java"], shell=True)
+    os.system(f'mvn exec:java -Dexec.args="{args.config_path}"')
     scores = pd.read_csv(os.path.join(args.output_path, "scorestats.csv"), sep=";")
     average_score = scores["avg_executed"].iloc[-1]
 
     # Update Q values
-    update_Q(Q, chosen_links, average_score)
+    Q = update_Q(Q, chosen_links, average_score)
     save_Q(Q, args.q_path)
 
 # Main algorithm run loop
@@ -171,11 +197,11 @@ for i in range(1, num_runs + 1):
     create_chargers_xml(chosen_links, args.chargers_path)
 
     # Run matsim in Java
-    subprocess.run([f"mvn exec:java"], shell=True)
+    os.system(f'mvn exec:java -Dexec.args="{args.config_path}"')
     scores = pd.read_csv(os.path.join(args.output_path, "scorestats.csv"), sep=";")
     average_score = scores["avg_executed"].iloc[-1]
 
-    update_Q(Q, chosen_links, average_score)
+    Q = update_Q(Q, chosen_links, average_score)
     save_Q(Q, args.q_path)
     # Record and save results
     row = pd.DataFrame(
