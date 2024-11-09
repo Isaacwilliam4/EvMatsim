@@ -6,6 +6,7 @@
         <param name="chargeTimeStep" value="5" />
         <param name="chargersFile" value="utahevchargers.xml" />
         <param name="timeProfiles" value="true" />
+        <param name="transferFinalSoCToNextIteration" value="false" />
 	</module>
 
 	<module name="vehicles">
@@ -41,7 +42,7 @@
     </module>
 
     <module name="qsim">
-        
+        <param name="usePersonIdForMissingVehicleId" value="true" />
         <param name="startTime" value="00:00:00" />
         <param name="endTime" value="24:00:00" />
         <param name="simStarttimeInterpretation" value="onlyUseStarttime" />
