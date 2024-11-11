@@ -18,3 +18,4 @@ matsim/src/main/java/Doxyfile
 # ignore output directories:
 *output/
 *results/
+*.log
