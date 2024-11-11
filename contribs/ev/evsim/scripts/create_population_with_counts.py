@@ -88,7 +88,7 @@ if __name__ == "__main__":
     parser.add_argument('counts_input', type=str, help='Counts file to use for creating population')
     parser.add_argument('vehicles_output', type=str, help='Vehicle file used to create vehicles')
     parser.add_argument('plans_output', type=str, help='Output path of plans network')
-    parser.add_argument('alpha', type=int, help='How much to mulitply population by based on the counts file')
+    parser.add_argument('alpha', type=float, help='How much to mulitply population by based on the counts file')
     # parser.add_argument('beta', type=float, help='Percentage of population that owns electric vehicles')
 
     args = parser.parse_args()

@@ -36,7 +36,7 @@
     <module name="controler">
         <param name="outputDirectory" value="./scenarios/utahev/output" />
         <param name="firstIteration" value="0" />
-        <param name="lastIteration" value="4" />
+        <param name="lastIteration" value="49" />
         <param name="eventsFileFormat" value="xml" />
         <param name="mobsim" value="qsim" />
     </module>
@@ -46,8 +46,6 @@
         <param name="startTime" value="00:00:00" />
         <param name="endTime" value="24:00:00" />
         <param name="simStarttimeInterpretation" value="onlyUseStarttime" />
-
-
     </module>
 
     <module name="planCalcScore">
@@ -84,7 +82,7 @@
             <param name="openingTime" value="07:30:00" />
             <param name="closingTime" value="21:30:00" />
             <param name="typicalDurationScoreComputation" value="relative" />
-            <param name="scoringThisActivityAtAll" value="false" />
+            <param name="scoringThisActivityAtAll" value="true" />
 
         </parameterset>
 
