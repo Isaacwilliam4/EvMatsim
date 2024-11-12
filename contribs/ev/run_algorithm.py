@@ -82,6 +82,7 @@ def update_Q(Q: pd.DataFrame, chosen_links, score):
     Q = Q.set_index("link_id")
 
     for link in chosen_links:
+        link = int(link)
         if link in Q.index:
             row = Q.loc[link]
             avg_score = row["average_reward"]
