@@ -108,7 +108,11 @@ def main(args):
     for i in range(1, num_runs + 1):
         print_run_info(i, num_runs)
 
-        chosen_links = monte_carlo_algorithm(args.num_chargers, link_ids, algorithm_results)
+        if args.algorithm == "montecarlo":
+            chosen_links = monte_carlo_algorithm(args.num_chargers, link_ids, algorithm_results)
+        elif args.algorithm == "egreedy":
+            chosen_links = e_greedy(args.num_chargers, Q)
+
         create_chargers_xml(chosen_links, args.chargers_path)
 
         os.system(f'mvn -e exec:java -Dexec.args="{args.config_path}" > ./matsimrun.log')
@@ -120,13 +124,13 @@ def main(args):
         Q = update_Q(Q, chosen_links, average_score)
         save_Q(Q, args.q_path)
 
-        row = pd.DataFrame({"iteration": [i], "avg_score": [average_score], "selected_links": [chosen_links.tolist()]})
+        row = pd.DataFrame({"iteration": [i], "avg_score": [average_score], "selected_links": [chosen_links]})
         algorithm_results = pd.concat([algorithm_results, row], ignore_index=True)
 
         # Save results every iteration
         algorithm_results.to_csv(os.path.join(csvs_path, f"{algorithm_name}_results.csv"), index=False)
 
-        plt.plot(algorithm_results["iteration"], algorithm_results["avg_score"])
+        plt.plot(algorithm_results["iteration"].values, algorithm_results["avg_score"].values)
         plt.xlabel("Iteration")
         plt.ylabel("AvgScore")
         plt.title(algorithm_name)
@@ -160,7 +164,7 @@ if __name__ == "__main__":
     argparser.add_argument("output_path", type=str, help="Path to the output directory created by matsim")
     argparser.add_argument("q_path",help="Path to q file containing dataframe hold link average reward, \
                            will be created if doesn't exist, should be .csv file", type=str)
-    argparser.add_argument("--algorithm",help="Algorithm to use for optimization",choices=["montecarlo"],
+    argparser.add_argument("--algorithm",help="Algorithm to use for optimization",choices=["montecarlo","egreedy"],
                             default="montecarlo",type=str)
     argparser.add_argument("--explore_steps", help="Number of steps to explore", default=0, type=int)
     argparser.add_argument("--alg_prefix", required=True, default="my_algorithm", type=str, help="Prefix for your algorithm")

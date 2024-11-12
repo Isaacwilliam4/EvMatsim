@@ -24,7 +24,7 @@ def get_node_coords(network_file):
 
     return node_coords
 
-def create_population_and_plans_xml(alpha, node_coords, counts_path, output_file_path, vehicle_output_path):
+def create_population_and_plans_xml(alpha, beta, node_coords, counts_path, output_file_path, vehicle_output_path):
     counts_df = pd.read_csv(counts_path, sep='\t')
     counts = counts_df['Flow (Veh/Hour)'].values
 
@@ -57,7 +57,7 @@ def create_population_and_plans_xml(alpha, node_coords, counts_path, output_file
             work_activity = ET.SubElement(plan, "act", type="h", 
                                       x=str(dest_node[0]), y=str(dest_node[1]), start_time=start_time_str, end_time=end_time_str)
 
-    vehicle_tree = create_vehicle_definitions(person_ids)
+    vehicle_tree = create_vehicle_definitions(person_ids, beta)
     save_xml(vehicle_tree, vehicle_output_path)
 
     # Convert the ElementTree to a string
@@ -75,6 +75,7 @@ def create_population_and_plans_xml(alpha, node_coords, counts_path, output_file
 def main(args):
     node_coords = get_node_coords(os.path.abspath(args.network))
     create_population_and_plans_xml(args.alpha, 
+                                    args.beta,
                                     node_coords, 
                                     os.path.abspath(args.counts_input), 
                                     os.path.abspath(args.plans_output),
@@ -88,8 +89,8 @@ if __name__ == "__main__":
     parser.add_argument('counts_input', type=str, help='Counts file to use for creating population')
     parser.add_argument('vehicles_output', type=str, help='Vehicle file used to create vehicles')
     parser.add_argument('plans_output', type=str, help='Output path of plans network')
-    parser.add_argument('alpha', type=float, help='How much to mulitply population by based on the counts file')
-    # parser.add_argument('beta', type=float, help='Percentage of population that owns electric vehicles')
+    parser.add_argument('alpha', type=float, help='How much to mulitply population by based on the counts file', default=1)
+    parser.add_argument('beta', type=float, help='Percentage of population that charges at home', default=1)
 
     args = parser.parse_args()
 

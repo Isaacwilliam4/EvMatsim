@@ -23,7 +23,8 @@ def create_chargers_xml(link_ids, output_file_path):
 
     # Loop over the number of agents
     for i,id in enumerate(link_ids):
-        charger = ET.SubElement(chargers, "charger", id=str(i+1), link=id, plug_power="100.0", plug_count="5")
+
+        charger = ET.SubElement(chargers, "charger", id=str(i+1), link=str(id), plug_power="100.0", plug_count="5")
 
     # Convert the ElementTree to a string
     tree = ET.ElementTree(chargers)
@@ -65,11 +66,29 @@ def get_str(num):
         return num.replace(',', '').replace('.0', '')
     return str(int(num)).replace(',', '').replace('.0', '')
 
-def monte_carlo_algorithm(num_chargers, link_ids, algorithm_results):
-    return np.random.choice(link_ids, num_chargers)
+def monte_carlo_algorithm(num_chargers, link_ids, algorithm_results) -> list:
+    return np.random.choice(link_ids, num_chargers).tolist()
     
+def e_greedy(num_chargers, Q, epsilon=0.05) -> list:
+    links = Q['link_id'].values
+    rewards = Q['average_reward'].values
+    vals = zip(links, rewards)
+    vals = sorted(vals, key = lambda x : x[1])
+    chargers = []
 
-def create_vehicle_definitions(ids):
+    for _ in range(num_chargers):
+        if np.random.random() > epsilon:
+            chosen_val = vals.pop()
+            chargers.append(chosen_val[0])
+        else:
+            chosen_val = vals[np.random.randint(0, len(vals))]
+            chargers.append(chosen_val[0])
+            vals.remove(chosen_val)
+
+    return chargers
+
+
+def create_vehicle_definitions(ids, charge_home_percent):
     # Create the root element with namespaces
     root = ET.Element("vehicleDefinitions", attrib={
         "xmlns": "http://www.matsim.org/files/dtd",
@@ -112,7 +131,10 @@ def create_vehicle_definitions(ids):
         # soc = round(random.uniform(0.2, 0.8), 2)
 
         # Add the initialSoc attribute
-        ET.SubElement(attributes, "attribute", name="initialSoc", **{"class": "java.lang.Double"}).text = str(1)
+        if np.random.random() < charge_home_percent:
+            ET.SubElement(attributes, "attribute", name="initialSoc", **{"class": "java.lang.Double"}).text = str(1)
+        else:
+            ET.SubElement(attributes, "attribute", name="initialSoc", **{"class": "java.lang.Double"}).text = str(np.random.uniform(.1,.2))
 
     return ET.ElementTree(root)
 
