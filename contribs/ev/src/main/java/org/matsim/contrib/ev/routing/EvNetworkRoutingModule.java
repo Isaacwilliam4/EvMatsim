@@ -120,9 +120,9 @@ final class EvNetworkRoutingModule implements RoutingModule {
 					.stream()
 					.mapToDouble(Number::doubleValue)
 					.sum();
-			double charge = ev.getBattery().getCharge();
-			double capacity = charge * (0.8 + random.nextDouble() * 0.18);
-			double numberOfStops = Math.floor(estimatedOverallConsumption / capacity);
+			double charge = ev.getBattery().getCharge() * (0.8 + random.nextDouble() * 0.18);
+			 
+			double numberOfStops = Math.floor(estimatedOverallConsumption / charge);
 			if (numberOfStops < 1) {
 				return basicRoute;
 			} else {
@@ -130,9 +130,10 @@ final class EvNetworkRoutingModule implements RoutingModule {
 				double currentConsumption = 0;
 				for (Map.Entry<Link, Double> e : estimatedEnergyConsumption.entrySet()) {
 					currentConsumption += e.getValue();
-					if (currentConsumption > capacity) {
+					if (currentConsumption > charge) {
 						stopLocations.add(e.getKey());
 						currentConsumption = 0;
+						charge = ev.getBattery().getCapacity() * (0.8 + random.nextDouble() * 0.18);
 					}
 				}
 				List<PlanElement> stagedRoute = new ArrayList<>();
