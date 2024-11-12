@@ -39,7 +39,7 @@ def create_population_and_plans_xml(alpha, node_coords, counts_path, output_file
     for i, count in enumerate(counts):
         count = int(get_str(count))
 
-        for j in range(count*alpha):
+        for j in range(int(count*alpha)):
             origin_node_id = random.choice(node_ids)
             dest_node_id = random.choice(node_ids)
             origin_node = node_coords[origin_node_id]
