@@ -14,7 +14,6 @@ def update_Q(Q: pd.DataFrame, chosen_links, score):
     Q = Q.set_index("link_id")
 
     for link in chosen_links:
-        link = int(link)
         if link in Q.index:
             row = Q.loc[link]
             avg_score = row["average_reward"]
@@ -27,7 +26,7 @@ def update_Q(Q: pd.DataFrame, chosen_links, score):
             Q.loc[link, "average_reward"] = new_score
             Q.loc[link, "count"] = count
         else:
-            print(f"\n\n\n\ Link {link} not found in Q DataFrame \n\n\n")
+            print(f"\n\n\n Link {link} not found in Q DataFrame \n\n\n")
 
     # Reset the index if you need to work with the 'link_id' as a column again
     Q = Q.reset_index()

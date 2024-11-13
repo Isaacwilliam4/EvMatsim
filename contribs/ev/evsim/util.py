@@ -15,7 +15,7 @@ def get_link_ids(network_file):
         link_ids.append(link_id)
 
 
-    return np.array(link_ids)
+    return np.array(link_ids).astype(int)
 
 def create_chargers_xml(link_ids, output_file_path):
     # Create the root element for the plans
