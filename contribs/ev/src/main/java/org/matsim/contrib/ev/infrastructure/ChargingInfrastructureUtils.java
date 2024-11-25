@@ -52,8 +52,18 @@ public class ChargingInfrastructureUtils{
 		var chargers = infrastructureSpecification.getChargerSpecifications()
 				.values()
 				.stream()
-				.map(s -> new ChargerDefaultImpl(s, linkProvider.apply(s.getLinkId() ), chargingLogicFactory.create(s )) )
-				.collect(ImmutableMap.toImmutableMap(Charger::getId, c -> (Charger)c));
+				.map(s -> {
+					// Determine the charger type and create the appropriate implementation
+					if ("default".equals(s.getChargerType())) {
+						return new ChargerDefaultImpl(s, linkProvider.apply(s.getLinkId()), chargingLogicFactory.create(s));
+					} else if ("dynamic".equals(s.getChargerType())) {
+						return new DynamicChargerImpl(s, linkProvider.apply(s.getLinkId()), chargingLogicFactory.create(s));
+					} else {
+						throw new IllegalArgumentException("Unknown charger type: " + s.getChargerType());
+					}
+				})
+				.collect(ImmutableMap.toImmutableMap(Charger::getId, c -> (Charger) c));
+		
 		return () -> chargers;
 	}
 
