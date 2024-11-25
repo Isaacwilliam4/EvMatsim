@@ -25,7 +25,10 @@ def create_chargers_xml(num_chargers, link_ids, output_file_path):
     # Loop to create the specified number of chargers
     for i in range(1, num_chargers + 1):
         link_id = random.choice(link_ids)
-        charger = ET.SubElement(chargers, "charger", id=str(i), link=link_id, plug_power="100.0", plug_count="5")
+        if random.random() < .5:
+            charger = ET.SubElement(chargers, "charger", id=str(i), link=link_id, plug_power="100.0", plug_count="5")
+        else:
+            charger = ET.SubElement(chargers, "charger", id=str(i), link=link_id, plug_power="100.0", plug_count="5", type="dynamic")
 
     # Convert the ElementTree to a string
     tree = ET.ElementTree(chargers)

@@ -35,6 +35,9 @@ import com.google.inject.Provider;
 public class ChargingModule extends AbstractModule {
 	@Override
 	public void install() {
+		// bind(ChargingLogic.Factory.class).toProvider(new Provider<>() {
+
+		// }).asEagerSingleton();
 		// The following returns a charging logic for a given charger specification.  Needs to be a provider, since the eventsManager needs to be inserted.
 		bind(ChargingLogic.Factory.class).toProvider(new Provider<>() {
 			@Inject private EventsManager eventsManager;

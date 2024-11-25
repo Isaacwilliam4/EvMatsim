@@ -4,7 +4,6 @@ import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.events.Event;
 import org.matsim.api.core.v01.events.GenericEvent;
 import org.matsim.api.core.v01.network.Link;
-import org.matsim.contrib.ev.infrastructure.Charger;
 import org.matsim.vehicles.Vehicle;
 
 import java.util.Map;

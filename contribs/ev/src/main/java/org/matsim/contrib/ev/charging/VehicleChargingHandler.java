@@ -57,6 +57,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 /**
  * This is an events based approach to trigger vehicle charging. Vehicles will be charged as soon as a person begins a charging activity.
@@ -65,7 +66,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * (It may work together, but that would need to be tested. kai based on michal, dec'22)
  */
 public class VehicleChargingHandler
-		implements ActivityStartEventHandler, ActivityEndEventHandler, PersonLeavesVehicleEventHandler, QueuedAtChargerEventHandler, ChargingStartEventHandler,
+		implements ChangeLinkEventHandler, ActivityStartEventHandler, ActivityEndEventHandler, PersonLeavesVehicleEventHandler, QueuedAtChargerEventHandler, ChargingStartEventHandler,
 		ChargingEndEventHandler, QuitQueueAtChargerEventHandler,
 	MobsimBeforeSimStepListener, MobsimScopeEventHandler {
 
@@ -85,6 +86,7 @@ public class VehicleChargingHandler
 	private final ElectricFleet electricFleet;
 	private final ImmutableListMultimap<Id<Link>, Charger> chargersAtLinks;
 	private final EvConfigGroup evCfg;
+	private final ImmutableListMultimap<Id<Link>, Charger> dynamicChargers;
 
 	@Inject
 	VehicleChargingHandler(ChargingInfrastructure chargingInfrastructure, ElectricFleet electricFleet, EvConfigGroup evConfigGroup) {
@@ -92,6 +94,14 @@ public class VehicleChargingHandler
 		this.electricFleet = electricFleet;
 		this.evCfg = evConfigGroup;
 		chargersAtLinks = ChargingInfrastructureUtils.getChargersAtLinks(chargingInfrastructure );
+		this.dynamicChargers = chargersAtLinks
+			.entries()
+			.stream()
+			.filter(entry -> "dynamic".equals(entry.getValue().getChargerType()))
+			.collect(ImmutableListMultimap.toImmutableListMultimap(
+				Map.Entry::getKey,
+				Map.Entry::getValue
+			));
 	}
 
 	/**
@@ -220,5 +230,35 @@ public class VehicleChargingHandler
 		if (lastDriver.get(vehicleId) != null) {
 			agentsInChargerQueue.remove(lastDriver.get(vehicleId));
 		} // else this vehicle is driven by a DynAgent (who did not leave the vehicle for charging)
+	}
+
+	@Override
+	public void handleEvent(ChangeLinkEvent event) {
+		Id<Link> oldLinkId = event.getOldLinkId();
+		Id<Link> currentLinkId = event.getCurrentLinkId();
+		boolean oldLinkIsDynamicCharger = dynamicChargers.containsKey(oldLinkId);
+		boolean currentLinkIsDynamicCharger = dynamicChargers.containsKey(currentLinkId);
+
+		if (oldLinkIsDynamicCharger ^ currentLinkIsDynamicCharger){
+			if (oldLinkIsDynamicCharger){
+				vehiclesAtChargers.remove(event.getVehicleId());
+			}
+			else {
+				Id<Vehicle> vehicleId = event.getVehicleId();
+				if (vehicleId != null) {
+					Id<Vehicle> evId = Id.create(vehicleId, Vehicle.class);
+					if (electricFleet.getElectricVehicles().containsKey(evId)) {
+						ElectricVehicle ev = electricFleet.getElectricVehicles().get(evId);
+						List<Charger> chargers = chargersAtLinks.get(currentLinkId);
+						Charger c = chargers.stream()
+								.filter(ch -> ev.getChargerTypes().contains(ch.getChargerType()))
+								.findAny()
+								.get();
+						c.getLogic().addVehicle(ev, event.getTime());
+						vehiclesAtChargers.put(evId, c.getId());
+					}
+				}
+			}
+		}
 	}
 }
