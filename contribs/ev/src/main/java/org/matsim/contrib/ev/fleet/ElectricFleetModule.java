@@ -72,6 +72,18 @@ public final class ElectricFleetModule extends AbstractModule {
 						}
 					});
 				}
+				else {
+					addQSimComponentBinding(EvModule.EV_COMPONENT).toInstance(new MobsimBeforeCleanupListener() {
+						@Inject private ElectricFleetSpecification electricFleetSpecification;
+						@Inject private ElectricFleet electricFleet;
+						@Override public void notifyMobsimBeforeCleanup(MobsimBeforeCleanupEvent e) {
+							for (var oldSpec : electricFleetSpecification.getVehicleSpecifications().values()) {
+								double initialSoc = electricFleet.getElectricVehicles().get(oldSpec.getId()).getVehicleSpecification().getInitialCharge();
+								electricFleet.getElectricVehicles().get(oldSpec.getId()).getBattery().setCharge(initialSoc);
+							}
+						}
+					});
+				}
 			}
 		});
 	}

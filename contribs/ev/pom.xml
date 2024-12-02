@@ -18,9 +18,6 @@
 					<version>3.0.0</version>
 					<configuration>
 							<mainClass>org.matsim.contrib.ev.example.RunEvExampleWithEvScoring</mainClass>
-							<arguments>
-									<argument>./scenarios/tinytown/ev_tiny_town_config.xml</argument>
-							</arguments>
 					</configuration>
 			</plugin>
 		</plugins>

@@ -80,11 +80,16 @@ public final class ChargingProceduresCSVWriter implements IterationEndsListener 
 
 			double waitStartTime = Double.NaN;
 			double waitEndTime = Double.NaN;
-
-			if (sequence.getQueuedAtCharger().isPresent()) {
-				waitStartTime = sequence.getQueuedAtCharger().get().getTime();
-				waitEndTime = sequence.getQuitQueueAtChargerEvent().isPresent() ?
-					sequence.getQuitQueueAtChargerEvent().get().getTime() : sequence.getChargingStart().get().getTime();
+			//TODO : Something in the condition below causes a no value present error
+			if (sequence.getQuitQueueAtChargerEvent().isPresent()) {
+				waitEndTime = sequence.getQuitQueueAtChargerEvent().get().getTime();
+			} else if (sequence.getChargingStart().isPresent()) {
+				waitEndTime = sequence.getChargingStart().get().getTime();
+			} else {
+				// Handle the case where both events are absent
+				// For example, log a warning or set a default value
+				waitEndTime = Double.NaN;
+				System.err.println("Warning: No quit queue or charging start event found for sequence " + sequence);
 			}
 
 			double startEnergy = Double.NaN;

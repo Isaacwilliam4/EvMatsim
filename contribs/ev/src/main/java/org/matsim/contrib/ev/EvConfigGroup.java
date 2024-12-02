@@ -71,6 +71,14 @@ public final class EvConfigGroup extends ReflectiveConfigGroup {
 	@Positive
 	public int numberOfIndividualTimeProfiles = 50;
 
+	@Parameter
+	@Comment("The disutility for spending time at a charger, total disutility = chargingDisutility*chargingTimeInSeconds")
+	public double chargingDisutility = -0.01;
+
+	@Parameter
+	@Comment("The utility for having high state of charge, total utility = socUtility * soc, where 0 <= soc <= 1")
+	public double socUtility = 100;
+
 	/**
 	 * @deprecated -- please avoid booleans in config.  Change to enum.  kai, apr'23
 	 */
