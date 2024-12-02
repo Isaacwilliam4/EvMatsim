@@ -1,20 +1,27 @@
 package org.matsim.contrib.ev.scoring;
 
 import org.matsim.api.core.v01.population.Activity;
+import org.matsim.contrib.ev.EvConfigGroup;
 import org.matsim.core.scoring.functions.ActivityTypeOpeningIntervalCalculator;
 import org.matsim.core.scoring.functions.ActivityUtilityParameters;
 import org.matsim.core.scoring.functions.OpeningIntervalCalculator;
-import org.matsim.core.utils.misc.OptionalTime;
+import org.matsim.core.config.Config;
+import com.google.inject.Inject;
+
 import org.matsim.core.scoring.functions.ScoringParameters;
 
 public class EvActivityScoringFunction implements org.matsim.core.scoring.SumScoringFunction.ActivityScoring {
+	private EvConfigGroup evCfg;
+
 	private static final double INITIAL_SCORE = 0.0;
     private final ScoringParameters params;
     private final OpeningIntervalCalculator openingIntervalCalculator;
 	private Activity firstActivity;
     private final Score score = new Score();
 
-    public EvActivityScoringFunction(final ScoringParameters params) {
+    @Inject
+    public EvActivityScoringFunction(final ScoringParameters params, EvConfigGroup config) {
+        this.evCfg = config;
         this.params = params;
         this.openingIntervalCalculator = new ActivityTypeOpeningIntervalCalculator(params);
     }
@@ -65,7 +72,7 @@ public class EvActivityScoringFunction implements org.matsim.core.scoring.SumSco
 
 		if (actParams.isScoreAtAll() && actParams.getType().endsWith("charging interaction")) {
             // Add a disutility for charging
-            tmpScore.actCharging_util += (departureTime - arrivalTime)*(-0.01);
+            tmpScore.actCharging_util += (departureTime - arrivalTime)*evCfg.chargingDisutility;
 			
 		}
 		return tmpScore;

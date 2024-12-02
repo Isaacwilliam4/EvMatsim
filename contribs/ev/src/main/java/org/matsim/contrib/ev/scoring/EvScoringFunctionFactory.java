@@ -1,6 +1,7 @@
 package org.matsim.contrib.ev.scoring;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.Person;
+import org.matsim.contrib.ev.EvConfigGroup;
 import org.matsim.contrib.ev.fleet.ElectricFleet;
 import org.matsim.core.scoring.ScoringFunction;
 import org.matsim.core.scoring.ScoringFunctionFactory;
@@ -18,11 +19,13 @@ public class EvScoringFunctionFactory implements ScoringFunctionFactory {
 	private final Scenario scenario;
 	private final ScoringParametersForPerson params;
 	private final ElectricFleet evFleet;
+	private final EvConfigGroup evCfg;
 	@Inject
-	EvScoringFunctionFactory( final Scenario sc, final ElectricFleet electricFleet) {
+	EvScoringFunctionFactory( final Scenario sc, final ElectricFleet electricFleet, final EvConfigGroup evCfg) {
 		this.scenario = sc;
 		this.params = new SubpopulationScoringParameters( sc );
 		this.evFleet = electricFleet;
+		this.evCfg = evCfg;
 	}
 
 
@@ -32,7 +35,7 @@ public class EvScoringFunctionFactory implements ScoringFunctionFactory {
 	    //this is the main difference, since we need a special scoring for carsharing legs
 
 		scoringFunctionSum.addScoringFunction(
-	    new EvLegScoringFunction(person, params.getScoringParameters(person), this.scenario.getNetwork(), this.evFleet));
+	    new EvLegScoringFunction(person, params.getScoringParameters(person), this.scenario.getNetwork(), this.evFleet, this.evCfg));
 		// scoringFunctionSum.addScoringFunction(
 		// 		new CharyparNagelLegScoring(
 		// 				params.getScoringParameters( person ),
@@ -47,7 +50,7 @@ public class EvScoringFunctionFactory implements ScoringFunctionFactory {
 		scoringFunctionSum.addScoringFunction(
 			new EvActivityScoringFunction(
 					params.getScoringParameters(
-							person ) ) );
+							person ), evCfg ) );
 		scoringFunctionSum.addScoringFunction(
 				new CharyparNagelAgentStuckScoring(
 						params.getScoringParameters(
