@@ -16,7 +16,7 @@ def update_Q(Q: pd.DataFrame, chosen_links, score):
     for link in chosen_links:
         if link in Q.index:
             row = Q.loc[link]
-            avg_score = row["average_reward"]
+            avg_score = 0 if row['average_reward'] == -9999 else row["average_reward"]
             count = row["count"]
 
             new_score = ((avg_score * count) + score) / (count + 1)
@@ -74,7 +74,7 @@ def main(args):
         Q = pd.DataFrame(
             {
                 "link_id": link_ids,
-                "average_reward": np.full(len(link_ids), -np.inf),
+                "average_reward": np.full(len(link_ids), -9999),
                 "count": np.zeros_like(link_ids, dtype=int),
             }
         )
