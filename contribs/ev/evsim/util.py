@@ -66,7 +66,7 @@ def get_str(num):
         return num.replace(',', '').replace('.0', '')
     return str(int(num)).replace(',', '').replace('.0', '')
 
-def monte_carlo_algorithm(num_chargers, link_ids, algorithm_results) -> list:
+def monte_carlo_algorithm(num_chargers, link_ids) -> list:
     return np.random.choice(link_ids, num_chargers).tolist()
     
 def e_greedy(num_chargers, Q, epsilon=0.05) -> list:

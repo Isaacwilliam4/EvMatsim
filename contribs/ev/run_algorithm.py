@@ -40,6 +40,23 @@ def save_Q(Q: pd.DataFrame, q_path):
 def load_Q(q_path):
     return pd.read_csv(q_path)
 
+def update_csv_and_fig(algorithm_results_path,
+                       iteration, 
+                       algorithm_name, 
+                       average_score, 
+                       chosen_links, 
+                       figs_path):
+
+
+    algorithm_results = pd.read_csv(algorithm_results_path)
+    row = pd.DataFrame({"iteration": [iteration], "avg_score": [average_score], "selected_links": [chosen_links]})
+    algorithm_results = pd.concat([algorithm_results, row], ignore_index=True)
+    algorithm_results.to_csv(algorithm_results_path, index=False)
+    plt.plot(algorithm_results["iteration"].values, algorithm_results["avg_score"].values)
+    plt.xlabel("Iteration")
+    plt.ylabel("AvgScore")
+    plt.title(algorithm_name)
+    plt.savefig(os.path.join(figs_path, f"{algorithm_name}_plot.png"))
 
 def main(args):
     if args.num_agents:
@@ -47,7 +64,6 @@ def main(args):
         create_population_and_plans_xml(args.num_agents, node_coords, args.plans_path)
     num_runs = args.num_runs
     update_last_iteration(args.config_path, args.num_matsim_iters - 1)
-    algorithm_results = pd.DataFrame(columns=["iteration", "avg_score", "selected_links"])
     link_ids = get_link_ids(args.network_path)
     
     if not os.path.isdir(args.results_path):
@@ -62,6 +78,10 @@ def main(args):
     algorithm_name = f"{args.alg_prefix}_runs{num_runs}_exp"
     num_exps = sum(1 for filename in os.listdir(csvs_path) if algorithm_name in filename)
     algorithm_name += str(num_exps + 1)
+
+    algorithm_results_path = os.path.join(csvs_path, f'{algorithm_name}_results.csv')
+    algorithm_results = pd.DataFrame({'iteration':[], 'avg_score':[], "selected_links":[]})
+    algorithm_results.to_csv(algorithm_results_path, index=False)
 
     max_score = -np.inf
 
@@ -79,6 +99,7 @@ def main(args):
             }
         )
 
+    total_iterations = 0
     # Explore phase: random link selection without replacement
     explored_links = np.random.permutation(link_ids)
     for i in range(args.explore_steps):
@@ -104,11 +125,21 @@ def main(args):
         Q = update_Q(Q, chosen_links, average_score)
         save_Q(Q, args.q_path)
 
+        update_csv_and_fig(algorithm_results_path,
+                    total_iterations, 
+                    algorithm_name, 
+                    average_score, 
+                    chosen_links, 
+                    figs_path)
+        
+        total_iterations += 1
+
+
     for i in range(1, num_runs + 1):
         print_run_info(i, num_runs)
 
         if args.algorithm == "montecarlo":
-            chosen_links = monte_carlo_algorithm(args.num_chargers, link_ids, algorithm_results)
+            chosen_links = monte_carlo_algorithm(args.num_chargers, link_ids)
         elif args.algorithm == "egreedy":
             chosen_links = e_greedy(args.num_chargers, Q)
 
@@ -123,17 +154,14 @@ def main(args):
         Q = update_Q(Q, chosen_links, average_score)
         save_Q(Q, args.q_path)
 
-        row = pd.DataFrame({"iteration": [i], "avg_score": [average_score], "selected_links": [chosen_links]})
-        algorithm_results = pd.concat([algorithm_results, row], ignore_index=True)
-
-        # Save results every iteration
-        algorithm_results.to_csv(os.path.join(csvs_path, f"{algorithm_name}_results.csv"), index=False)
-
-        plt.plot(algorithm_results["iteration"].values, algorithm_results["avg_score"].values)
-        plt.xlabel("Iteration")
-        plt.ylabel("AvgScore")
-        plt.title(algorithm_name)
-        plt.savefig(os.path.join(figs_path, f"{algorithm_name}_plot.png"))
+        update_csv_and_fig(algorithm_results_path,
+                    total_iterations, 
+                    algorithm_name, 
+                    average_score, 
+                    chosen_links, 
+                    figs_path)
+        
+        total_iterations += 1
 
         if average_score > max_score:
             max_score = average_score
