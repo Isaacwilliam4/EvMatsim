@@ -16,6 +16,8 @@ matsim/src/main/java/Doxyfile
 .vscode
 
 # ignore output directories:
-*output/
+*output*/
 *results/
 *.log
+
+*Q.csv*
