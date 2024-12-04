@@ -32,3 +32,4 @@ signals/**/*.bbl
 signals/**/*.blg
 signals/**/*.bak
 
+*scenarios/
