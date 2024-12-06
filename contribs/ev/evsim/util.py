@@ -87,6 +87,12 @@ def e_greedy(num_chargers, Q, epsilon=0.05) -> list:
 
     return chargers
 
+def thompson_sampling(num_chargers, Q):
+    sampled_probs = np.random.beta(Q["success_count"], Q["failure_count"])
+    print(sampled_probs)
+    chosen_indices = np.argsort(sampled_probs)[-num_chargers:]  # Top `num_chargers` probabilities
+    return Q.loc[chosen_indices, "link_id"].values
+
 
 def create_vehicle_definitions(ids, charge_home_percent):
     # Create the root element with namespaces
