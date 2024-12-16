@@ -79,6 +79,9 @@ final class EvNetworkRoutingModule implements RoutingModule {
 	private final String stageActivityModePrefix;
 	private final String vehicleSuffix;
 	private final EvConfigGroup evConfigGroup;
+	private final long numDynamicChargers;
+	private final long numStaticChargers;
+
 
 	EvNetworkRoutingModule(final String mode, final Network network, RoutingModule delegate,
 			ElectricFleet electricFleet, ElectricFleetSpecification electricFleetSpecifications,
@@ -98,6 +101,15 @@ final class EvNetworkRoutingModule implements RoutingModule {
 		stageActivityModePrefix = mode + VehicleChargingHandler.CHARGING_IDENTIFIER;
 		this.evConfigGroup = evConfigGroup;
 		this.vehicleSuffix = mode.equals(TransportMode.car) ? "" : "_" + mode;
+		this.numDynamicChargers = chargingInfrastructureSpecification.getChargerSpecifications()
+																		.entrySet()
+																		.stream()
+																		.filter(obj -> obj.getValue()
+																			.getChargerType()
+																			.equals("dynamic"))
+																		.count();
+		this.numStaticChargers = chargingInfrastructureSpecification.getChargerSpecifications()
+								.entrySet().stream().count() - this.numDynamicChargers;
 	}
 
 	@Override
@@ -109,7 +121,7 @@ final class EvNetworkRoutingModule implements RoutingModule {
 
 		List<? extends PlanElement> basicRoute = delegate.calcRoute(request);
 		Id<Vehicle> evId = Id.create(person.getId() + vehicleSuffix, Vehicle.class);
-		if (!electricFleetSpecifications.getVehicleSpecifications().containsKey(evId)) {
+		if (!electricFleetSpecifications.getVehicleSpecifications().containsKey(evId) || this.numStaticChargers == 0) {
 			return basicRoute;
 		} else {
 			Leg basicLeg = (Leg)basicRoute.get(0);

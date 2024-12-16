@@ -111,7 +111,7 @@ def create_vehicle_definitions(ids, charge_home_percent):
     attributes = ET.SubElement(engine_info, "attributes")
     
     ET.SubElement(attributes, "attribute", name="HbefaTechnology", **{"class": "java.lang.String"}).text = "electricity"
-    ET.SubElement(attributes, "attribute", name="chargerTypes", **{"class": "java.util.Collections$UnmodifiableCollection"}).text = '["default"]'
+    ET.SubElement(attributes, "attribute", name="chargerTypes", **{"class": "java.util.Collections$UnmodifiableCollection"}).text = '["default","dynamic"]'
     ET.SubElement(attributes, "attribute", name="energyCapacityInKWhOrLiters", **{"class": "java.lang.Double"}).text = "65.0"
 
     # Add cost information (empty for now)

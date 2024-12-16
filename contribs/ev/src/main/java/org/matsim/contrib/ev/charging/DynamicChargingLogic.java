@@ -45,12 +45,6 @@ public class DynamicChargingLogic implements ChargingLogic{
 			double newCharge = Math.min(oldCharge + energy, ev.getBattery().getCapacity());
 			ev.getBattery().setCharge(newCharge);
 			eventsManager.processEvent(new EnergyChargedEvent(now, charger.getId(), ev.getId(), newCharge - oldCharge, newCharge));
-
-			if (chargingStrategy.isChargingCompleted(ev)) {
-				evIter.remove();
-				eventsManager.processEvent(new ChargingEndEvent(now, charger.getId(), ev.getId(), ev.getBattery().getCharge()));
-				listeners.remove(ev.getId()).notifyChargingEnded(ev, now);
-			}
 		}
 
 		var arrivingVehiclesIter = arrivingVehicles.iterator();
@@ -88,19 +82,20 @@ public class DynamicChargingLogic implements ChargingLogic{
 			listeners.remove(ev.getId()).notifyChargingEnded(ev, now);
 		}
         else{
-            throw new IllegalArgumentException("Attempted to remove vehicle from dynamic charger on link when vehicle was not on link");
+            // throw new IllegalArgumentException("Attempted to remove vehicle from dynamic charger on link when vehicle was not on link");
         }
 	}
 
+	private final Collection<ElectricVehicle> unmodifiablePluggedVehicles = Collections.unmodifiableCollection(vehiclesOnChargingLink.values());
 
     @Override
     public Collection<ElectricVehicle> getPluggedVehicles() {
-        throw new UnsupportedOperationException("Unimplemented method 'getPluggedVehicles'");
+        return unmodifiablePluggedVehicles;
     }
 
     @Override
     public Collection<ElectricVehicle> getQueuedVehicles() {
-        throw new UnsupportedOperationException("Unimplemented method 'getQueuedVehicles'");
+        return Collections.unmodifiableCollection(Collections.emptyList());
     }
 
     @Override
