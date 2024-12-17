@@ -53,10 +53,6 @@ def create_population_and_plans_xml_counts(node_coords,
         dist2 = np.random.normal(17, 3, num_agents - len(dist1))
         dist = np.concatenate([dist1, dist2])
         counts = np.clip(dist, 0, 24)
-        import matplotlib.pyplot as plt 
-        plt.hist(counts)
-        plt.show()
-        asdf
 
     for i, count in enumerate(counts):
         count = int(get_str(count))
@@ -102,8 +98,8 @@ def main(args):
                                     args.vehicles_output,
                                     args.num_agents,
                                     args.counts_input,
-                                    args.alpha,
-                                    args.beta)
+                                    args.pop_mulitiplier,
+                                    args.percent_home_charge)
 
 
 if __name__ == "__main__":
@@ -116,8 +112,8 @@ if __name__ == "__main__":
     parser.add_argument('num_agents', type=int, help='The number of agents to generate', default=100)
     parser.add_argument('--counts_input', type=str, help='Counts file to use for creating population, if none \
                         provided then a bimodal distribution with num_agents samples will be generated', default=None)
-    parser.add_argument('--alpha', type=float, help='How much to mulitply population by based on the counts file', default=1)
-    parser.add_argument('--beta', type=float, help='Percentage of population that charges at home', default=1)
+    parser.add_argument('--pop_mulitiplier', type=float, help='How much to mulitply population by based on the counts file', default=1)
+    parser.add_argument('--percent_home_charge', type=float, help='Percentage of population that charges at home', default=1)
 
     args = parser.parse_args()
 
