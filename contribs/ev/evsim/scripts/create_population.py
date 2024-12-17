@@ -4,6 +4,7 @@ import os
 import argparse
 import pandas as pd
 from util import *
+from collections import Counter
 
 def get_node_coords(network_file):
     # Parse the network XML file
@@ -53,6 +54,9 @@ def create_population_and_plans_xml_counts(node_coords,
         dist2 = np.random.normal(17, 3, num_agents - len(dist1))
         dist = np.concatenate([dist1, dist2])
         counts = np.clip(dist, 0, 24)
+        bins = np.arange(0,24)
+        hist = np.digitize(dist, bins)
+        counts = sorted([val for _, val in Counter(hist).items()])
 
     for i, count in enumerate(counts):
         count = int(get_str(count))
@@ -113,7 +117,7 @@ if __name__ == "__main__":
     parser.add_argument('--counts_input', type=str, help='Counts file to use for creating population, if none \
                         provided then a bimodal distribution with num_agents samples will be generated', default=None)
     parser.add_argument('--pop_mulitiplier', type=float, help='How much to mulitply population by based on the counts file', default=1)
-    parser.add_argument('--percent_home_charge', type=float, help='Percentage of population that charges at home', default=1)
+    parser.add_argument('--percent_home_charge', type=float, help='Percentage of population that charges at home 0<=p<=1', default=1)
 
     args = parser.parse_args()
 
