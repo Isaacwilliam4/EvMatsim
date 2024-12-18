@@ -82,6 +82,7 @@ public class DynamicChargingLogic implements ChargingLogic{
 			listeners.remove(ev.getId()).notifyChargingEnded(ev, now);
 		}
         else{
+			// This happens when the program first starts and a vehicle is placed on a dynamic link but not added to a charger
             // throw new IllegalArgumentException("Attempted to remove vehicle from dynamic charger on link when vehicle was not on link");
         }
 	}
