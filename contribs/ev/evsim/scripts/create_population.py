@@ -3,7 +3,7 @@ import random
 import os
 import argparse
 import pandas as pd
-from util import *
+from evsim.util import *
 from collections import Counter
 
 def get_node_coords(network_file):
@@ -25,13 +25,63 @@ def get_node_coords(network_file):
 
     return node_coords
 
+def create_vehicle_definitions(ids, charge_home_percent):
+    # Create the root element with namespaces
+    root = ET.Element("vehicleDefinitions", attrib={
+        "xmlns": "http://www.matsim.org/files/dtd",
+        "xmlns:xsi": "http://www.w3.org/2001/XMLSchema-instance",
+        "xsi:schemaLocation": "http://www.matsim.org/files/dtd http://www.matsim.org/files/dtd/vehicleDefinitions_v2.0.xsd"
+    })
+
+    # Create the vehicle type
+    vehicle_type = ET.SubElement(root, "vehicleType", id="EV_65.0kWh")
+    
+    # Add capacity
+    ET.SubElement(vehicle_type, "capacity", seats="0", standingRoomInPersons="0")
+
+    # Add length and width
+    ET.SubElement(vehicle_type, "length", meter="7.5")
+    ET.SubElement(vehicle_type, "width", meter="1.0")
+
+    # Add engine information with attributes
+    engine_info = ET.SubElement(vehicle_type, "engineInformation")
+    attributes = ET.SubElement(engine_info, "attributes")
+    
+    ET.SubElement(attributes, "attribute", name="HbefaTechnology", **{"class": "java.lang.String"}).text = "electricity"
+    ET.SubElement(attributes, "attribute", name="chargerTypes", **{"class": "java.util.Collections$UnmodifiableCollection"}).text = '["default","dynamic"]'
+    ET.SubElement(attributes, "attribute", name="energyCapacityInKWhOrLiters", **{"class": "java.lang.Double"}).text = "65.0"
+
+    # Add cost information (empty for now)
+    ET.SubElement(vehicle_type, "costInformation")
+
+    # Add passengerCarEquivalents and networkMode
+    ET.SubElement(vehicle_type, "passengerCarEquivalents", pce="1.0")
+    ET.SubElement(vehicle_type, "networkMode", networkMode="car")
+    ET.SubElement(vehicle_type, "flowEfficiencyFactor", factor="1.0")
+
+    # Create vehicles with varying initial states of charge (SoC)
+    for id in ids:
+        vehicle = ET.SubElement(root, "vehicle", id=str(id), type="EV_65.0kWh")
+        attributes = ET.SubElement(vehicle, "attributes")
+        
+        # # Set initial SoC based on the vehicle ID
+        # soc = round(random.uniform(0.2, 0.8), 2)
+
+        # Add the initialSoc attribute
+        if np.random.random() < charge_home_percent:
+            ET.SubElement(attributes, "attribute", name="initialSoc", **{"class": "java.lang.Double"}).text = str(1)
+        else:
+            ET.SubElement(attributes, "attribute", name="initialSoc", **{"class": "java.lang.Double"}).text = str(np.random.uniform(.1,.2))
+
+    return ET.ElementTree(root)
+
 def create_population_and_plans_xml_counts(node_coords, 
                                         plans_output,
                                         vehicles_output,
                                         num_agents,
-                                        counts_input,
-                                        alpha,
-                                        beta):
+                                        counts_input=None,
+                                        population_multiplier=1,
+                                        percent_home_charge=1):
     
     plans_output = os.path.abspath(plans_output)
     vehicles_output = os.path.abspath(vehicles_output)
@@ -60,7 +110,7 @@ def create_population_and_plans_xml_counts(node_coords,
 
     for i, count in enumerate(counts):
         count = int(get_str(count))
-        for j in range(int(count*alpha)):
+        for j in range(int(count*population_multiplier)):
             origin_node_id = random.choice(node_ids)
             dest_node_id = random.choice(node_ids)
             origin_node = node_coords[origin_node_id]
@@ -78,7 +128,7 @@ def create_population_and_plans_xml_counts(node_coords,
             work_activity = ET.SubElement(plan, "act", type="h", 
                                     x=str(dest_node[0]), y=str(dest_node[1]), start_time=start_time_str, end_time=end_time_str)
 
-    vehicle_tree = create_vehicle_definitions(person_ids, beta)
+    vehicle_tree = create_vehicle_definitions(person_ids, percent_home_charge)
     save_xml(vehicle_tree, vehicles_output)
 
     # Convert the ElementTree to a string

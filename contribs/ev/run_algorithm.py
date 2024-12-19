@@ -7,7 +7,10 @@ import shutil
 import matplotlib.pyplot as plt
 from evsim.util import *
 from evsim.scripts.create_population import *
+from evsim.scripts.create_chargers import *
 from pathlib import Path
+from pyswarm import pso
+from datetime import datetime
 
 def update_Q(Q: pd.DataFrame, chosen_links, score):
     # Set 'link_id' as the index for faster lookups
@@ -44,7 +47,7 @@ def load_Q(q_path):
 def main(args):
     if args.num_agents:
         node_coords = get_node_coords(args.network_path)
-        create_population_and_plans_xml(args.num_agents, node_coords, args.plans_path)
+        create_population_and_plans_xml_counts(node_coords, args.plans_path, args.vehicles_path, args.num_agents)
     num_runs = args.num_runs
     update_last_iteration(args.config_path, args.num_matsim_iters - 1)
     algorithm_results = pd.DataFrame(columns=["iteration", "avg_score", "selected_links"])
@@ -59,10 +62,9 @@ def main(args):
     os.makedirs(csvs_path, exist_ok=True)
     os.makedirs(figs_path, exist_ok=True)
 
-    algorithm_name = f"{args.alg_prefix}_runs{num_runs}_exp"
-    num_exps = sum(1 for filename in os.listdir(csvs_path) if algorithm_name in filename)
-    algorithm_name += str(num_exps + 1)
-
+    current_time = datetime.now()
+    time_string = current_time.strftime("%Y%m%d_%H%M%S")
+    algorithm_name = f"{args.alg_prefix}_{time_string}"
     max_score = -np.inf
 
     if args.min_ram and args.max_ram:
@@ -94,7 +96,7 @@ def main(args):
             explored_links[args.num_chargers:],
         )
 
-        create_chargers_xml(chosen_links, args.chargers_path)
+        create_chargers_xml(chosen_links, args.chargers_path, args.percent_dynamic)
         # Run matsim in Java
         os.system(f'mvn exec:java -Dexec.args="{args.config_path}"')
         scores = pd.read_csv(os.path.join(args.output_path, "scorestats.csv"), sep=";")
@@ -111,8 +113,10 @@ def main(args):
             chosen_links = monte_carlo_algorithm(args.num_chargers, link_ids, algorithm_results)
         elif args.algorithm == "egreedy":
             chosen_links = e_greedy(args.num_chargers, Q)
+        # elif args.algorithm == "pso":
+        #     chosen_links, average_score = 
 
-        create_chargers_xml(chosen_links, args.chargers_path)
+        create_chargers_xml(chosen_links, args.chargers_path, args.percent_dynamic)
 
         os.system(f'mvn -e exec:java -Dexec.args="{args.config_path}" > ./matsimrun.log')
         scores = pd.read_csv(os.path.join(args.output_path, "scorestats.csv"), sep=";")
@@ -157,15 +161,17 @@ if __name__ == "__main__":
 
     argparser.add_argument("config_path", type=str, help="Path to the matsim config.xml file")
     argparser.add_argument("network_path", type=str, help="Path to the matsim network.xml file")
-    argparser.add_argument("plans_path", type=str, help="Path to the output plans.xml file")
-    argparser.add_argument("chargers_path", type=str, help="Path to the output matsim chargers.xml file")
+    argparser.add_argument("plans_path", type=str, help="Path to the plans.xml file")
+    argparser.add_argument("vehicles_path", type=str, help="Path to the matsim vehicles.xml file")
+    argparser.add_argument("chargers_path", type=str, help="Path to the matsim chargers.xml file")
     argparser.add_argument("results_path", type=str, help="Directory where results will be saved")
     argparser.add_argument("output_path", type=str, help="Path to the output directory created by matsim")
     argparser.add_argument("q_path",help="Path to q file containing dataframe hold link average reward, \
                            will be created if doesn't exist, should be .csv file", type=str)
+    argparser.add_argument("--percent_dynamic", help="percent of chargers that are dynamic chargers", default=0, type=int)
+    argparser.add_argument("--explore_steps", help="Number of steps to explore", default=0, type=int)
     argparser.add_argument("--algorithm",help="Algorithm to use for optimization",choices=["montecarlo","egreedy"],
                             default="montecarlo",type=str)
-    argparser.add_argument("--explore_steps", help="Number of steps to explore", default=0, type=int)
     argparser.add_argument("--alg_prefix", required=True, default="my_algorithm", type=str, help="Prefix for your algorithm")
     argparser.add_argument("--num_runs", default=50, type=int, help="Number of iterations for the algorithm")
     argparser.add_argument("--num_matsim_iters", default=5, type=int, help="Number of iterations for the matsim simulator")

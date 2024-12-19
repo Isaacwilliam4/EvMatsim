@@ -19,7 +19,8 @@ def load_network_xml(network_file):
 
     return link_ids
 
-def create_chargers_xml(num_chargers, link_ids:list, output_file_path, percent_dynamic=0.0):
+def create_chargers_xml(link_ids:list, output_file_path, percent_dynamic=0.0):
+    num_chargers = len(link_ids)
     # Create the root element for the chargers
     chargers = ET.Element("chargers")
 
@@ -36,13 +37,13 @@ def create_chargers_xml(num_chargers, link_ids:list, output_file_path, percent_d
     i=0
 
     while i < len(dynamic_chargers):
-        charger = ET.SubElement(chargers, "charger", id=str(id), link=dynamic_chargers[i], plug_power="50", plug_count="9999", type="dynamic")
+        charger = ET.SubElement(chargers, "charger", id=str(id), link=str(dynamic_chargers[i]), plug_power="70", plug_count="9999", type="dynamic")
         id += 1
         i += 1
     
     i = 0
     while i < len(static_chargers):
-        charger = ET.SubElement(chargers, "charger", id=str(i), link=static_chargers[i], plug_power="100.0", plug_count="5")
+        charger = ET.SubElement(chargers, "charger", id=str(i), link=str(static_chargers[i]), plug_power="100.0", plug_count="5")
         id += 1
         i += 1
 
@@ -71,7 +72,8 @@ def main(args):
     else:
         raise ValueError("Either num_chargers or percent must be specified")
 
-    create_chargers_xml(num_chargers, link_ids, os.path.abspath(args.output_file), args.percent_dynamic)
+    link_ids = np.random.choice(link_ids, num_chargers)
+    create_chargers_xml(link_ids, os.path.abspath(args.output_file), args.percent_dynamic)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Generate chargers XML file.')

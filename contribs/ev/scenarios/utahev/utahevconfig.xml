@@ -8,12 +8,12 @@
         <param name="timeProfiles" value="true" />
         <param name="transferFinalSoCToNextIteration" value="false" />
         <param name="chargingDisutility" value="0" />
-        <param name="socUtility" value="10" />
+        <param name="socUtility" value="100" />
 
 	</module>
 
 	<module name="vehicles">
-        <param name="vehiclesFile" value="utahevvehicles1.xml" />
+        <param name="vehiclesFile" value="utahevvehicles.xml" />
     </module>
 
     <module name="global">
@@ -27,7 +27,7 @@
     </module>
 
     <module name="plans">
-        <param name="inputPlansFile" value="utahevplans1.xml" />
+        <param name="inputPlansFile" value="utahevplans.xml" />
     </module>
 
     <module name="counts">
@@ -58,7 +58,7 @@
         <param name="lateArrival" value="0" />
         <param name="earlyDeparture" value="0" />
         <param name="performing" value="0" />
-        <param name="traveling" value="0" />
+        <param name="traveling" value="-1" />
         <param name="waiting" value="0" />
         <param name="waitingPt" value="0" />
         <param name="utilityOfLineSwitch" value="0" />
@@ -90,22 +90,22 @@
             <param name="scoringThisActivityAtAll" value="true" />
         </parameterset>
 
-        <parameterset type="modeParams" >
-            <!-- [utils] alternative-specific constant.  Normally per trip, but that is probably buggy for multi-leg trips. -->
+        <parameterset type="modeParams">
+            
             <param name="constant" value="0.0" />
-            <!-- [unit_of_money/day] Fixed cost of mode, per day. -->
+            
             <param name="dailyMonetaryConstant" value="0.0" />
-            <!-- [utils] daily utility constant. default=0 to be backwards compatible -->
+            
             <param name="dailyUtilityConstant" value="0.0" />
-            <!-- [utils/m] utility of traveling (e.g. walking or driving) per m, normally negative.  this is on top of the time (dis)utility. -->
+            
             <param name="marginalUtilityOfDistance_util_m" value="0.0" />
-            <!-- [utils/hr] additional marginal utility of traveling.  normally negative.  this comes on top of the opportunity cost of time -->
-            <param name="marginalUtilityOfTraveling_util_hr" value="0.0" />
+            
+            <param name="marginalUtilityOfTraveling_util_hr" value="-1.0" />
             <param name="mode" value="car" />
-            <!-- [unit_of_money/m] conversion of distance into money. Normally negative. -->
-            <param name="monetaryDistanceRate" value="0.0" />
+            
+            <param name="monetaryDistanceRate" value="-1.0" />
         </parameterset>
-        <parameterset type="modeParams" >
+        <parameterset type="modeParams">
             <param name="constant" value="0.0" />
             <param name="dailyMonetaryConstant" value="0.0" />
             <param name="dailyUtilityConstant" value="0.0" />
@@ -114,7 +114,7 @@
             <param name="mode" value="walk" />
             <param name="monetaryDistanceRate" value="0.0" />
         </parameterset>
-        <parameterset type="modeParams" >
+        <parameterset type="modeParams">
             <param name="constant" value="0.0" />
             <param name="dailyMonetaryConstant" value="0.0" />
             <param name="dailyUtilityConstant" value="0.0" />
@@ -123,7 +123,7 @@
             <param name="mode" value="bike" />
             <param name="monetaryDistanceRate" value="0.0" />
         </parameterset>
-        <parameterset type="modeParams" >
+        <parameterset type="modeParams">
             <param name="constant" value="0.0" />
             <param name="dailyMonetaryConstant" value="0.0" />
             <param name="dailyUtilityConstant" value="0.0" />
@@ -132,7 +132,7 @@
             <param name="mode" value="ride" />
             <param name="monetaryDistanceRate" value="0.0" />
         </parameterset>
-        <parameterset type="modeParams" >
+        <parameterset type="modeParams">
             <param name="constant" value="0.0" />
             <param name="dailyMonetaryConstant" value="0.0" />
             <param name="dailyUtilityConstant" value="0.0" />
@@ -141,7 +141,7 @@
             <param name="mode" value="other" />
             <param name="monetaryDistanceRate" value="0.0" />
         </parameterset>
-        <parameterset type="modeParams" >
+        <parameterset type="modeParams">
             <param name="constant" value="0.0" />
             <param name="dailyMonetaryConstant" value="0.0" />
             <param name="dailyUtilityConstant" value="0.0" />
@@ -156,10 +156,10 @@
 	<module name="strategy">
 		<param name="maxAgentPlanMemorySize" value="5" /> 
 
-		<param name="ModuleProbability_1" value="0.5" />
+		<param name="ModuleProbability_1" value="0" />
 		<param name="Module_1" value="BestScore" />
 
-		<param name="ModuleProbability_2" value="0.5" />
+		<param name="ModuleProbability_2" value="1" />
 		<param name="Module_2" value="ReRoute" />
 	</module>
 
