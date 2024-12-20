@@ -78,7 +78,7 @@ def create_vehicle_definitions(ids, charge_home_percent):
 def create_population_and_plans_xml_counts(node_coords, 
                                         plans_output,
                                         vehicles_output,
-                                        num_agents,
+                                        num_agents=100,
                                         counts_input=None,
                                         population_multiplier=1,
                                         percent_home_charge=1):
@@ -100,13 +100,14 @@ def create_population_and_plans_xml_counts(node_coords,
         counts = counts_df['Flow (Veh/Hour)'].values
     else:
         # if no counts file given, generate bimodal distribution with num_agent samples
-        dist1 = np.random.normal(8, 3, num_agents // 2)
-        dist2 = np.random.normal(17, 3, num_agents - len(dist1))
+        dist1 = np.random.normal(8, 2.5, num_agents // 2)
+        dist2 = np.random.normal(17, 2.5, num_agents - len(dist1))
         dist = np.concatenate([dist1, dist2])
-        counts = np.clip(dist, 0, 24)
-        bins = np.arange(0,24)
-        hist = np.digitize(dist, bins)
-        counts = sorted([val for _, val in Counter(hist).items()])
+        dist = np.clip(dist, 0, 24)
+
+        # Use np.histogram to calculate the bin counts
+        bins = np.arange(0, 24)  # Include 24 as the upper bound
+        counts, _ = np.histogram(dist, bins)
 
     for i, count in enumerate(counts):
         count = int(get_str(count))

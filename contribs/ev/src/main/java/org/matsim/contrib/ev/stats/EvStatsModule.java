@@ -62,20 +62,20 @@ public class EvStatsModule extends AbstractModule {
 				}
 			}
 		});
-		bind(ChargerPowerTimeProfileCalculator.class).asEagerSingleton();
-		addEventHandlerBinding().to(ChargerPowerTimeProfileCalculator.class);
-		addControlerListenerBinding().toProvider(new Provider<>() {
-			@Inject
-			private ChargerPowerTimeProfileCalculator calculator;
-			@Inject
-			private MatsimServices matsimServices;
+		// bind(ChargerPowerTimeProfileCalculator.class).asEagerSingleton();
+		// addEventHandlerBinding().to(ChargerPowerTimeProfileCalculator.class);
+		// addControlerListenerBinding().toProvider(new Provider<>() {
+		// 	@Inject
+		// 	private ChargerPowerTimeProfileCalculator calculator;
+		// 	@Inject
+		// 	private MatsimServices matsimServices;
 
-			@Override
-			public ControlerListener get() {
-				var profileView = new ChargerPowerTimeProfileView(calculator);
-				return new ProfileWriter(matsimServices,"ev",profileView,"charger_power_time_profiles");
+		// 	@Override
+		// 	public ControlerListener get() {
+		// 		var profileView = new ChargerPowerTimeProfileView(calculator);
+		// 		return new ProfileWriter(matsimServices,"ev",profileView,"charger_power_time_profiles");
 
-			}
-		});
+		// 	}
+		// });
 	}
 }

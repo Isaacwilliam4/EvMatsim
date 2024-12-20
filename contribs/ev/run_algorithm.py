@@ -83,6 +83,8 @@ def main(args):
 
     # Explore phase: random link selection without replacement
     explored_links = np.random.permutation(link_ids)
+    iter = 0
+
     for i in range(args.explore_steps):
         # Display run status
         print(f"\033[36m\n{'#' * 62}\033[0m")
@@ -106,6 +108,19 @@ def main(args):
         Q = update_Q(Q, chosen_links, average_score)
         save_Q(Q, args.q_path)
 
+        row = pd.DataFrame({"iteration": [iter], "avg_score": [average_score], "selected_links": [chosen_links]})
+        algorithm_results = pd.concat([algorithm_results, row], ignore_index=True)
+
+        # Save results every iteration
+        algorithm_results.to_csv(os.path.join(csvs_path, f"{algorithm_name}_results.csv"), index=False)
+
+        plt.plot(algorithm_results["iteration"].values, algorithm_results["avg_score"].values)
+        plt.xlabel("Iteration")
+        plt.ylabel("AvgScore")
+        plt.title(algorithm_name)
+        plt.savefig(os.path.join(figs_path, f"{algorithm_name}_plot.png"))
+        iter += 1
+
     for i in range(1, num_runs + 1):
         print_run_info(i, num_runs)
 
@@ -127,7 +142,7 @@ def main(args):
         Q = update_Q(Q, chosen_links, average_score)
         save_Q(Q, args.q_path)
 
-        row = pd.DataFrame({"iteration": [i], "avg_score": [average_score], "selected_links": [chosen_links]})
+        row = pd.DataFrame({"iteration": [iter], "avg_score": [average_score], "selected_links": [chosen_links]})
         algorithm_results = pd.concat([algorithm_results, row], ignore_index=True)
 
         # Save results every iteration
@@ -144,6 +159,8 @@ def main(args):
             output_path = Path(args.output_path)
             dest_dir = os.path.join(os.path.join(output_path.parent), "bestoutput")
             shutil.copytree(args.output_path, dest_dir, dirs_exist_ok=True)
+        
+        iter += 1
 
 def print_run_info(current_run, total_runs):
     RESET = "\033[0m"

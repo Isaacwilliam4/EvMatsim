@@ -59,6 +59,7 @@
 
 	<modules>
 		<module>ev</module>
+		<module>common</module>
     </modules>
 
 	<dependencies>
