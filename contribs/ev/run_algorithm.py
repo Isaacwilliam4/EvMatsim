@@ -9,7 +9,6 @@ from evsim.util import *
 from evsim.scripts.create_population import *
 from evsim.scripts.create_chargers import *
 from pathlib import Path
-from pyswarm import pso
 from datetime import datetime
 
 def update_Q(Q: pd.DataFrame, chosen_links, score):
@@ -76,7 +75,7 @@ def main(args):
         Q = pd.DataFrame(
             {
                 "link_id": link_ids,
-                "average_reward": np.zeros_like(link_ids, dtype=float),
+                "average_reward": np.full(link_ids.shape, args.initial_q_values),
                 "count": np.zeros_like(link_ids, dtype=int),
             }
         )
@@ -133,7 +132,7 @@ def main(args):
 
         create_chargers_xml(chosen_links, args.chargers_path, args.percent_dynamic)
 
-        os.system(f'mvn -e exec:java -Dexec.args="{args.config_path}" > ./matsimrun.log')
+        os.system(f'mvn -e exec:java -Dexec.args="{args.config_path}"')
         scores = pd.read_csv(os.path.join(args.output_path, "scorestats.csv"), sep=";")
 
         average_score = scores["avg_executed"].iloc[-1]
@@ -190,6 +189,7 @@ if __name__ == "__main__":
     argparser.add_argument("--algorithm",help="Algorithm to use for optimization",choices=["montecarlo","egreedy"],
                             default="montecarlo",type=str)
     argparser.add_argument("--alg_prefix", required=True, default="my_algorithm", type=str, help="Prefix for your algorithm")
+    argparser.add_argument("--initial_q_values", default=9999, type=int, help="default q value for q table, high values encourage exploration")
     argparser.add_argument("--num_runs", default=50, type=int, help="Number of iterations for the algorithm")
     argparser.add_argument("--num_matsim_iters", default=5, type=int, help="Number of iterations for the matsim simulator")
     argparser.add_argument("--num_agents", type=int, help="Number of agents on the network")

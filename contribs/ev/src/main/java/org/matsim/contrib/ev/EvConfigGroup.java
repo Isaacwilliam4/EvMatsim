@@ -67,6 +67,11 @@ public final class EvConfigGroup extends ReflectiveConfigGroup {
 	public boolean timeProfiles = false;
 
 	@Parameter
+	@Comment("If true, charge/SoC time profile plots will be created for charger power time profiles, it should be noted that" + 
+	"as you decrease the charging interval, setting this to true with significantly increase the time to run subsequent iterations")
+	public boolean chargerPowerTimeProfiles = false;
+
+	@Parameter
 	@Comment("Number of individual time profiles to be created")
 	@Positive
 	public int numberOfIndividualTimeProfiles = 50;

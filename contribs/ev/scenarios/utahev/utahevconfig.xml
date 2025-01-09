@@ -5,6 +5,7 @@
         <param name="auxDischargeTimeStep" value="1" />
         <param name="chargeTimeStep" value="1" />
         <param name="chargersFile" value="utahevchargers.xml" />
+        <param name="chargerPowerTimeProfiles" value="false" />
         <param name="timeProfiles" value="true" />
         <param name="transferFinalSoCToNextIteration" value="false" />
         <param name="chargingDisutility" value="0" />
