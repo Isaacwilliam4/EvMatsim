@@ -43,7 +43,7 @@ def create_chargers_xml(link_ids:list, output_file_path, percent_dynamic=0.0):
     
     i = 0
     while i < len(static_chargers):
-        charger = ET.SubElement(chargers, "charger", id=str(id), link=str(static_chargers[i]), plug_power="100.0", plug_count="5")
+        charger = ET.SubElement(chargers, "charger", id=str(id), link=str(static_chargers[i]), plug_power="100.0", plug_count="1")
         id += 1
         i += 1
 

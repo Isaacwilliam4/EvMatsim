@@ -14,7 +14,7 @@
 	</module>
 
 	<module name="vehicles">
-        <param name="vehiclesFile" value="utahevvehicles1.xml" />
+        <param name="vehiclesFile" value="utahevvehicles.xml" />
     </module>
 
     <module name="global">
@@ -23,12 +23,11 @@
     </module>
 
     <module name="network">
-        
         <param name="inputNetworkFile" value="utahevnetwork.xml" />
     </module>
 
     <module name="plans">
-        <param name="inputPlansFile" value="utahevplans1.xml" />
+        <param name="inputPlansFile" value="utahevplans.xml" />
     </module>
 
     <module name="counts">
