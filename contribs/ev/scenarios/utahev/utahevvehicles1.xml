@@ -19,7 +19,7 @@
     </vehicleType>
     <vehicle id="1" type="EV_65.0kWh">
         <attributes>
-            <attribute name="initialSoc" class="java.lang.Double">1</attribute>
+            <attribute name="initialSoc" class="java.lang.Double">.2</attribute>
         </attributes>
     </vehicle>
 </vehicleDefinitions>

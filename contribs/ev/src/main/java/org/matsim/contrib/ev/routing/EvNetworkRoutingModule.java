@@ -155,11 +155,13 @@ final class EvNetworkRoutingModule implements RoutingModule {
 
 					StraightLineKnnFinder<Link, ChargerSpecification> straightLineKnnFinder = new StraightLineKnnFinder<>(
 							2, Link::getCoord, s -> network.getLinks().get(s.getLinkId()).getCoord());
+					//We don't want to send the vehicle to a dynamic charger so we filter them out
 					List<ChargerSpecification> nearestChargers = straightLineKnnFinder.findNearest(stopLocation,
 							chargingInfrastructureSpecification.getChargerSpecifications()
 									.values()
 									.stream()
-									.filter(charger -> ev.getChargerTypes().contains(charger.getChargerType())));
+									.filter(charger -> ev.getChargerTypes().contains(charger.getChargerType()) && 
+									!charger.getChargerType().equals("dynamic")));
 					ChargerSpecification selectedCharger = nearestChargers.get(random.nextInt(1));
 					Link selectedChargerLink = network.getLinks().get(selectedCharger.getLinkId());
 					Facility nexttoFacility = new LinkWrapperFacility(selectedChargerLink);

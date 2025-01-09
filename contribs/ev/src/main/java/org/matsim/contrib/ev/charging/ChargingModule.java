@@ -49,7 +49,7 @@ public class ChargingModule extends AbstractModule {
 		bind(ChargingLogic.Factory.class).toProvider(new Provider<>() {
 			@Inject private EventsManager eventsManager;
 			@Override public ChargingLogic.Factory get() {
-				return charger -> new DynamicChargingLogic(charger, new ChargeUpToMaxSocStrategy(charger, 1.), eventsManager);
+				return charger -> new DynamicAndQueingChargingLogic(charger, new ChargeUpToMaxSocStrategy(charger, 1.), eventsManager);
 			}
 		});
 
