@@ -19,5 +19,7 @@ matsim/src/main/java/Doxyfile
 *output*/
 *results/
 *.log
+*.csv
 
-*Q.csv*
+!tinytown_scenario_example/*
+!utahev_scenario_example/*
