@@ -55,8 +55,14 @@ def main(args):
     if not os.path.isdir(args.results_path):
         os.makedirs(args.results_path, exist_ok=False)
 
+    config_path = Path(args.config_path)
+    scenario_path = config_path.parent
+
     csvs_path = os.path.join(args.results_path, "csvs")
     figs_path = os.path.join(args.results_path, "figs")
+    q_path = os.path.join(args.results_path, "Q.csv")
+    output_path = os.path.join(scenario_path / "output")
+    best_output_path = os.path.join(scenario_path / "best_output")
     
     os.makedirs(csvs_path, exist_ok=True)
     os.makedirs(figs_path, exist_ok=True)
@@ -69,8 +75,8 @@ def main(args):
     if args.min_ram and args.max_ram:
         os.environ["MAVEN_OPTS"] = f"-Xms{args.min_ram}g -Xmx{args.max_ram}g"
 
-    if os.path.exists(args.q_path):
-        Q = load_Q(args.q_path)
+    if os.path.exists(q_path):
+        Q = load_Q(q_path)
     else:
         Q = pd.DataFrame(
             {
@@ -100,12 +106,12 @@ def main(args):
         create_chargers_xml(chosen_links, args.chargers_path, args.percent_dynamic)
         # Run matsim in Java
         os.system(f'mvn exec:java -Dexec.args="{args.config_path}"')
-        scores = pd.read_csv(os.path.join(args.output_path, "scorestats.csv"), sep=";")
+        scores = pd.read_csv(os.path.join(output_path, "scorestats.csv"), sep=";")
         average_score = scores["avg_executed"].iloc[-1]
 
         # Update Q values
         Q = update_Q(Q, chosen_links, average_score)
-        save_Q(Q, args.q_path)
+        save_Q(Q, q_path)
 
         row = pd.DataFrame({"iteration": [iter], "avg_score": [average_score], "selected_links": [chosen_links]})
         algorithm_results = pd.concat([algorithm_results, row], ignore_index=True)
@@ -126,20 +132,24 @@ def main(args):
         if args.algorithm == "montecarlo":
             chosen_links = monte_carlo_algorithm(args.num_chargers, link_ids, algorithm_results)
         elif args.algorithm == "egreedy":
-            chosen_links = e_greedy(args.num_chargers, Q)
+            if args.epsilon < 0:
+                epsilon = (num_runs - i + 1) / num_runs
+            else:
+                epsilon = args.epsilon
+            chosen_links = e_greedy(args.num_chargers, Q, epsilon)
         # elif args.algorithm == "pso":
         #     chosen_links, average_score = 
 
         create_chargers_xml(chosen_links, args.chargers_path, args.percent_dynamic)
 
         os.system(f'mvn -e exec:java -Dexec.args="{args.config_path}"')
-        scores = pd.read_csv(os.path.join(args.output_path, "scorestats.csv"), sep=";")
+        scores = pd.read_csv(os.path.join(output_path, "scorestats.csv"), sep=";")
 
         average_score = scores["avg_executed"].iloc[-1]
 
         # Update Q values
         Q = update_Q(Q, chosen_links, average_score)
-        save_Q(Q, args.q_path)
+        save_Q(Q, q_path)
 
         row = pd.DataFrame({"iteration": [iter], "avg_score": [average_score], "selected_links": [chosen_links]})
         algorithm_results = pd.concat([algorithm_results, row], ignore_index=True)
@@ -155,11 +165,14 @@ def main(args):
 
         if average_score > max_score:
             max_score = average_score
-            output_path = Path(args.output_path)
-            dest_dir = os.path.join(os.path.join(output_path.parent), "bestoutput")
-            shutil.copytree(args.output_path, dest_dir, dirs_exist_ok=True)
+            shutil.copytree(output_path, best_output_path, dirs_exist_ok=True)
         
         iter += 1
+    
+    # Once the iterations are done, move the output folder and best output folder to the resutls folder
+    shutil.move(output_path, args.results_path)
+    shutil.move(best_output_path, args.results_path)
+
 
 def print_run_info(current_run, total_runs):
     RESET = "\033[0m"
@@ -180,22 +193,28 @@ if __name__ == "__main__":
     argparser.add_argument("plans_path", type=str, help="Path to the plans.xml file")
     argparser.add_argument("vehicles_path", type=str, help="Path to the matsim vehicles.xml file")
     argparser.add_argument("chargers_path", type=str, help="Path to the matsim chargers.xml file")
-    argparser.add_argument("results_path", type=str, help="Directory where results will be saved")
-    argparser.add_argument("output_path", type=str, help="Path to the output directory created by matsim")
-    argparser.add_argument("q_path",help="Path to q file containing dataframe hold link average reward, \
-                           will be created if doesn't exist, should be .csv file", type=str)
-    argparser.add_argument("--percent_dynamic", help="percent of chargers that are dynamic chargers", default=0, type=int)
+    argparser.add_argument("results_path", type=str, help="Directory where results will be saved, if a previous run exists,\
+                           it will use the Q.csv file to continue the optimization")
+    argparser.add_argument("--percent_dynamic", help="percent of chargers that are dynamic chargers, 1 means \
+                           all dynamic, 0 means all static", default=0, type=float)
     argparser.add_argument("--explore_steps", help="Number of steps to explore", default=0, type=int)
     argparser.add_argument("--algorithm",help="Algorithm to use for optimization",choices=["montecarlo","egreedy"],
                             default="montecarlo",type=str)
+    argparser.add_argument("--epsilon", help="If using the e-greedy algorithm, the epsilon value, if -1 then a\
+                           linear decay will be used", default=-1, type=float)
     argparser.add_argument("--alg_prefix", required=True, default="my_algorithm", type=str, help="Prefix for your algorithm")
     argparser.add_argument("--initial_q_values", default=9999, type=int, help="default q value for q table, high values encourage exploration")
     argparser.add_argument("--num_runs", default=50, type=int, help="Number of iterations for the algorithm")
     argparser.add_argument("--num_matsim_iters", default=5, type=int, help="Number of iterations for the matsim simulator")
-    argparser.add_argument("--num_agents", type=int, help="Number of agents on the network")
+    argparser.add_argument("--num_agents", type=int, help="Number of agents on the network, if none it will use the existing plans.xml file")
     argparser.add_argument("--num_chargers", default=10, type=int, help="Number of chargers on the network")
     argparser.add_argument("--min_ram", type=int, help="Minimum memory in gigs used by the program")
     argparser.add_argument("--max_ram", type=int, help="Maximum memory in gigs used by the program")
 
     args = argparser.parse_args()
+
+    print(args)
+
     main(args)
+
+

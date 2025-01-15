@@ -48,7 +48,7 @@ def get_str(num):
 def monte_carlo_algorithm(num_chargers, link_ids) -> list:
     return np.random.choice(link_ids, num_chargers).tolist()
     
-def e_greedy(num_chargers, Q, epsilon=0.05) -> list:
+def e_greedy(num_chargers, Q, epsilon) -> list:
     links = Q['link_id'].values
     rewards = Q['average_reward'].values
     vals = zip(links, rewards)
