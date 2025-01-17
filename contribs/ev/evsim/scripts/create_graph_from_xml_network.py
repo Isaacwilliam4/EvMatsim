@@ -16,16 +16,25 @@ class MatsimXMLData(Dataset):
         # Store mapping of edge IDs to indices in the graph
         self.edge_mapping = {}
         self.edge_attr_mapping = {}
+        self.create_edge_attr_mapping()
         self.graph = Data()
         self.charger_dict = charger_dict
         self.num_charger_types = len(charger_dict)
         self.parse_matsim_network()
+        self.parse_charger_network()
 
     def len(self):
         return len(self.data_list)
 
     def get(self, idx):
         return self.data_list[idx]
+    
+    def create_edge_attr_mapping(self):
+        self.edge_attr_mapping = {'length': 0, 'freespeed': 1, 'capacity': 2, 'permlanes': 3, 'oneway': 4}
+        edge_attr_idx = len(self.edge_attr_mapping)
+        for key in charger_dict:
+            self.edge_attr_mapping[key] = edge_attr_idx
+            edge_attr_idx += 1
     
     def parse_matsim_network(self):
         """Parse the matsim network provided via the self.network_xml_path and creates a
@@ -38,6 +47,7 @@ class MatsimXMLData(Dataset):
         node_ids = []
         node_pos = []
         edge_index = []
+        edge_attr = []
 
         for i, node in enumerate(root.findall(".//node")):
             node_id = node.get("id")
@@ -46,46 +56,40 @@ class MatsimXMLData(Dataset):
             self.node_mapping[node_id] = i
             node_ids.append(i)
 
-        create_edge_attr_mapping = True
 
-        first_link = root.find(".//link")
-        link_attr = len(first_link.items())
+        tot_attr = len(self.edge_attr_mapping)
 
-        for i, key in enumerate(first_link.items()):
-            self.edge_attr_mapping[key] = i
-
-        for i, key in enumerate(self.charger_dict.keys()):
-            self.edge_attr_mapping[key] = i + len(first_link.items())
-    
         for i, link in enumerate(root.findall(".//link")):
-            link_id = link.get("id")
             from_node = link.get("from")
             to_node = link.get("to")
             from_idx = self.node_mapping[from_node]
             to_idx = self.node_mapping[to_node]
             edge_index.append([from_idx, to_idx])
-            curr_link_attr = []
+            curr_link_attr = torch.zeros(tot_attr)
+            self.edge_mapping[link.get("id")] = i
 
-            for key, value in link.items():
-                if value.isnumeric():
-                    curr_link_attr.append(torch.tensor(float(value), dtype=torch.float))
+            for key, value in self.edge_attr_mapping.items():
+                if key in link.attrib:
+                    curr_link_attr[value] = float(link.get(key))
 
+            edge_attr.append(curr_link_attr)
 
         self.graph.x = torch.tensor(node_ids).view(-1, 1)
         self.graph.pos = torch.tensor(node_pos)
         self.graph.edge_index = torch.tensor(edge_index).t()
-        self.graph.edge_attr = torch.tensor(edge_attr)
+        self.graph.edge_attr = torch.stack(edge_attr)
 
     def parse_charger_network(self):
-        tree = ET.parse(self.network_xml_path)
+        tree = ET.parse(self.charger_xml_path)
         root = tree.getroot()
 
         for charger in root.findall(".//charger"):
             link_id = charger.get("link")
-            charger_type = charger.get("type")
-
+            charger_type = charger.get("type") 
+            if charger_type is None:
+                charger_type = "default"
              
-            self.graph.edge_attr[self.edge_mapping[link_id]]
+            self.graph.edge_attr[self.edge_mapping[link_id]][self.edge_attr_mapping[charger_type]] = 1
         
 
     def get_graph(self):
@@ -105,4 +109,3 @@ if __name__ == "__main__":
         "dynamic": 2
     }
     dataset = MatsimXMLData(network_xml_path, charger_xml_path, charger_dict)
-    print(dataset.node_mapping)
