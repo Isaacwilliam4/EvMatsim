@@ -44,26 +44,26 @@ def load_Q(q_path):
 
 
 def main(args):
+    config_path = Path(args.config_path)
+    scenario_path = config_path.parent
+    output_path = os.path.join(scenario_path / "output")
+    csvs_path = os.path.join(args.results_path, "csvs")
+    figs_path = os.path.join(args.results_path, "figs")
+    q_path = os.path.join(args.results_path, "Q.csv")
+    best_output_path = os.path.join(scenario_path / "best_output")
+
     if args.num_agents:
         node_coords = get_node_coords(args.network_path)
         create_population_and_plans_xml_counts(node_coords, args.plans_path, args.vehicles_path, args.num_agents)
+
     num_runs = args.num_runs
-    update_last_iteration(args.config_path, args.num_matsim_iters - 1)
+    update_last_iteration_and_output_dir(args.config_path, args.num_matsim_iters - 1, output_path)
     algorithm_results = pd.DataFrame(columns=["iteration", "avg_score", "selected_links"])
     link_ids = get_link_ids(args.network_path)
     
     if not os.path.isdir(args.results_path):
         os.makedirs(args.results_path, exist_ok=False)
 
-    config_path = Path(args.config_path)
-    scenario_path = config_path.parent
-
-    csvs_path = os.path.join(args.results_path, "csvs")
-    figs_path = os.path.join(args.results_path, "figs")
-    q_path = os.path.join(args.results_path, "Q.csv")
-    output_path = os.path.join(scenario_path / "output")
-    best_output_path = os.path.join(scenario_path / "best_output")
-    
     os.makedirs(csvs_path, exist_ok=True)
     os.makedirs(figs_path, exist_ok=True)
 

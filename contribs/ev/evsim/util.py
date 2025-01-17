@@ -17,7 +17,7 @@ def get_link_ids(network_file):
 
     return np.array(link_ids).astype(int)
 
-def update_last_iteration(xml_file, new_value):
+def update_last_iteration_and_output_dir(xml_file, new_value, output_dir):
     # Parse the XML file
     tree = ET.parse(xml_file)
     root = tree.getroot()
@@ -29,7 +29,11 @@ def update_last_iteration(xml_file, new_value):
             for param in module.findall("param"):
                 if param.get('name') == 'lastIteration':
                     param.set('value', str(new_value))
-                    break
+                if param.get('name') == 'outputDirectory':
+                    param.set('value', output_dir)
+            
+            break
+        
                 
         # Manually write the header to the output file
     with open(xml_file, "wb") as f:

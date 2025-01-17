@@ -27,10 +27,11 @@ conda install pandas numpy matplotlib -y
 ```
 
 The `run_algorithm.py` serves as a basis on how to implement your own algorithm for optimizing the charger placement. The code is well commented so you can refer to it in order implement your own algorithm. But this will give you an understanding of the structure of the code and how it works.
+If you've saved the appropriate xml files in for example `/script_scenarios/utahevscenario`. below shows you how to run the algorithm.
 
 ```
 cd EvMatsim/contribs/ev
-python run_algorithm.py ./scenarios/utahev/utahevconfig.xml ./scenarios/utahev/utahevnetwork.xml ./scenarios/utahev/utahevplans.xml ./scenarios/utahev/utahevchargers.xml ./scenarios/utahev/results ./scenarios/utahev/output/ ./scenarios/utahev/Q.csv --algorithm egreedy --alg_prefix egreedy_example --num_runs 10 --num_matsim_iters 1 --num_chargers 10 --min_ram 10 --max_ram 20 --explore_steps 10
+python run_algorithm.py script_scenarios/utahevscenario/utahevconfig.xml ./script_scenarios/utahevscenario/utahevnetwork.xml ./script_scenarios/utahevscenario/utahevplans.xml ./script_scenarios/utahevscenario/utahevvehicles.xml ./script_scenarios/utahevscenario/utahevchargers.xml ./script_scenarios/utahevscenario/results --percent_dynamic 0.5 --algorithm egreedy --epsilon 0.05 --alg_prefix egreedy --initial_q_values 9999 --num_runs 100 --num_matsim_iters 1 --num_agents 1000 --num_chargers 1000
 ```
 The above script shows how to run the algorithm, make sure to change whatever params you need. You can run the following to see the help.
 ```
