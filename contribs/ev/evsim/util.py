@@ -36,23 +36,19 @@ def setup_config(config_xml_path, num_iterations, output_dir):
 
     # Find the 'controler' module
     for module in root.findall(".//module"):
-        if module.get('name') == 'controler':
-            # Find the 'lastIteration' parameter and update its value
-            for param in module.findall("param"):
-                if param.get('name') == 'lastIteration':
-                    param.set('value', str(num_iterations))
-                if param.get('name') == 'outputDirectory':
-                    param.set('value', output_dir)
-                if param.get('name') == 'inputNetworkFile':
-                    network_file = param.get('value')
-                if param.get('name') == 'plansFilePath':
-                    plans_file = param.get('value')
-                if param.get('name') == 'vehiclesFilePath':
-                    vehicles_file = param.get('value')
-                if param.get('name') == 'inputChargersFile':
-                    chargers_file = param.get('value')
-                if param.get('name') == 'qValuesFile':
-                    q_values_file = param.get('value')
+        for param in module.findall("param"):
+            if param.get('name') == 'lastIteration':
+                param.set('value', str(num_iterations))
+            if param.get('name') == 'outputDirectory':
+                param.set('value', output_dir)
+            if param.get('name') == 'inputNetworkFile':
+                network_file = param.get('value')
+            if param.get('name') == 'inputPlansFile':
+                plans_file = param.get('value')
+            if param.get('name') == 'vehiclesFile':
+                vehicles_file = param.get('value')
+            if param.get('name') == 'chargersFile':
+                chargers_file = param.get('value')
             
         # Manually write the header to the output file
     with open(config_xml_path, "wb") as f:
@@ -63,7 +59,7 @@ def setup_config(config_xml_path, num_iterations, output_dir):
         # Write the tree structure
         tree.write(f)
 
-    return network_file, plans_file, vehicles_file, chargers_file, q_values_file
+    return network_file, plans_file, vehicles_file, chargers_file
 
 def get_str(num):
     if isinstance(num, str):

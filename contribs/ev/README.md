@@ -31,7 +31,7 @@ If you've saved the appropriate xml files in for example `/script_scenarios/utah
 
 ```
 cd EvMatsim/contribs/ev
-python run_algorithm.py script_scenarios/utahevscenario/utahevconfig.xml ./script_scenarios/utahevscenario/utahevnetwork.xml ./script_scenarios/utahevscenario/utahevplans.xml ./script_scenarios/utahevscenario/utahevvehicles.xml ./script_scenarios/utahevscenario/utahevchargers.xml ./script_scenarios/utahevscenario/results --percent_dynamic 0.5 --algorithm egreedy --epsilon 0.05 --alg_prefix egreedy --initial_q_values 9999 --num_runs 100 --num_matsim_iters 1 --num_agents 1000 --num_chargers 1000
+python run_algorithm.py ./script_scenarios/utahevscenario/utahevconfig.xml --percent_dynamic .5 --algorithm egreedy --epsilon 0.05 --initial_q_values 9999 --num_runs 100 --num_matsim_iters 1 --num_agents 1000 --num_chargers 1000 --initial_soc .3
 ```
 The above script shows how to run the algorithm, make sure to change whatever params you need. You can run the following to see the help.
 ```

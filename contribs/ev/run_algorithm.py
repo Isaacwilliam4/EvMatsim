@@ -21,30 +21,39 @@ def main(args):
 
     config_path = Path(args.config_path)
     scenario_path = config_path.parent
-
     results_path = scenario_path / f"{time_string}_results"
+    output_path = os.path.join(results_path / "output")
+
+    network_file_name, \
+    plans_file_name, \
+    vehicles_file_name, \
+    chargers_file_name = setup_config(args.config_path, args.num_matsim_iters - 1, output_path)
+
+    network_path = os.path.join(scenario_path, network_file_name)
+    plans_path = os.path.join(scenario_path, plans_file_name)
+    vehicles_path = os.path.join(scenario_path, vehicles_file_name)
+    chargers_path = os.path.join(scenario_path, chargers_file_name)
+
     os.makedirs(results_path, exist_ok=False)
 
     with open(results_path / "args.txt", "w") as f:
         for key, value in vars(args).items():
             f.write(f"{key}: {value}\n")
 
-    output_path = os.path.join(results_path / "output")
     q_path = os.path.join(results_path, "Q.csv")
     best_output_path = os.path.join(results_path / "best_output")
 
     if args.num_agents:
-        node_coords = get_node_coords(args.network_path)
+        node_coords = get_node_coords(network_path)
         create_population_and_plans_xml_counts(node_coords, 
-                                               args.plans_path, 
-                                               args.vehicles_path, 
+                                               plans_path, 
+                                               vehicles_path, 
                                                args.num_agents, 
                                                initial_soc=args.initial_soc)
 
  
-    setup_config(args.config_path, args.num_matsim_iters - 1, output_path)
     algorithm_results = pd.DataFrame(columns=["iteration", "avg_score", "selected_links"])
-    link_ids = get_link_ids(args.network_path)
+    link_ids = get_link_ids(network_path)
 
     current_time = datetime.now()
     max_score = -np.inf
@@ -71,7 +80,7 @@ def main(args):
         elif args.algorithm == "egreedy":
             chosen_links = e_greedy(args.num_chargers, Q, args.epsilon)
 
-        create_chargers_xml(chosen_links, args.chargers_path, args.percent_dynamic)
+        create_chargers_xml(chosen_links, chargers_path, args.percent_dynamic)
 
         os.system(f'mvn -e exec:java -Dexec.args="{args.config_path}"')
         scores = pd.read_csv(os.path.join(output_path, "scorestats.csv"), sep=";")
