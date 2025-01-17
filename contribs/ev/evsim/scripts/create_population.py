@@ -25,7 +25,7 @@ def get_node_coords(network_file):
 
     return node_coords
 
-def create_vehicle_definitions(ids, charge_home_percent):
+def create_vehicle_definitions(ids, initial_soc=1):
     # Create the root element with namespaces
     root = ET.Element("vehicleDefinitions", attrib={
         "xmlns": "http://www.matsim.org/files/dtd",
@@ -67,11 +67,7 @@ def create_vehicle_definitions(ids, charge_home_percent):
         # # Set initial SoC based on the vehicle ID
         # soc = round(random.uniform(0.2, 0.8), 2)
 
-        # Add the initialSoc attribute
-        if np.random.random() < charge_home_percent:
-            ET.SubElement(attributes, "attribute", name="initialSoc", **{"class": "java.lang.Double"}).text = str(1)
-        else:
-            ET.SubElement(attributes, "attribute", name="initialSoc", **{"class": "java.lang.Double"}).text = str(np.random.uniform(.1,.2))
+        ET.SubElement(attributes, "attribute", name="initialSoc", **{"class": "java.lang.Double"}).text = str(initial_soc)
 
     return ET.ElementTree(root)
 
@@ -81,7 +77,8 @@ def create_population_and_plans_xml_counts(node_coords,
                                         num_agents=100,
                                         counts_input=None,
                                         population_multiplier=1,
-                                        percent_home_charge=1):
+                                        percent_home_charge=1,
+                                        initial_soc=1):
     
     plans_output = os.path.abspath(plans_output)
     vehicles_output = os.path.abspath(vehicles_output)
@@ -129,7 +126,7 @@ def create_population_and_plans_xml_counts(node_coords,
             work_activity = ET.SubElement(plan, "act", type="h", 
                                     x=str(dest_node[0]), y=str(dest_node[1]), start_time=start_time_str, end_time=end_time_str)
 
-    vehicle_tree = create_vehicle_definitions(person_ids, percent_home_charge)
+    vehicle_tree = create_vehicle_definitions(person_ids, initial_soc)
     save_xml(vehicle_tree, vehicles_output)
 
     # Convert the ElementTree to a string
