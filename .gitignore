@@ -15,3 +15,12 @@ matsim/src/main/java/Doxyfile
 # VS Code files
 .vscode
 
+*scenarios*/
+
+# ignore output directories:
+*output*/
+*results/
+*.log
+*.csv
+!scenario_examples/**
+
