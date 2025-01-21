@@ -11,19 +11,22 @@ mvn clean install -DskipTests
 
 # Usage
 
-First you need to create a conda environment with the appropriate dependencies
+First you need to create a conda environment with the appropriate dependencies, you may need to change some things based on your cuda
+version.
 
 Linux
 ```
 conda create -n matsimenv python=3.8
 conda activate matsimenv
 conda install pandas numpy matplotlib -y
+conda install pytorch torchvision torchaudio pytorch-cuda=12.4 -c pytorch -c nvidia
 ```
 Windows
 ```
 conda create -n matsimenv python=3.8
 source activate matsimenv
 conda install pandas numpy matplotlib -y
+conda install pytorch torchvision torchaudio pytorch-cuda=12.4 -c pytorch -c nvidia
 ```
 
 The `run_algorithm.py` serves as a basis on how to implement your own algorithm for optimizing the charger placement. The code is well commented so you can refer to it in order implement your own algorithm. But this will give you an understanding of the structure of the code and how it works.

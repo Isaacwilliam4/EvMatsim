@@ -29,9 +29,9 @@ def create_chargers_xml(link_ids:list, output_file_path, percent_dynamic=0.0):
     num_static = num_chargers - num_dynamic
     
     link_ids = np.array(link_ids)
-    dynamic_chargers = np.random.choice(link_ids, num_dynamic)
+    dynamic_chargers = np.random.choice(link_ids, num_dynamic, replace=False)
     link_ids = np.setdiff1d(link_ids, dynamic_chargers)
-    static_chargers = np.random.choice(link_ids, num_static)
+    static_chargers = np.random.choice(link_ids, num_static, replace=False)
 
     id=0
     i=0

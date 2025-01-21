@@ -11,10 +11,10 @@ class MatsimXMLData(Dataset):
         self.network_xml_path = network_xml_path
         self.charger_xml_path = charger_xml_path
         self.data_list = []  # Store Data objects
-        # Store mapping of node IDs to indices in the graph
-        self.node_mapping = {}
-        # Store mapping of edge IDs to indices in the graph
-        self.edge_mapping = {}
+        
+        self.node_mapping = {}#: Store mapping of node IDs to indices in the graph
+        
+        self.edge_mapping = {}#: (key:edge id, value: index in edge list)
         self.edge_attr_mapping = {}
         self.create_edge_attr_mapping()
         self.graph = Data()
@@ -90,6 +90,16 @@ class MatsimXMLData(Dataset):
                 charger_type = "default"
              
             self.graph.edge_attr[self.edge_mapping[link_id]][self.edge_attr_mapping[charger_type]] = 1
+
+        # update the rest of the links to have no charger
+        tree = ET.parse(self.network_xml_path)
+        root = tree.getroot()
+        for link in root.findall(".//link"):
+            link_id = link.get("id")
+
+            if not (self.graph.edge_attr[self.edge_mapping[link_id]][self.edge_attr_mapping['default']] == 1 or\
+            self.graph.edge_attr[self.edge_mapping[link_id]][self.edge_attr_mapping['dynamic']] == 1):
+                self.graph.edge_attr[self.edge_mapping[link_id]][self.edge_attr_mapping['none']] = 1
         
 
     def get_graph(self):
@@ -98,8 +108,8 @@ class MatsimXMLData(Dataset):
 
     
 if __name__ == "__main__":
-    network_xml_path = "/home/isaacp/repos/EvMatsim/contribs/ev/scenarios/utahev/utahevnetwork.xml"
-    charger_xml_path = "/home/isaacp/repos/EvMatsim/contribs/ev/scenarios/utahev/utahevchargers.xml"
+    network_xml_path = "/home/isaacp/repos/EvMatsim/contribs/ev/script_scenarios/utahevscenario/utahevnetwork.xml"
+    charger_xml_path = "/home/isaacp/repos/EvMatsim/contribs/ev/script_scenarios/utahevscenario/utahevchargers.xml"
     charger_dict = {
         "none": 0,
         # in matsim the default charger is a static charger we could update this dictionary
@@ -109,3 +119,6 @@ if __name__ == "__main__":
         "dynamic": 2
     }
     dataset = MatsimXMLData(network_xml_path, charger_xml_path, charger_dict)
+    graph : Data = dataset.get_graph()
+    torch.save(graph, '/home/isaacp/repos/EvMatsim/contribs/ev/data/utah_graph.pt')
+    print(graph)
