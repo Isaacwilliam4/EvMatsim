@@ -138,6 +138,8 @@ def save_csv_and_plot(chosen_links, average_score, iter, algorithm_results, resu
     plt.ylabel("AvgScore")
     plt.savefig(os.path.join(results_path, f"{time_string}_results.png"))
 
+    return algorithm_results, Q
+
 def extract_paths_from_config(config_xml_path):
     # Parse the XML file
     tree = ET.parse(config_xml_path)

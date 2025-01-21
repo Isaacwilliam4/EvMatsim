@@ -11,10 +11,6 @@ from evsim.scripts.create_chargers import *
 from pathlib import Path
 from datetime import datetime
 
-
-
-
-
 def main(args):
     current_time = datetime.now()
     time_string = current_time.strftime("%Y%m%d_%H%M%S")
@@ -87,7 +83,14 @@ def main(args):
 
         average_score = scores["avg_executed"].iloc[-1]
 
-        save_csv_and_plot(chosen_links, average_score, i, algorithm_results, results_path, time_string, Q, q_path)
+        algorithm_results, Q = save_csv_and_plot(chosen_links,
+                                               average_score,
+                                                i, 
+                                                algorithm_results,
+                                                results_path, 
+                                                time_string, 
+                                                Q, 
+                                                q_path)
 
         if average_score > max_score:
             max_score = average_score
