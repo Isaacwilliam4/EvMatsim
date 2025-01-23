@@ -5,7 +5,7 @@ import torch
 
 #TODO create class for matsim link to handle the link attrbutes
 
-class MatsimXMLData(Dataset):
+class MatsimXMLDataset(Dataset):
     def __init__(self, network_xml_path, charger_xml_path, charger_dict, transform=None):
         super().__init__(transform=transform)
         self.network_xml_path = network_xml_path
