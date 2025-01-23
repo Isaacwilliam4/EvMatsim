@@ -16,10 +16,10 @@ class MatsimXMLDataset(Dataset):
         
         self.edge_mapping = {}#: (key:edge id, value: index in edge list)
         self.edge_attr_mapping = {}
-        self.create_edge_attr_mapping()
         self.graph = Data()
         self.charger_dict = charger_dict
         self.num_charger_types = len(charger_dict)
+        self.create_edge_attr_mapping()
         self.parse_matsim_network()
         self.parse_charger_network()
 
@@ -32,7 +32,7 @@ class MatsimXMLDataset(Dataset):
     def create_edge_attr_mapping(self):
         self.edge_attr_mapping = {'length': 0, 'freespeed': 1, 'capacity': 2, 'permlanes': 3, 'oneway': 4}
         edge_attr_idx = len(self.edge_attr_mapping)
-        for key in charger_dict:
+        for key in self.charger_dict:
             self.edge_attr_mapping[key] = edge_attr_idx
             edge_attr_idx += 1
     
@@ -118,7 +118,7 @@ if __name__ == "__main__":
         "default": 1,
         "dynamic": 2
     }
-    dataset = MatsimXMLData(network_xml_path, charger_xml_path, charger_dict)
+    dataset = MatsimXMLDataset(network_xml_path, charger_xml_path, charger_dict)
     graph : Data = dataset.get_graph()
     torch.save(graph, '/home/isaacp/repos/EvMatsim/contribs/ev/data/utah_graph.pt')
     print(graph)
