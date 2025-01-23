@@ -22,5 +22,6 @@ matsim/src/main/java/Doxyfile
 *results/
 *.log
 *.csv
+*__pycache__*
 !scenario_examples/**
 
