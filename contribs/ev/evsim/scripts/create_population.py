@@ -75,9 +75,8 @@ def create_population_and_plans_xml_counts(node_coords,
                                         plans_output,
                                         vehicles_output,
                                         num_agents=100,
-                                        counts_input=None,
+                                        counts_path=None,
                                         population_multiplier=1,
-                                        percent_home_charge=1,
                                         initial_soc=1):
     
     plans_output = os.path.abspath(plans_output)
@@ -91,9 +90,9 @@ def create_population_and_plans_xml_counts(node_coords,
     person_ids = []
     person_count = 1
 
-    if counts_input:
-        counts_input = os.path.abspath(counts_input)
-        counts_df = pd.read_csv(counts_input, sep='\t')
+    if counts_path:
+        counts_path = os.path.abspath(counts_path)
+        counts_df = pd.read_csv(counts_path, sep='\t')
         counts = counts_df['Flow (Veh/Hour)'].values
     else:
         # if no counts file given, generate bimodal distribution with num_agent samples
@@ -149,7 +148,7 @@ def main(args):
                                     args.plans_output,
                                     args.vehicles_output,
                                     args.num_agents,
-                                    args.counts_input,
+                                    args.counts_path,
                                     args.pop_mulitiplier,
                                     args.percent_home_charge)
 
@@ -162,7 +161,7 @@ if __name__ == "__main__":
     parser.add_argument('plans_output', type=str, help='Output path of plans network')
     parser.add_argument('vehicles_output', type=str, help='Vehicle file used to create vehicles')
     parser.add_argument('num_agents', type=int, help='The number of agents to generate', default=100)
-    parser.add_argument('--counts_input', type=str, help='Counts file to use for creating population, if none \
+    parser.add_argument('--counts_path', type=str, help='Counts file to use for creating population, if none \
                         provided then a bimodal distribution with num_agents samples will be generated', default=None)
     parser.add_argument('--pop_mulitiplier', type=float, help='How much to mulitply population by based on the counts file', default=1)
     parser.add_argument('--percent_home_charge', type=float, help='Percentage of population that charges at home 0<=p<=1', default=1)

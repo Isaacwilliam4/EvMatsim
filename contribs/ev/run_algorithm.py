@@ -39,13 +39,14 @@ def main(args):
     q_path = os.path.join(results_path, "Q.csv")
     best_output_path = os.path.join(results_path / "best_output")
 
-    if args.num_agents:
-        node_coords = get_node_coords(network_path)
-        create_population_and_plans_xml_counts(node_coords, 
-                                               plans_path, 
-                                               vehicles_path, 
-                                               args.num_agents, 
-                                               initial_soc=args.initial_soc)
+    node_coords = get_node_coords(network_path)
+    create_population_and_plans_xml_counts(node_coords, 
+                                            plans_path, 
+                                            vehicles_path, 
+                                            args.num_agents, 
+                                            counts_path=args.counts_path,
+                                            population_multiplier=args.pop_multiplier,
+                                            initial_soc=args.initial_soc)
 
  
     algorithm_results = pd.DataFrame(columns=["iteration", "avg_score", "selected_links"])
@@ -111,6 +112,12 @@ if __name__ == "__main__":
     argparser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
     argparser.add_argument("config_path", type=str, help="Path to the matsim config.xml file")
+    argparser.add_argument("--counts_path", default=None, help="path to the counts file with 24 data points in the 'Flow (Veh/Hour)' column\
+                           correlating to the number of vehicles each hour that should go out")
+    argparser.add_argument("--num_agents", type=int, help="Number of agents on the network, if none it will use the existing plans.xml file\
+                           note: if a counts.xml file is provided in the config, then that will override the num_agents parameter")
+    argparser.add_argument("--pop_multiplier", default=1, type=float, help="How much to multiply the population by based on the counts file, if \
+                           no counts.xml file is provided, this is ignored")
     argparser.add_argument("--percent_dynamic", help="percent of chargers that are dynamic chargers, 1 means \
                            all dynamic, 0 means all static", default=0, type=float)
     argparser.add_argument("--algorithm",help="Algorithm to use for optimization",choices=["montecarlo","egreedy"],
@@ -118,8 +125,7 @@ if __name__ == "__main__":
     argparser.add_argument("--epsilon", help="If using the e-greedy algorithm, the epsilon value", default=0.05, type=float)
     argparser.add_argument("--initial_q_values", default=9999, type=int, help="default q value for q table, high values encourage exploration")
     argparser.add_argument("--num_runs", default=50, type=int, help="Number of iterations for the algorithm")
-    argparser.add_argument("--num_matsim_iters", default=5, type=int, help="Number of iterations for the matsim simulator")
-    argparser.add_argument("--num_agents", type=int, help="Number of agents on the network, if none it will use the existing plans.xml file")
+    argparser.add_argument("--num_matsim_iters", default=1, type=int, help="Number of iterations for the matsim simulator")
     argparser.add_argument("--num_chargers", default=10, type=int, help="Number of chargers on the network")
     argparser.add_argument("--initial_soc", default=1, type=float, help="Initial state of charge for the agents 0<=soc<=1")
     argparser.add_argument("--min_ram", type=int, help="Minimum memory in gigs used by the program")

@@ -34,6 +34,12 @@ def setup_config(config_xml_path, num_iterations, output_dir):
     tree = ET.parse(config_xml_path)
     root = tree.getroot()
 
+    network_file,\
+    plans_file,\
+    vehicles_file,\
+    chargers_file,\
+    counts_file = None, None, None, None, None
+
     # Find the 'controler' module
     for module in root.findall(".//module"):
         for param in module.findall("param"):
