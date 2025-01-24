@@ -23,6 +23,18 @@ class MatsimXMLDataset(Dataset):
         self.parse_matsim_network()
         self.parse_charger_network()
 
+        # min max normalize  continuous edge attr
+
+        cont_var = self.graph.edge_attr[:,:3]
+        mins = torch.min(cont_var, dim=0).values
+        maxs = torch.max(cont_var, dim=0).values
+
+        cont_var_norm = (cont_var - mins) / (maxs - mins)
+        self.graph.edge_attr[:,:3] = cont_var_norm
+
+        print(torch.max(cont_var_norm, dim=0).values)
+        print(torch.min(cont_var_norm, dim=0).values)
+
     def len(self):
         return len(self.data_list)
 
@@ -30,7 +42,7 @@ class MatsimXMLDataset(Dataset):
         return self.data_list[idx]
     
     def create_edge_attr_mapping(self):
-        self.edge_attr_mapping = {'length': 0, 'freespeed': 1, 'capacity': 2, 'permlanes': 3, 'oneway': 4}
+        self.edge_attr_mapping = {'length': 0, 'freespeed': 1, 'capacity': 2}
         edge_attr_idx = len(self.edge_attr_mapping)
         for key in self.charger_dict:
             self.edge_attr_mapping[key] = edge_attr_idx
