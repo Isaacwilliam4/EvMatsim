@@ -3,10 +3,15 @@ package org.matsim.contrib.ev;
 import com.sun.net.httpserver.HttpServer;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpExchange;
-
-import java.io.IOException;
-import java.io.OutputStream;
+import org.matsim.contrib.ev.HttpRequestParser;
+import java.io.*;
+import java.util.List;
 import java.net.InetSocketAddress;
+import java.nio.charset.StandardCharsets;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.fileupload.*;
+import org.apache.commons.fileupload.disk.DiskFileItemFactory;
+import org.apache.commons.fileupload.servlet.ServletFileUpload;
 
 public class RewardServer {
 
@@ -24,17 +29,19 @@ public class RewardServer {
     static class RewardHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange exchange) throws IOException {
-            // Example: Parse input parameters from the URL
-            // String query = exchange.getRequestURI().getQuery();
-            // String[] params = query.split("&");
-            String[] params = {"blah", "blah"};
-            String reward = calculateReward(params);
+            HttpRequestParser parser = new HttpRequestParser();
+            InputStream is = exchange.getRequestBody();
+            String result = IOUtils.toString(is, StandardCharsets.UTF_8);
+            
+            try{
+                parser.parseRequest(result);
+            }
+            catch(Exception e){
+                e.printStackTrace();
+            }
 
-            // Send the reward as a response
-            exchange.sendResponseHeaders(200, reward.getBytes().length);
-            OutputStream os = exchange.getResponseBody();
-            os.write(reward.getBytes());
-            os.close();
+            System.out.println("Request received: " + result);
+
         }
 
         private String calculateReward(String[] params) {
