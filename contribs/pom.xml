@@ -63,6 +63,12 @@
     </modules>
 
 	<dependencies>
+	    <dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>javax.servlet-api</artifactId>
+			<version>4.0.1</version> <!-- Or the appropriate version for your environment -->
+			<scope>provided</scope>
+    	</dependency>
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>
 			<artifactId>junit-jupiter-engine</artifactId>
