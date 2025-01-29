@@ -23,7 +23,7 @@ def main(args):
     network_file_name, \
     plans_file_name, \
     vehicles_file_name, \
-    chargers_file_name = setup_config(args.config_path, args.num_matsim_iters - 1, output_path)
+    chargers_file_name = setup_config(args.config_path, output_path, args.matsim_iters - 1)
 
     network_path = os.path.join(scenario_path, network_file_name)
     plans_path = os.path.join(scenario_path, plans_file_name)

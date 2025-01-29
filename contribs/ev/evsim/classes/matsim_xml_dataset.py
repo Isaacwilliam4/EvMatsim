@@ -2,14 +2,32 @@ from torch_geometric.data import Dataset
 import xml.etree.ElementTree as ET
 from torch_geometric.data import Data
 import torch
+from pathlib import Path
+from evsim.util import *
+import shutil
 
 #TODO create class for matsim link to handle the link attrbutes
 
 class MatsimXMLDataset(Dataset):
-    def __init__(self, network_xml_path, charger_xml_path, charger_dict, transform=None):
-        super().__init__(transform=transform)
-        self.network_xml_path = network_xml_path
-        self.charger_xml_path = charger_xml_path
+    def __init__(self, config_path:Path, time_string:str, charger_dict):
+        super().__init__(transform=None)
+
+        tmp_dir = Path("/tmp/" + time_string)
+        output_path = Path(tmp_dir + "/output/")
+        shutil.copytree(config_path.parent, tmp_dir)
+
+        self.config_path = Path(tmp_dir / config_path.name)
+
+        network_file_name, \
+        plans_file_name, \
+        vehicles_file_name, \
+        chargers_file_name = setup_config(config_path, output_path)
+        
+        self.charger_xml_path = Path(tmp_dir / chargers_file_name)
+        self.network_xml_path = Path(tmp_dir / network_file_name)
+        self.plan_xml_path = Path(tmp_dir / plans_file_name)
+        self.vehicle_xml_path = Path(tmp_dir / vehicles_file_name)
+
         self.data_list = []  # Store Data objects
         
         self.node_mapping = {}#: Store mapping of node IDs to indices in the graph
@@ -31,9 +49,6 @@ class MatsimXMLDataset(Dataset):
 
         cont_var_norm = (cont_var - mins) / (maxs - mins)
         self.graph.edge_attr[:,:3] = cont_var_norm
-
-        print(torch.max(cont_var_norm, dim=0).values)
-        print(torch.min(cont_var_norm, dim=0).values)
 
     def len(self):
         return len(self.data_list)

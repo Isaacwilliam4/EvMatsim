@@ -20,7 +20,7 @@ def get_link_ids(network_file):
 
     return np.array(link_ids).astype(int)
 
-def setup_config(config_xml_path, num_iterations, output_dir):
+def setup_config(config_xml_path, output_dir, num_iterations=0):
     """Sets the number of matsim iterations that need to run,
     sets the output directory file to write the matsim results to,
     and returns the paths to the network, plans, vehicles, and charger xml files.
