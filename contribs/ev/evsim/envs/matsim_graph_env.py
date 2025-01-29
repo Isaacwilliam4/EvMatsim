@@ -4,12 +4,30 @@ import numpy as np
 from torch_geometric.data import Data
 from evsim.classes.matsim_xml_dataset import MatsimXMLDataset
 from torch_geometric.data import Dataset
+from evsim.util import *
+import shutil
+from datetime import datetime
+from pathlib import Path
+
 
 class MatsimGraphEnv(gym.Env):
-    def __init__(self, dataset: MatsimXMLDataset):
+    def __init__(self):
         super().__init__()
-        
-        self.dataset = dataset
+        current_time = datetime.now()
+        time_string = current_time.strftime("%Y%m%d_%H%M%S_%f")
+        self.config_path = Path("/home/isaacp/repos/EvMatsim/contribs/ev/scenario_examples/utahev_scenario_example/utahevconfig.xml")
+
+        charger_dict = {
+            "none": 0,
+            # in matsim the default charger is a static charger we could update this dictionary
+            # to include different charger types along with charger cost and other attributes
+            # the graph uses this dictionary to map the charger type to an integer
+            "default": 1,
+            "dynamic": 2
+        }
+
+        self.dataset = MatsimXMLDataset(self.config_path, time_string, charger_dict)
+
         self.graph = dataset.get_graph()
         self.num_edges = graph.edge_index.size(1)
         self.num_charger_types = len(self.dataset.charger_dict)
@@ -29,24 +47,12 @@ class MatsimGraphEnv(gym.Env):
         self.done = False
 
     def reset(self):
-        """Reset the environment to the initial state."""
-        self.state = np.zeros(4)  # Example initial state
-        self.done = False
-        return self.state, {}
+        pass
 
     def step(self, action):
         """Take an action and return the next state, reward, done, and info."""
-        # Example: Update state based on action
-        self.state += action - 1  # Example update logic
+
         
-        # Calculate reward (example logic)
-        reward = -np.sum(self.state**2)
-        
-        # Define episode termination condition
-        self.done = np.linalg.norm(self.state) > 10
-        
-        # Optional: Provide additional information
-        info = {}
         
         return self.state, reward, self.done, info
 
