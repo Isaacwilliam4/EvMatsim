@@ -3,6 +3,7 @@ import random
 import argparse
 import os
 import numpy as np
+from gymnasium import spaces
 
 def load_network_xml(network_file):
     # Parse the network XML file
@@ -18,6 +19,56 @@ def load_network_xml(network_file):
         link_ids.append(link_id)
 
     return link_ids
+
+def create_chargers_xml_gymnasium(charger_list:list, action:spaces.MultiDiscrete, link_id_mapping:dict):
+    """Given a multi-discrete action space, create a chargers XML file for MATSim.
+
+    Args:
+        charger_list (list): contains a list of the charger type names
+        action (spaces.MultiDiscrete): the action space with dimenstion (num_edges) where each value corresponds to
+        1 based indexing of the charger list (0 is no charger)
+        link_id_mapping (dict): maps the index ing the edge list to a link id
+    """
+    num_chargers = len(link_ids)
+    # Create the root element for the chargers
+    chargers = ET.Element("chargers")
+
+    # Loop to create the specified number of chargers
+    num_dynamic = int(num_chargers)
+    num_static = num_chargers - num_dynamic
+    
+    link_ids = np.array(link_ids)
+    dynamic_chargers = np.random.choice(link_ids, num_dynamic, replace=False)
+    link_ids = np.setdiff1d(link_ids, dynamic_chargers)
+    static_chargers = np.random.choice(link_ids, num_static, replace=False)
+
+    id=0
+    i=0
+
+    while i < len(dynamic_chargers):
+        charger = ET.SubElement(chargers, "charger", id=str(id), link=str(dynamic_chargers[i]), plug_power="70", plug_count="9999", type="dynamic")
+        id += 1
+        i += 1
+    
+    i = 0
+    while i < len(static_chargers):
+        charger = ET.SubElement(chargers, "charger", id=str(id), link=str(static_chargers[i]), plug_power="100.0", plug_count="1")
+        id += 1
+        i += 1
+
+    # Convert the ElementTree to a string
+    tree = ET.ElementTree(chargers)
+
+    # Manually write the header to the output file
+    with open(output_file_path, "wb") as f:
+        # Write the XML declaration and DOCTYPE
+        f.write(b'<?xml version="1.0" ?>\n')
+        f.write(b'<!DOCTYPE chargers SYSTEM "http://matsim.org/files/dtd/chargers_v1.dtd">\n')
+
+        # Write the tree structure
+        tree.write(f)
+
+    print(f"{num_chargers} chargers written to {output_file_path}")
 
 def create_chargers_xml(link_ids:list, output_file_path, percent_dynamic=0.0):
     num_chargers = len(link_ids)

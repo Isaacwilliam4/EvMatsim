@@ -10,6 +10,7 @@ from datetime import datetime
 from pathlib import Path
 import torch
 import requests
+from evsim.scripts.create_chargers import *
 
 
 
@@ -24,8 +25,7 @@ class MatsimGraphEnv(gym.Env):
 
         self.dataset = MatsimXMLDataset(self.config_path, self.time_string, self.charger_list)
 
-        self.graph = self.dataset.get_graph()
-        self.num_edges, self.edge_space = self.graph.edge_index.size(1), self.graph.edge_attr.size(1) 
+        self.num_edges, self.edge_space = self.dataset.graph.edge_index.size(1), self.dataset.graph.edge_attr.size(1) 
         self.num_charger_types = len(self.charger_list)
         # Define action and observation space
         # Example: Discrete action space with 3 actions
@@ -39,7 +39,7 @@ class MatsimGraphEnv(gym.Env):
         )
         
         # Initialize environment-specific variables
-        self.state = self.graph.edge_attr
+        self.state = self.dataset.graph.edge_attr
         self.done = False
 
     def send_reward_request(self):
@@ -61,7 +61,8 @@ class MatsimGraphEnv(gym.Env):
     def step(self, action):
         """Take an action and return the next state, reward, done, and info."""
 
-        reweward = self.send_reward_request()
+
+        reward = self.send_reward_request()
 
         
         
@@ -78,5 +79,6 @@ class MatsimGraphEnv(gym.Env):
 
 if __name__ == "__main__":
     env = MatsimGraphEnv()
+    sample = env.action_space.sample()
     env.step(env.action_space.sample())
     env.close()
