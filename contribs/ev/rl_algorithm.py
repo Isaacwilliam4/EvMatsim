@@ -11,8 +11,9 @@ from evsim.scripts.create_chargers import *
 from pathlib import Path
 from datetime import datetime
 import requests
+import time
 
-def send_request(config_path, network_path, plans_path, vehicles_path, chargers_path):
+def send_request(folder_name, config_path, network_path, plans_path, vehicles_path, chargers_path):
     url = "http://localhost:8000/getReward"
     files = {
         'config': open(config_path, 'rb'),
@@ -21,7 +22,7 @@ def send_request(config_path, network_path, plans_path, vehicles_path, chargers_
         'vehicles': open(vehicles_path, 'rb'),
         'chargers': open(chargers_path, 'rb')
     }
-    response = requests.post(url, files=files)
+    response = requests.post(url, params={'folder_name':folder_name}, files=files)
     return response
 
 def main(args):
@@ -31,7 +32,7 @@ def main(args):
     config_path = Path(args.config_path)
     scenario_path = config_path.parent
     results_path = scenario_path / f"{time_string}_results"
-    output_path = os.path.join(results_path / "output")
+    output_path = os.path.join("tmp" , time_string , "output")
 
     network_file_name, \
     plans_file_name, \
@@ -85,28 +86,28 @@ def main(args):
     for i in range(1, args.num_runs + 1):
         print_run_info(i, args.num_runs)
 
-        reward = send_request(config_path, network_path, plans_path, vehicles_path, chargers_path)
-        
-        if args.algorithm == "montecarlo":
-            chosen_links = monte_carlo_algorithm(args.num_chargers, link_ids, algorithm_results)
-        elif args.algorithm == "egreedy":
-            chosen_links = e_greedy(args.num_chargers, Q, args.epsilon)
+        average_score = send_request(time_string, config_path, network_path, plans_path, vehicles_path, chargers_path)
 
-        create_chargers_xml(chosen_links, chargers_path, args.percent_dynamic)
+        # if args.algorithm == "montecarlo":
+        #     chosen_links = monte_carlo_algorithm(args.num_chargers, link_ids, algorithm_results)
+        # elif args.algorithm == "egreedy":
+        #     chosen_links = e_greedy(args.num_chargers, Q, args.epsilon)
 
-        os.system(f'mvn -e exec:java -Dexec.args="{args.config_path}"')
-        scores = pd.read_csv(os.path.join(output_path, "scorestats.csv"), sep=";")
+        # create_chargers_xml(chosen_links, chargers_path, args.percent_dynamic)
 
-        average_score = scores["avg_executed"].iloc[-1]
+        # os.system(f'mvn -e exec:java -Dexec.args="{args.config_path}"')
+        # scores = pd.read_csv(os.path.join(output_path, "scorestats.csv"), sep=";")
 
-        algorithm_results, Q = save_csv_and_plot(chosen_links,
-                                               average_score,
-                                                i, 
-                                                algorithm_results,
-                                                results_path, 
-                                                time_string, 
-                                                Q, 
-                                                q_path)
+        # average_score = scores["avg_executed"].iloc[-1]
+
+        # algorithm_results, Q = save_csv_and_plot(chosen_links,
+        #                                        average_score,
+        #                                         i, 
+        #                                         algorithm_results,
+        #                                         results_path, 
+        #                                         time_string, 
+        #                                         Q, 
+        #                                         q_path)
 
         if average_score > max_score:
             max_score = average_score
