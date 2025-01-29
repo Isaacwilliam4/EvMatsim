@@ -21,6 +21,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -29,6 +31,7 @@ import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 import org.apache.commons.csv.*;
 import org.apache.commons.io.FileUtils;
+import org.matsim.contrib.ev.RewardServer.RewardHandler;
 
 public class RewardServer {
 
@@ -55,74 +58,103 @@ public class RewardServer {
                 processRequest();
             }
         });
+
+        // Register shutdown hook for graceful shutdown
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            try {
+                System.out.println("Shutting down server...");
+                stopServer(server, executorService);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }));
+
+    }
+
+    private static void stopServer(HttpServer server) throws IOException {
+        // Stop accepting new connections
+        server.stop(0);
+
+        // Gracefully shutdown the executor service
+        executorService.shutdown();
+        try {
+            executorService.shutdownNow();
+        } catch (InterruptedException e) {
+            executorService.shutdownNow();
+        }
+
+        System.out.println("Server shut down gracefully.");
     }
 
     public static void processRequest(){
-        try {
-            RequestData data = requestQueue.take();
-            HttpExchange exchange = data.getExchange();
-            Path configPath = data.getFilePath();
-
-            // Build the process
-            ProcessBuilder processBuilder = new ProcessBuilder(
-                javaBin, "-cp", classpath, className, configPath.toAbsolutePath().toString()
-            );
-
-            // Redirect error and output streams
-            processBuilder.redirectErrorStream(true);
-
-            // Start the process
-            Process process = processBuilder.start();
-
-            // Capture the output
-            File logFile = new File(configPath.getParent().toString(), "log.txt");
-            try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-                BufferedWriter writer = new BufferedWriter(new FileWriter(logFile, true))) { // 'true' appends to file
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    writer.write(line);
-                    writer.newLine(); // Ensure each line is on a new line
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            // Wait for the process to complete and get the exit value
-            int exitCode = process.waitFor();
-            System.out.println("Process exited with code: " + exitCode);
-            Path csvPath = new File(configPath.getParent().toString() + "/output/scorestats.csv").toPath();
-            CSVRecord lastRecord = null;
-
-            try (Reader reader = new FileReader(csvPath.toString())) {
-                // Parse the CSV file
-                Iterable<CSVRecord> records = CSVFormat.DEFAULT
-                        .withFirstRecordAsHeader()
-                        .parse(reader);
-
-                for (CSVRecord record : records) {
-                    lastRecord = record;
-            }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            // parse the csv path to get the reward
-            double reward = Double.parseDouble(lastRecord.values()[0].split(";")[1]);
-
-            //Delete the folder
+        while (!Thread.currentThread().isInterrupted()) {
             try {
-                FileUtils.deleteDirectory(configPath.getParent().toFile());
-                System.out.println("Folder and subdirectories deleted successfully.");
+                RequestData data = requestQueue.take();
+                HttpExchange exchange = data.getExchange();
+                Path configPath = data.getFilePath();
+    
+                // Build the process
+                ProcessBuilder processBuilder = new ProcessBuilder(
+                    javaBin, "-cp", classpath, className, configPath.toAbsolutePath().toString()
+                );
+    
+                // Redirect error and output streams
+                processBuilder.redirectErrorStream(true);
+    
+                // Start the process
+                Process process = processBuilder.start();
+    
+                // Capture the output
+                File logFile = new File(configPath.getParent().toString(), "log.txt");
+                try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+                    BufferedWriter writer = new BufferedWriter(new FileWriter(logFile, true))) { // 'true' appends to file
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        writer.write(line);
+                        writer.newLine(); // Ensure each line is on a new line
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                // Wait for the process to complete and get the exit value
+                int exitCode = process.waitFor();
+                System.out.println("Process exited with code: " + exitCode);
+                Path csvPath = new File(configPath.getParent().toString() + "/output/scorestats.csv").toPath();
+                CSVRecord lastRecord = null;
+    
+                try (Reader reader = new FileReader(csvPath.toString())) {
+                    // Parse the CSV file
+                    Iterable<CSVRecord> records = CSVFormat.DEFAULT
+                            .withFirstRecordAsHeader()
+                            .parse(reader);
+    
+                    for (CSVRecord record : records) {
+                        lastRecord = record;
+                }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                // parse the csv path to get the reward
+                double reward = Double.parseDouble(lastRecord.values()[0].split(";")[1]);
+    
+                //Delete the folder
+                try {
+                    FileUtils.deleteDirectory(configPath.getParent().toFile());
+                    System.out.println("Folder and subdirectories deleted successfully.");
+                } catch (Exception e) {
+                    System.err.println("Error deleting folder: " + e.getMessage());
+                }
+    
+                String response = "reward:" + reward;
+                exchange.sendResponseHeaders(exitCode, response.getBytes().length);
+                exchange.getResponseBody().write(response.getBytes());
+                exchange.close();
+    
             } catch (Exception e) {
-                System.err.println("Error deleting folder: " + e.getMessage());
+                e.printStackTrace();
             }
-
-            String response = "reward:" + reward;
-            exchange.sendResponseHeaders(exitCode, response.getBytes().length);
-            exchange.getResponseBody().write(response.getBytes());
-            exchange.close();
-
-        } catch (Exception e) {
-            e.printStackTrace();
         }
+        
     }
 
     public static class RewardHandler extends RewardServer implements HttpHandler {
