@@ -6,6 +6,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -26,6 +27,7 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.Transformer;
 
+import com.google.common.io.Files;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
@@ -108,7 +110,7 @@ public class RewardServer {
             }
 
             // Send a response back (example: successful upload)
-            String response = "Files uploaded successfully!";
+            String response = "reward:" + reward;
             exchange.sendResponseHeaders(200, response.getBytes().length);
             OutputStream os = exchange.getResponseBody();
             os.write(response.getBytes());
@@ -135,12 +137,16 @@ public class RewardServer {
                 Process process = processBuilder.start();
 
                 // Capture the output
-                try (BufferedReader reader = new BufferedReader(
-                        new InputStreamReader(process.getInputStream()))) {
+                File logFile = new File(configPath.getParent().toString(), "log.txt");
+                try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+                    BufferedWriter writer = new BufferedWriter(new FileWriter(logFile, true))) { // 'true' appends to file
                     String line;
                     while ((line = reader.readLine()) != null) {
-                        System.out.println(line);
+                        writer.write(line);
+                        writer.newLine(); // Ensure each line is on a new line
                     }
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
                 // Wait for the process to complete and get the exit value
                 int exitCode = process.waitFor();
@@ -161,7 +167,7 @@ public class RewardServer {
                     e.printStackTrace();
                 }
                 // parse the csv path to get the reward
-                double reward = Double.parseDouble(lastRecord.get("avg_executed"));
+                double reward = Double.parseDouble(lastRecord.values()[0].split(";")[1]);
                 return reward;
 
             } catch (Exception e) {

@@ -23,7 +23,8 @@ def send_request(folder_name, config_path, network_path, plans_path, vehicles_pa
         'chargers': open(chargers_path, 'rb')
     }
     response = requests.post(url, params={'folder_name':folder_name}, files=files)
-    return response
+    reward  = float(response.text.split(":")[1])
+    return reward
 
 def main(args):
     current_time = datetime.now()
@@ -32,7 +33,7 @@ def main(args):
     config_path = Path(args.config_path)
     scenario_path = config_path.parent
     results_path = scenario_path / f"{time_string}_results"
-    output_path = os.path.join("tmp" , time_string , "output")
+    output_path = "/tmp/" + time_string + "/output/"
 
     network_file_name, \
     plans_file_name, \
@@ -108,10 +109,6 @@ def main(args):
         #                                         time_string, 
         #                                         Q, 
         #                                         q_path)
-
-        if average_score > max_score:
-            max_score = average_score
-            shutil.copytree(output_path, best_output_path, dirs_exist_ok=True)
 
 def print_run_info(current_run, total_runs):
     RESET = "\033[0m"
