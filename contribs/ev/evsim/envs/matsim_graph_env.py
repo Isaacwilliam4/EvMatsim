@@ -9,32 +9,27 @@ import shutil
 from datetime import datetime
 from pathlib import Path
 import torch
+import requests
+
 
 
 class MatsimGraphEnv(gym.Env):
     def __init__(self):
         super().__init__()
         current_time = datetime.now()
-        time_string = current_time.strftime("%Y%m%d_%H%M%S_%f")
+        self.time_string = current_time.strftime("%Y%m%d_%H%M%S_%f")
         self.config_path = Path("/home/isaacp/repos/EvMatsim/contribs/ev/scenario_examples/utahev_scenario_example/utahevconfig.xml")
 
-        charger_dict = {
-            "none": 0,
-            # in matsim the default charger is a static charger we could update this dictionary
-            # to include different charger types along with charger cost and other attributes
-            # the graph uses this dictionary to map the charger type to an integer
-            "default": 1,
-            "dynamic": 2
-        }
+        self.charger_list = ['none', 'default', 'dynamic']
 
-        self.dataset = MatsimXMLDataset(self.config_path, time_string, charger_dict)
+        self.dataset = MatsimXMLDataset(self.config_path, self.time_string, self.charger_list)
 
         self.graph = self.dataset.get_graph()
         self.num_edges, self.edge_space = self.graph.edge_index.size(1), self.graph.edge_attr.size(1) 
-        self.num_charger_types = len(self.dataset.charger_dict)
+        self.num_charger_types = len(self.charger_list)
         # Define action and observation space
         # Example: Discrete action space with 3 actions
-        self.action_space = spaces.MultiDiscrete([len(charger_dict)] * self.num_edges)
+        self.action_space = spaces.MultiDiscrete([self.num_charger_types] * self.num_edges)
         
         self.observation_space = spaces.Box(
             low=0.0,                     # Minimum value for all features
@@ -44,8 +39,21 @@ class MatsimGraphEnv(gym.Env):
         )
         
         # Initialize environment-specific variables
-        self.state = self.graph.get_all_tensor_attrs()
+        self.state = self.graph.edge_attr
         self.done = False
+
+    def send_reward_request(self):
+        url = "http://localhost:8000/getReward"
+        files = {
+            'config': open(self.dataset.config_path, 'rb'),
+            'network': open(self.dataset.network_xml_path, 'rb'),
+            'plans': open(self.dataset.plan_xml_path, 'rb'),
+            'vehicles': open(self.dataset.vehicle_xml_path, 'rb'),
+            'chargers': open(self.dataset.charger_xml_path, 'rb')
+        }
+        response = requests.post(url, params={'folder_name':self.time_string}, files=files)
+        reward  = float(response.text.split(":")[1])
+        return reward
 
     def reset(self):
         pass
@@ -53,7 +61,7 @@ class MatsimGraphEnv(gym.Env):
     def step(self, action):
         """Take an action and return the next state, reward, done, and info."""
 
-
+        reweward = self.send_reward_request()
 
         
         
@@ -65,8 +73,10 @@ class MatsimGraphEnv(gym.Env):
 
     def close(self):
         """Optional: Clean up resources."""
-        pass
+        shutil.rmtree(self.dataset.config_path.parent)
 
 
 if __name__ == "__main__":
     env = MatsimGraphEnv()
+    env.step(env.action_space.sample())
+    env.close()
