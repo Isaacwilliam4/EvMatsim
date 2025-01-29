@@ -8,6 +8,7 @@ from evsim.util import *
 import shutil
 from datetime import datetime
 from pathlib import Path
+import torch
 
 
 class MatsimGraphEnv(gym.Env):
@@ -28,22 +29,22 @@ class MatsimGraphEnv(gym.Env):
 
         self.dataset = MatsimXMLDataset(self.config_path, time_string, charger_dict)
 
-        self.graph = dataset.get_graph()
-        self.num_edges = graph.edge_index.size(1)
+        self.graph = self.dataset.get_graph()
+        self.num_edges, self.edge_space = self.graph.edge_index.size(1), self.graph.edge_attr.size(1) 
         self.num_charger_types = len(self.dataset.charger_dict)
         # Define action and observation space
         # Example: Discrete action space with 3 actions
-        self.action_space = spaces.MultiDiscrete([3] * self.num_edges)
+        self.action_space = spaces.MultiDiscrete([len(charger_dict)] * self.num_edges)
         
         self.observation_space = spaces.Box(
             low=0.0,                     # Minimum value for all features
             high=1.0,                    # Maximum value for all features
-            shape=(self.num_edges, 6),   # Shape of the observation space
+            shape=(self.num_edges, self.edge_space),   # Shape of the observation space
             dtype=np.float32             # Data type of the features
         )
         
         # Initialize environment-specific variables
-        self.state = None
+        self.state = self.graph.get_all_tensor_attrs()
         self.done = False
 
     def reset(self):
@@ -51,6 +52,8 @@ class MatsimGraphEnv(gym.Env):
 
     def step(self, action):
         """Take an action and return the next state, reward, done, and info."""
+
+
 
         
         
@@ -66,17 +69,4 @@ class MatsimGraphEnv(gym.Env):
 
 
 if __name__ == "__main__":
-    network_xml_path = "/home/isaacp/repos/EvMatsim/contribs/ev/script_scenarios/utahevscenario/utahevnetwork.xml"
-    charger_xml_path = "/home/isaacp/repos/EvMatsim/contribs/ev/script_scenarios/utahevscenario/utahevchargers.xml"
-    charger_dict = {
-        "none": 0,
-        # in matsim the default charger is a static charger we could update this dictionary
-        # to include different charger types along with charger cost and other attributes
-        # the graph uses this dictionary to map the charger type to an integer
-        "default": 1,
-        "dynamic": 2
-    }
-    dataset = MatsimXMLDataset(network_xml_path, charger_xml_path, charger_dict)
-    graph : Data = dataset.get_graph()
-
-    env = MatsimGraphEnv(graph)
+    env = MatsimGraphEnv()

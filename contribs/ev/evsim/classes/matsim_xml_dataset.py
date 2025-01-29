@@ -13,7 +13,7 @@ class MatsimXMLDataset(Dataset):
         super().__init__(transform=None)
 
         tmp_dir = Path("/tmp/" + time_string)
-        output_path = Path(tmp_dir + "/output/")
+        output_path = Path(tmp_dir / "output")
         shutil.copytree(config_path.parent, tmp_dir)
 
         self.config_path = Path(tmp_dir / config_path.name)
@@ -21,7 +21,7 @@ class MatsimXMLDataset(Dataset):
         network_file_name, \
         plans_file_name, \
         vehicles_file_name, \
-        chargers_file_name = setup_config(config_path, output_path)
+        chargers_file_name = setup_config(self.config_path, str(output_path))
         
         self.charger_xml_path = Path(tmp_dir / chargers_file_name)
         self.network_xml_path = Path(tmp_dir / network_file_name)
