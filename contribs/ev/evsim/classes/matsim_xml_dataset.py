@@ -9,7 +9,7 @@ import shutil
 #TODO create class for matsim link to handle the link attrbutes
 
 class MatsimXMLDataset(Dataset):
-    def __init__(self, config_path:Path, time_string:str, charger_dict):
+    def __init__(self, config_path:Path, time_string:str, charger_list:list):
         super().__init__(transform=None)
 
         tmp_dir = Path("/tmp/" + time_string)
@@ -35,8 +35,8 @@ class MatsimXMLDataset(Dataset):
         self.edge_mapping = {}#: (key:edge id, value: index in edge list)
         self.edge_attr_mapping = {}
         self.graph = Data()
-        self.charger_dict = charger_dict
-        self.num_charger_types = len(charger_dict)
+        self.charger_list = charger_list
+        self.num_charger_types = len(self.charger_list)
         self.create_edge_attr_mapping()
         self.parse_matsim_network()
         self.parse_charger_network()
@@ -59,7 +59,7 @@ class MatsimXMLDataset(Dataset):
     def create_edge_attr_mapping(self):
         self.edge_attr_mapping = {'length': 0, 'freespeed': 1, 'capacity': 2}
         edge_attr_idx = len(self.edge_attr_mapping)
-        for key in self.charger_dict:
+        for key in self.charger_list:
             self.edge_attr_mapping[key] = edge_attr_idx
             edge_attr_idx += 1
     
@@ -128,7 +128,7 @@ class MatsimXMLDataset(Dataset):
             self.graph.edge_attr[self.edge_mapping[link_id]][self.edge_attr_mapping['dynamic']] == 1):
                 self.graph.edge_attr[self.edge_mapping[link_id]][self.edge_attr_mapping['none']] = 1
         
-
+    
     def get_graph(self):
         return self.graph
 
