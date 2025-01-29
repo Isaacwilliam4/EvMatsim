@@ -28,7 +28,7 @@ def send_request(folder_name, config_path, network_path, plans_path, vehicles_pa
 
 def main(args):
     current_time = datetime.now()
-    time_string = current_time.strftime("%Y%m%d_%H%M%S")
+    time_string = current_time.strftime("%Y%m%d_%H%M%S_%f")
 
     config_path = Path(args.config_path)
     scenario_path = config_path.parent

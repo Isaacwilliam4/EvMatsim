@@ -11,31 +11,34 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
-import javax.xml.transform.Transformer;
-
-import com.google.common.io.Files;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 import org.apache.commons.csv.*;
 import org.apache.commons.io.FileUtils;
-import org.w3c.dom.*;
 
 public class RewardServer {
+
+    private static final BlockingQueue<RequestData> requestQueue = new LinkedBlockingQueue<>();
+    private static final int THREAD_POOL_SIZE = 10;
+    private static final ExecutorService executorService = Executors.newFixedThreadPool(THREAD_POOL_SIZE);
+    private static final String javaHome = System.getProperty("java.home");
+    private static final String javaBin = javaHome + File.separator + "bin" + File.separator + "java";
+    private static final String classpath = System.getProperty("java.class.path");
+    private static final String className = "org.matsim.contrib.ev.example.RunEvExampleWithEvScoring";
 
     public static void main(String[] args) throws Exception {
         // Set up the HTTP server
@@ -46,9 +49,83 @@ public class RewardServer {
         System.out.println("Starting reward server...");
         server.start();
         System.out.println("Reward server is running on https://localhost:" + port);
+
+        executorService.submit(() -> {
+            for (int i = 0; i < THREAD_POOL_SIZE; i++) {
+                processRequest();
+            }
+        });
     }
 
-    public static class RewardHandler implements HttpHandler {
+    public static void processRequest(){
+        try {
+            RequestData data = requestQueue.take();
+            HttpExchange exchange = data.getExchange();
+            Path configPath = data.getFilePath();
+
+            // Build the process
+            ProcessBuilder processBuilder = new ProcessBuilder(
+                javaBin, "-cp", classpath, className, configPath.toAbsolutePath().toString()
+            );
+
+            // Redirect error and output streams
+            processBuilder.redirectErrorStream(true);
+
+            // Start the process
+            Process process = processBuilder.start();
+
+            // Capture the output
+            File logFile = new File(configPath.getParent().toString(), "log.txt");
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+                BufferedWriter writer = new BufferedWriter(new FileWriter(logFile, true))) { // 'true' appends to file
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    writer.write(line);
+                    writer.newLine(); // Ensure each line is on a new line
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            // Wait for the process to complete and get the exit value
+            int exitCode = process.waitFor();
+            System.out.println("Process exited with code: " + exitCode);
+            Path csvPath = new File(configPath.getParent().toString() + "/output/scorestats.csv").toPath();
+            CSVRecord lastRecord = null;
+
+            try (Reader reader = new FileReader(csvPath.toString())) {
+                // Parse the CSV file
+                Iterable<CSVRecord> records = CSVFormat.DEFAULT
+                        .withFirstRecordAsHeader()
+                        .parse(reader);
+
+                for (CSVRecord record : records) {
+                    lastRecord = record;
+            }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            // parse the csv path to get the reward
+            double reward = Double.parseDouble(lastRecord.values()[0].split(";")[1]);
+
+            //Delete the folder
+            try {
+                FileUtils.deleteDirectory(configPath.getParent().toFile());
+                System.out.println("Folder and subdirectories deleted successfully.");
+            } catch (Exception e) {
+                System.err.println("Error deleting folder: " + e.getMessage());
+            }
+
+            String response = "reward:" + reward;
+            exchange.sendResponseHeaders(exitCode, response.getBytes().length);
+            exchange.getResponseBody().write(response.getBytes());
+            exchange.close();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static class RewardHandler extends RewardServer implements HttpHandler {
         // This method processes the incoming request and saves the files to disk
         @Override
         public void handle(HttpExchange exchange) throws IOException {
@@ -59,7 +136,7 @@ public class RewardServer {
                 exchange.sendResponseHeaders(400, -1); // Bad request
                 return;
             }
-
+            
             String boundary = contentType.split("boundary=")[1];
 
             // Read the request body
@@ -98,82 +175,7 @@ public class RewardServer {
                 }
             }
 
-            //Run matsim with the config file and get reward
-            double reward = runMatsimInstance(configPath);
-
-            //Delete the folder
-            try {
-                FileUtils.deleteDirectory(folderPath.toFile());
-                System.out.println("Folder and subdirectories deleted successfully.");
-            } catch (Exception e) {
-                System.err.println("Error deleting folder: " + e.getMessage());
-            }
-
-            // Send a response back (example: successful upload)
-            String response = "reward:" + reward;
-            exchange.sendResponseHeaders(200, response.getBytes().length);
-            OutputStream os = exchange.getResponseBody();
-            os.write(response.getBytes());
-            os.close();
-        }
-
-        private double runMatsimInstance(Path configPath) {
-            try {
-                // Command to run the Java process
-                String javaHome = System.getProperty("java.home");
-                String javaBin = javaHome + File.separator + "bin" + File.separator + "java";
-                String classpath = System.getProperty("java.class.path");
-                String className = "org.matsim.contrib.ev.example.RunEvExampleWithEvScoring"; // Replace with the class you want to execute
-
-                // Build the process
-                ProcessBuilder processBuilder = new ProcessBuilder(
-                    javaBin, "-cp", classpath, className, configPath.toAbsolutePath().toString()
-                );
-
-                // Redirect error and output streams
-                processBuilder.redirectErrorStream(true);
-
-                // Start the process
-                Process process = processBuilder.start();
-
-                // Capture the output
-                File logFile = new File(configPath.getParent().toString(), "log.txt");
-                try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-                    BufferedWriter writer = new BufferedWriter(new FileWriter(logFile, true))) { // 'true' appends to file
-                    String line;
-                    while ((line = reader.readLine()) != null) {
-                        writer.write(line);
-                        writer.newLine(); // Ensure each line is on a new line
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                // Wait for the process to complete and get the exit value
-                int exitCode = process.waitFor();
-                System.out.println("Process exited with code: " + exitCode);
-                Path csvPath = new File(configPath.getParent().toString() + "/output/scorestats.csv").toPath();
-                CSVRecord lastRecord = null;
-
-                try (Reader reader = new FileReader(csvPath.toString())) {
-                    // Parse the CSV file
-                    Iterable<CSVRecord> records = CSVFormat.DEFAULT
-                            .withFirstRecordAsHeader()
-                            .parse(reader);
-    
-                    for (CSVRecord record : records) {
-                        lastRecord = record;
-                }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                // parse the csv path to get the reward
-                double reward = Double.parseDouble(lastRecord.values()[0].split(";")[1]);
-                return reward;
-
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            return 0.0;
+            RewardServer.requestQueue.add(new RequestData(exchange, configPath));
         }
 
         private String extractFileName(String[] lines) {
