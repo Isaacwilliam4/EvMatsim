@@ -23,6 +23,7 @@ class MatsimGraphEnv(gym.Env):
         self.config_path = Path("/home/isaacp/repos/EvMatsim/contribs/ev/scenario_examples/utahev_scenario_example/utahevconfig.xml")
         self.charger_list = [NoneCharger, DynamicCharger, StaticCharger]
         self.dataset = MatsimXMLDataset(self.config_path, self.time_string, self.charger_list, num_agents=10000, initial_soc=0.5)
+        self.num_links_reward_scale = -10 #: this times the percentage of links that are chargers is added to your reward
         ########### Initialize the dataset with your custom variables ###########
         
         self.num_edges, self.edge_space = self.dataset.graph.edge_index.size(1), self.dataset.graph.edge_attr.size(1) 
@@ -62,8 +63,10 @@ class MatsimGraphEnv(gym.Env):
         """Take an action and return the next state, reward, done, and info."""
 
         create_chargers_xml_gymnasium(self.dataset.charger_xml_path, self.charger_list, actions, self.dataset.edge_mapping)
+        self.dataset.parse_charger_network()
         reward = self.send_reward_request()
-        
+        self.state = self.dataset.graph.edge_attr
+        reward += (self.num_links_reward_scale*(torch.sum(self.state[:, 4:]) / torch.sum(self.state[:, 3:])).item())
         return self.state, reward, self.done, "info"
 
     def render(self):

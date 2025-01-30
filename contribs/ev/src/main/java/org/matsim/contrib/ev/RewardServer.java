@@ -93,6 +93,8 @@ public class RewardServer {
                 RequestData data = this.requestQueue.take();
                 HttpExchange exchange = data.getExchange();
                 Path configPath = data.getFilePath();
+                System.out.println("Processing request for config file: " +
+                 configPath + " with thread: " + Thread.currentThread().getName());
 
                 // Build the process
                 ProcessBuilder processBuilder = new ProcessBuilder(
