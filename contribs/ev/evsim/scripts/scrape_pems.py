@@ -1,4 +1,5 @@
 from urllib.request import urlopen, Request
+import requests
 from urllib.parse import urlencode
 from datetime import datetime
 import pandas as pd
@@ -7,6 +8,7 @@ import io
 def get_pems_timeseries_report(
         phpsessid: str,
         sensor_id: str,
+        data_type: str,
         start_time: datetime,
         end_time: datetime,
         query_for: str = "flow",
@@ -39,7 +41,7 @@ def get_pems_timeseries_report(
         "report_form": "1",
         "dnode": "VDS",
         "content": "loops",
-        "export": "text",
+        "export": data_type,
         "station_id": sensor_id,
         "s_time_id": start_time_unix,
         "e_time_id": end_time_unix,
@@ -70,7 +72,7 @@ def get_pems_timeseries_report(
         "Referer": ref_loc,
         "Connection": "keep-alive",
         "Cookie": cookie,
-        "Upgrade-Insecure-Requests": 1,
+        "Upgrade-Insecure-Requests": "1",
         "Sec-Fetch-Dest": "document",
         "Sec-Fetch-Mode": "navigate",
         "Sec-Fetch-Site": "same-origin",
@@ -84,11 +86,20 @@ def get_pems_timeseries_report(
     url_query = urlencode(params)
     full_url = f"{base_url}?{url_query}"
     req = Request(full_url, headers=headers)
-    with urlopen(req) as res:
-        decoded = res.read().decode('utf-8')
-        # print(decoded)
-    return decoded
 
+
+    if data_type == "text":
+        with urlopen(req) as res:
+            decoded = res.read().decode('utf-8')
+            print(decoded)
+        return decoded
+
+
+    elif data_type == "xls":
+        res = requests.get(full_url, stream=True, headers=headers)
+        df = pd.read_excel(io.BytesIO(res.content))
+        print(df)
+        return df
 
 def aggregate_flow_sensor_data(
         phpsessid: str,
@@ -103,27 +114,15 @@ def aggregate_flow_sensor_data(
     hour.
     """
     data = get_pems_timeseries_report(phpsessid,
-                               sensor_id, 
+                               sensor_id,
+                               'xls',
                                start_time, 
                                end_time
                                )
-    # Read the data using read_csv with space-based separator
-    df = pd.read_csv(io.StringIO(data), sep=r'\s+', engine='python')
-    
-    # Rename columns for clarity
-    df.columns = ["Date", "Time", "Flow (Veh/Hour)", "Lane Points", "% Observed"]
-    
-    # Combine "Date" and "Time" into a single datetime column
-    df["Hour"] = pd.to_datetime(df["Date"] + " " + df["Time"], format="%m/%d/%Y %H:%M")
-    
-    # Drop the old "Date" and "Time" columns
-    df = df[["Hour", "Flow (Veh/Hour)", "Lane Points", "% Observed"]]
-    print(df)
 
-    return df
 
 if __name__ == "__main__":
-    aggregate_flow_sensor_data("3fccfd59b72f5784ae8262c7492b6d51",
+    aggregate_flow_sensor_data("df4b7491da02a45e3cdf5230cbb97824",
                                "993103220", 
                                datetime(2024, 10, 1), 
                                datetime(2024, 10, 2)
