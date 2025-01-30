@@ -11,8 +11,7 @@ from pathlib import Path
 import torch
 import requests
 from evsim.scripts.create_chargers import *
-
-
+from evsim.classes.chargers import *
 
 class MatsimGraphEnv(gym.Env):
     def __init__(self):
@@ -21,7 +20,7 @@ class MatsimGraphEnv(gym.Env):
         self.time_string = current_time.strftime("%Y%m%d_%H%M%S_%f")
         self.config_path = Path("/home/isaacp/repos/EvMatsim/contribs/ev/scenario_examples/utahev_scenario_example/utahevconfig.xml")
 
-        self.charger_list = ['none', 'default', 'dynamic']
+        self.charger_list = [NoneCharger, DynamicCharger, StaticCharger]
 
         self.dataset = MatsimXMLDataset(self.config_path, self.time_string, self.charger_list)
 
@@ -58,15 +57,13 @@ class MatsimGraphEnv(gym.Env):
     def reset(self):
         pass
 
-    def step(self, action):
+    def step(self, actions):
         """Take an action and return the next state, reward, done, and info."""
 
-
+        create_chargers_xml_gymnasium(self.dataset.charger_xml_path, self.charger_list, actions, self.dataset.edge_mapping)
         reward = self.send_reward_request()
-
         
-        
-        return self.state, reward, self.done, info
+        return self.state, reward, self.done, "info"
 
     def render(self):
         """Optional: Render the environment."""
