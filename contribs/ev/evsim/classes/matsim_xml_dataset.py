@@ -7,11 +7,12 @@ from evsim.util import *
 import shutil
 from bidict import bidict
 from evsim.classes.chargers import *
+from evsim.scripts.create_population import *
 
 #TODO create class for matsim link to handle the link attrbutes
 
 class MatsimXMLDataset(Dataset):
-    def __init__(self, config_path:Path, time_string:str, charger_list:list[Charger]):
+    def __init__(self, config_path:Path, time_string:str, charger_list:list[Charger], num_agents:int=10000, initial_soc:float=0.5):
         super().__init__(transform=None)
 
         tmp_dir = Path("/tmp/" + time_string)
@@ -39,6 +40,8 @@ class MatsimXMLDataset(Dataset):
         self.graph = Data()
         self.charger_list = charger_list
         self.num_charger_types = len(self.charger_list)
+        create_population_and_plans_xml_counts(self.network_xml_path, self.plan_xml_path,\
+                                                self.vehicle_xml_path, num_agents=num_agents, initial_soc=initial_soc)
         self.create_edge_attr_mapping()
         self.parse_matsim_network()
         self.parse_charger_network()

@@ -18,12 +18,13 @@ class MatsimGraphEnv(gym.Env):
         super().__init__()
         current_time = datetime.now()
         self.time_string = current_time.strftime("%Y%m%d_%H%M%S_%f")
+
+        ########### Initialize the dataset with your custom variables ###########
         self.config_path = Path("/home/isaacp/repos/EvMatsim/contribs/ev/scenario_examples/utahev_scenario_example/utahevconfig.xml")
-
         self.charger_list = [NoneCharger, DynamicCharger, StaticCharger]
-
-        self.dataset = MatsimXMLDataset(self.config_path, self.time_string, self.charger_list)
-
+        self.dataset = MatsimXMLDataset(self.config_path, self.time_string, self.charger_list, num_agents=10000, initial_soc=0.5)
+        ########### Initialize the dataset with your custom variables ###########
+        
         self.num_edges, self.edge_space = self.dataset.graph.edge_index.size(1), self.dataset.graph.edge_attr.size(1) 
         self.num_charger_types = len(self.charger_list)
         # Define action and observation space
