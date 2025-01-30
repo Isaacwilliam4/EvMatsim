@@ -10,7 +10,7 @@ vehicles charging at two different chargers -->
         <param name="timeProfiles" value="true" />
         <param name="transferFinalSoCToNextIteration" value="false" />
         <param name="chargingDisutility" value="-0.01" />
-        <param name="socUtility" value="0" />
+        <param name="socUtility" value="10" />
 
 	</module>
 
@@ -39,7 +39,7 @@ vehicles charging at two different chargers -->
     </module>
 
     <module name="controler">
-        <param name="outputDirectory" value="/home/isaacp/repos/EvMatsim/contribs/ev/script_scenarios/utahevscenario/20250130_131027_results/output" />
+        <param name="outputDirectory" value="/output" />
         <param name="firstIteration" value="0" />
         <param name="lastIteration" value="0" />
         <param name="eventsFileFormat" value="xml" />
@@ -60,7 +60,7 @@ vehicles charging at two different chargers -->
         <param name="lateArrival" value="0" />
         <param name="earlyDeparture" value="0" />
         <param name="performing" value="0" />
-        <param name="traveling" value="-100" />
+        <param name="traveling" value="-1" />
         <param name="waiting" value="0" />
 
         <parameterset type="activityParams">
