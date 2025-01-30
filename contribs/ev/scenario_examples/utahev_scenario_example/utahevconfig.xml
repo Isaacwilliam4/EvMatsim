@@ -10,7 +10,7 @@ vehicles charging at two different chargers -->
         <param name="timeProfiles" value="true" />
         <param name="transferFinalSoCToNextIteration" value="false" />
         <param name="chargingDisutility" value="-0.01" />
-        <param name="socUtility" value="10" />
+        <param name="socUtility" value="100" />
 
 	</module>
 
@@ -60,7 +60,7 @@ vehicles charging at two different chargers -->
         <param name="lateArrival" value="0" />
         <param name="earlyDeparture" value="0" />
         <param name="performing" value="0" />
-        <param name="traveling" value="-1" />
+        <param name="traveling" value="-10" />
         <param name="waiting" value="0" />
 
         <parameterset type="activityParams">

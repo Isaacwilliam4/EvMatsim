@@ -115,12 +115,15 @@ class MatsimXMLDataset(Dataset):
         tree = ET.parse(self.charger_xml_path)
         root = tree.getroot()
 
+        # reset the values of the charger placements TODO: make this dynamic to edge attributes
+        self.graph.edge_attr[:,3:] = torch.zeros(self.graph.edge_attr.shape[0], self.graph.edge_attr[:,3:].shape[1])
+
         for charger in root.findall(".//charger"):
             link_id = charger.get("link")
             charger_type = charger.get("type") 
             if charger_type is None:
                 charger_type = StaticCharger.type
-             
+            
             self.graph.edge_attr[self.edge_mapping[link_id]][self.edge_attr_mapping[charger_type]] = 1
 
         # update the rest of the links to have no charger
