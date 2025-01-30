@@ -71,7 +71,7 @@ def create_vehicle_definitions(ids, initial_soc=1):
 
     return ET.ElementTree(root)
 
-def create_population_and_plans_xml_counts(node_coords, 
+def create_population_and_plans_xml_counts(network_xml_path, 
                                         plans_output,
                                         vehicles_output,
                                         num_agents=100,
@@ -79,6 +79,7 @@ def create_population_and_plans_xml_counts(node_coords,
                                         population_multiplier=1,
                                         initial_soc=1):
     
+    node_coords = get_node_coords(os.path.abspath(network_xml_path))
     plans_output = os.path.abspath(plans_output)
     vehicles_output = os.path.abspath(vehicles_output)
 
@@ -141,16 +142,15 @@ def create_population_and_plans_xml_counts(node_coords,
         tree.write(f)
 
 def main(args):
-    node_coords = get_node_coords(os.path.abspath(args.network))
 
     create_population_and_plans_xml_counts(
-                                    node_coords, 
-                                    args.plans_output,
-                                    args.vehicles_output,
-                                    args.num_agents,
-                                    args.counts_path,
-                                    args.pop_mulitiplier,
-                                    args.percent_home_charge)
+        args.network,
+        args.plans_output,
+        args.vehicles_output,
+        args.num_agents,
+        args.counts_path,
+        args.pop_mulitiplier,
+        args.percent_home_charge)
 
 
 if __name__ == "__main__":
