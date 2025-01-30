@@ -5,11 +5,13 @@ import torch
 from pathlib import Path
 from evsim.util import *
 import shutil
+from bidict import bidict
+from evsim.classes.chargers import *
 
 #TODO create class for matsim link to handle the link attrbutes
 
 class MatsimXMLDataset(Dataset):
-    def __init__(self, config_path:Path, time_string:str, charger_list:list):
+    def __init__(self, config_path:Path, time_string:str, charger_list:list[Charger]):
         super().__init__(transform=None)
 
         tmp_dir = Path("/tmp/" + time_string)
@@ -30,10 +32,10 @@ class MatsimXMLDataset(Dataset):
 
         self.data_list = []  # Store Data objects
         
-        self.node_mapping = {}#: Store mapping of node IDs to indices in the graph
+        self.node_mapping = bidict()#: Store mapping of node IDs to indices in the graph
         
-        self.edge_mapping = {}#: (key:edge id, value: index in edge list)
-        self.edge_attr_mapping = {}
+        self.edge_mapping = bidict()#: (key:edge id, value: index in edge list)
+        self.edge_attr_mapping = bidict()#: key: edge attribute name, value: index in edge attribute list
         self.graph = Data()
         self.charger_list = charger_list
         self.num_charger_types = len(self.charger_list)
@@ -59,8 +61,8 @@ class MatsimXMLDataset(Dataset):
     def create_edge_attr_mapping(self):
         self.edge_attr_mapping = {'length': 0, 'freespeed': 1, 'capacity': 2}
         edge_attr_idx = len(self.edge_attr_mapping)
-        for key in self.charger_list:
-            self.edge_attr_mapping[key] = edge_attr_idx
+        for charger in self.charger_list:
+            self.edge_attr_mapping[charger.type] = edge_attr_idx
             edge_attr_idx += 1
     
     def parse_matsim_network(self):
@@ -114,7 +116,7 @@ class MatsimXMLDataset(Dataset):
             link_id = charger.get("link")
             charger_type = charger.get("type") 
             if charger_type is None:
-                charger_type = "default"
+                charger_type = StaticCharger.type
              
             self.graph.edge_attr[self.edge_mapping[link_id]][self.edge_attr_mapping[charger_type]] = 1
 
@@ -128,7 +130,7 @@ class MatsimXMLDataset(Dataset):
             self.graph.edge_attr[self.edge_mapping[link_id]][self.edge_attr_mapping['dynamic']] == 1):
                 self.graph.edge_attr[self.edge_mapping[link_id]][self.edge_attr_mapping['none']] = 1
         
-    
+
     def get_graph(self):
         return self.graph
 
