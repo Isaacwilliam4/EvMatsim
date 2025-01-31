@@ -2,7 +2,6 @@ import requests
 from bs4 import BeautifulSoup
 from sensors import sensors, sensors_subset
 import re
-import time
 import json
 from tqdm import tqdm
 
