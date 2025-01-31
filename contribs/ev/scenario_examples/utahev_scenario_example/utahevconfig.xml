@@ -38,7 +38,7 @@ vehicles charging at two different chargers -->
         <param name="averageCountsOverIterations" value="1" />
     </module>
 
-    <module name="controler">
+    <module name="controller">
         <param name="outputDirectory" value="/output" />
         <param name="firstIteration" value="0" />
         <param name="lastIteration" value="0" />

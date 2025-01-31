@@ -12,6 +12,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.InetSocketAddress;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.concurrent.BlockingQueue;
@@ -23,6 +24,9 @@ import java.util.concurrent.TimeUnit;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.io.FileUtils;
+import org.matsim.core.config.Config;
+import org.matsim.core.config.ConfigReader;
+import org.matsim.core.config.ConfigUtils;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
@@ -165,7 +169,6 @@ public class RewardServer {
     public class RewardHandler extends RewardServer implements HttpHandler {
         @Override
         public void handle(HttpExchange exchange) throws IOException {
-            String folderString = exchange.getRequestURI().getQuery().split("&")[0].split("=")[1];
             String contentType = exchange.getRequestHeaders().getFirst("Content-Type");
             if (contentType == null || !contentType.contains("multipart/form-data")) {
                 exchange.sendResponseHeaders(400, -1); // Bad request
@@ -187,6 +190,8 @@ public class RewardServer {
             // Split the body by the boundary
             String bodyString = new String(body, StandardCharsets.UTF_8);
             String[] parts = bodyString.split(boundary);
+
+            String folderString = Long.toString(System.nanoTime()); 
             Path folderPath = new File("/tmp/" + folderString).toPath();
 
             folderPath.toFile().mkdirs();
@@ -207,6 +212,13 @@ public class RewardServer {
 
             System.out.println("Adding request for config file: " +
             configPath + " to queue for processing");
+            
+            URL url = configPath.toUri().toURL();
+            Config config = new Config();
+            new ConfigReader(config).parse(url);
+
+            config.setParam("controller", "outputDirectory", folderPath.toString() + "/output");
+            ConfigUtils.writeConfig(config, configPath.toString());
 
             // Add the request to the queue
             requestQueue.add(new RequestData(exchange, configPath));
@@ -251,4 +263,5 @@ public class RewardServer {
             return filePath;
         }
     }
+
 }
