@@ -1,9 +1,13 @@
 from urllib.request import urlopen, Request
 import requests
 from urllib.parse import urlencode
-from datetime import datetime
+from datetime import datetime, date, timedelta
 import pandas as pd
 import io
+from tqdm import tqdm
+import json
+
+from sensors import sensors, sensors_subset
 
 def get_pems_timeseries_report(
         phpsessid: str,
@@ -110,6 +114,7 @@ def get_pems_timeseries_report(
         print("ERROR: The requested data type must be 'xls' (excel) or 'text'")
         return pd.DataFrame() # Give an empty dataframe
 
+
 def average_flow_per_hour(
         phpsessid: str,
         sensor_id: str,
@@ -143,21 +148,57 @@ def average_flow_per_hour(
     if verbose:
         print(averages)
 
-    return averages
+    average_hours = averages['Flow (Veh/Hour)'].tolist()
+
+    if verbose:
+        print(average_hours)
+
+    return average_hours
 
 
-def get_all_sensor_averages():
+def get_all_sensor_averages(
+        user_id: str,
+        start_date: datetime, 
+        end_date: datetime,
+        is_test: bool = False 
+        ):
     """
     finds average flow for all sensors in the sensors.py file
     sticks them all in a dataframe, and then dumps that dataframe to
     a json object.
     """
-    pass
+    flows_per_sensor = {}
+
+    # Get current day, subtract by 1 to ensure consistent quantities for
+    # each hour
+    if is_test:
+        print("USING TEST SENSOR SUBSET")
+        for sensor in sensors_subset:
+            flows_per_sensor[sensor] = average_flow_per_hour(
+                    user_id, 
+                    str(sensor), 
+                    start_date, 
+                    end_date
+                    )
+    else:
+        for sensor in tqdm(sensors):
+            flows_per_sensor[sensor] = average_flow_per_hour(
+                    user_id,
+                    str(sensor),
+                    start_date,
+                    end_date
+                    )
+
+    print(flows_per_sensor)
+
+    return flows_per_sensor
+
+
 
 if __name__ == "__main__":
-    average_flow_per_hour(
-            "723e2cb1406c352f5d818d14fb56dff8",
-            "993103220", 
-            datetime(2023, 10, 1), 
-            datetime(2024, 10, 2)
-            )
+    all_sensors = get_all_sensor_averages("723e2cb1406c352f5d818d14fb56dff8", datetime(2024, 1, 1), datetime(2025, 1, 1), is_test=False)
+
+    with open('sensor_flows.json', 'w+') as file:
+        json.dump(all_sensors, file)
+
+    print("All flows computed!")
