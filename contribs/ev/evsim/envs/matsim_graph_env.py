@@ -13,6 +13,7 @@ import requests
 from evsim.scripts.create_chargers import *
 from evsim.classes.chargers import *
 from typing import List
+import os
 
 class MatsimGraphEnv(gym.Env):
     def __init__(self):
@@ -70,7 +71,8 @@ class MatsimGraphEnv(gym.Env):
         reward = self.send_reward_request()
         self.state = self.dataset.graph.edge_attr
         reward += (self.num_links_reward_scale*(torch.sum(self.state[:, 4:]) / torch.sum(self.state[:, 3:])).item())
-        return self.state, reward, self.done, self.done, dict(info="info")
+        print(f"Reward: {reward}, Process Id: {os.getpid()}")
+        return self.state.numpy(), reward, self.done, self.done, dict(info="info")
 
     def render(self):
         """Optional: Render the environment."""
