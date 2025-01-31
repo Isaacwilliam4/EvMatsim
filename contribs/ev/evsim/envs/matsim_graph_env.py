@@ -55,10 +55,8 @@ class MatsimGraphEnv(gym.Env):
             'vehicles': open(self.dataset.vehicle_xml_path, 'rb'),
             'chargers': open(self.dataset.charger_xml_path, 'rb')
         }
-        print(f"Sending reward request with folder_name: {self.time_string}")
         response = requests.post(url, params={'folder_name':self.time_string}, files=files)
         reward  = float(response.text.split(":")[1])
-        print(f"Response from server, reward: {reward}")
         return reward
 
     def reset(self, **kwargs):

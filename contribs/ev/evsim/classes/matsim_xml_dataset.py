@@ -18,7 +18,6 @@ class MatsimXMLDataset(Dataset):
         tmp_dir = Path("/tmp/" + time_string)
         output_path = Path(tmp_dir / "output")
 
-        print(f"Copying {config_path} to {tmp_dir}, with process id {os.getpid()}")
         shutil.copytree(config_path.parent, tmp_dir)
 
         self.config_path = Path(tmp_dir / config_path.name)
