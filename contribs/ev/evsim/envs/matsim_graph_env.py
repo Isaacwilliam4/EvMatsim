@@ -12,6 +12,7 @@ import torch
 import requests
 from evsim.scripts.create_chargers import *
 from evsim.classes.chargers import *
+from typing import List
 
 class MatsimGraphEnv(gym.Env):
     def __init__(self):
@@ -20,19 +21,21 @@ class MatsimGraphEnv(gym.Env):
         self.time_string = current_time.strftime("%Y%m%d_%H%M%S_%f")
 
         ########### Initialize the dataset with your custom variables ###########
-        self.config_path = Path("/home/isaacp/repos/EvMatsim/contribs/ev/scenario_examples/utahev_scenario_example/utahevconfig.xml")
-        self.charger_list = [NoneCharger, DynamicCharger, StaticCharger]
-        self.dataset = MatsimXMLDataset(self.config_path, self.time_string, self.charger_list, num_agents=10000, initial_soc=0.5)
+        self.config_path: Path = Path("/home/isaacp/repos/EvMatsim/contribs/ev/scenario_examples/utahev_scenario_example/utahevconfig.xml")
+        self.charger_list: List[Charger] = [NoneCharger, DynamicCharger, StaticCharger]
+        self.dataset = MatsimXMLDataset(self.config_path, self.time_string, self.charger_list, num_agents=100, initial_soc=0.5)
         self.num_links_reward_scale = -10 #: this times the percentage of links that are chargers is added to your reward
         ########### Initialize the dataset with your custom variables ###########
         
-        self.num_edges, self.edge_space = self.dataset.graph.edge_index.size(1), self.dataset.graph.edge_attr.size(1) 
-        self.num_charger_types = len(self.charger_list)
+        self.num_edges: int = self.dataset.graph.edge_attr.size(0)
+        self.edge_space: int = self.dataset.graph.edge_attr.size(1)
+
+        self.num_charger_types: int = len(self.charger_list)
         # Define action and observation space
         # Example: Discrete action space with 3 actions
-        self.action_space = spaces.MultiDiscrete([self.num_charger_types] * self.num_edges)
+        self.action_space: spaces.MultiDiscrete = spaces.MultiDiscrete([self.num_charger_types] * self.num_edges)
         
-        self.observation_space = spaces.Box(
+        self.observation_space: spaces.Box = spaces.Box(
             low=0.0,                     # Minimum value for all features
             high=1.0,                    # Maximum value for all features
             shape=(self.num_edges, self.edge_space),   # Shape of the observation space
@@ -40,8 +43,8 @@ class MatsimGraphEnv(gym.Env):
         )
         
         # Initialize environment-specific variables
-        self.state = self.dataset.graph.edge_attr
-        self.done = False
+        self.state: torch.tensor = self.dataset.graph.edge_attr
+        self.done: bool = False
 
     def send_reward_request(self):
         url = "http://localhost:8000/getReward"
@@ -52,12 +55,14 @@ class MatsimGraphEnv(gym.Env):
             'vehicles': open(self.dataset.vehicle_xml_path, 'rb'),
             'chargers': open(self.dataset.charger_xml_path, 'rb')
         }
+        print(f"Sending reward request with folder_name: {self.time_string}")
         response = requests.post(url, params={'folder_name':self.time_string}, files=files)
         reward  = float(response.text.split(":")[1])
+        print(f"Response from server, reward: {reward}")
         return reward
 
-    def reset(self):
-        pass
+    def reset(self, **kwargs):
+        return self.state.numpy(), dict(info="info")
 
     def step(self, actions):
         """Take an action and return the next state, reward, done, and info."""
@@ -67,7 +72,7 @@ class MatsimGraphEnv(gym.Env):
         reward = self.send_reward_request()
         self.state = self.dataset.graph.edge_attr
         reward += (self.num_links_reward_scale*(torch.sum(self.state[:, 4:]) / torch.sum(self.state[:, 3:])).item())
-        return self.state, reward, self.done, "info"
+        return self.state, reward, self.done, self.done, dict(info="info")
 
     def render(self):
         """Optional: Render the environment."""
