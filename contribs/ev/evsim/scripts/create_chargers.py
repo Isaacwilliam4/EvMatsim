@@ -95,8 +95,6 @@ def create_chargers_xml(link_ids:list, output_file_path, percent_dynamic=0.0):
         # Write the tree structure
         tree.write(f)
 
-    print(f"{num_chargers} chargers written to {output_file_path}")
-
 def main(args):
     link_ids = load_network_xml(os.path.abspath(args.input_file))
 
