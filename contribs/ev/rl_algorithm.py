@@ -17,7 +17,7 @@ def main(args: argparse.Namespace):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Train a PPO model on the MatsimGraphEnv.')
-    parser.add_argument('--num_envs', type=int, default=10, help='Number of environments to run in parallel.')
+    parser.add_argument('--num_envs', type=int, default=1, help='Number of environments to run in parallel.')
     args = parser.parse_args()
 
     main(args)
