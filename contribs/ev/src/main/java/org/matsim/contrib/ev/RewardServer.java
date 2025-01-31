@@ -49,11 +49,13 @@ public class RewardServer {
         server.start();
         System.out.println("Reward server is running on https://localhost:" + port);
 
-        rewardServer.executorService.submit(() -> {
-            for (int i = 0; i < rewardServer.THREAD_POOL_SIZE; i++) {
+        for (int i = 0; i < rewardServer.THREAD_POOL_SIZE; i++) {
+            System.out.println("Starting thread: " + i);
+            rewardServer.executorService.submit(() -> {
                 rewardServer.processRequest();
-            }
-        });
+            });
+        }
+
 
         // Register shutdown hook for graceful shutdown
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
@@ -90,6 +92,7 @@ public class RewardServer {
     public void processRequest() {
         while (!Thread.currentThread().isInterrupted()) {
             try {
+                System.out.println(Thread.currentThread().getName() + " Waiting for request...");
                 RequestData data = this.requestQueue.take();
                 HttpExchange exchange = data.getExchange();
                 Path configPath = data.getFilePath();
@@ -201,6 +204,9 @@ public class RewardServer {
                     }
                 }
             }
+
+            System.out.println("Adding request for config file: " +
+            configPath + " to queue for processing");
 
             // Add the request to the queue
             requestQueue.add(new RequestData(exchange, configPath));

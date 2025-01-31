@@ -8,7 +8,7 @@ import shutil
 from bidict import bidict
 from evsim.classes.chargers import *
 from evsim.scripts.create_population import *
-
+import os
 #TODO create class for matsim link to handle the link attrbutes
 
 class MatsimXMLDataset(Dataset):
@@ -17,6 +17,8 @@ class MatsimXMLDataset(Dataset):
 
         tmp_dir = Path("/tmp/" + time_string)
         output_path = Path(tmp_dir / "output")
+
+        print(f"Copying {config_path} to {tmp_dir}, with process id {os.getpid()}")
         shutil.copytree(config_path.parent, tmp_dir)
 
         self.config_path = Path(tmp_dir / config_path.name)
@@ -31,13 +33,11 @@ class MatsimXMLDataset(Dataset):
         self.plan_xml_path = Path(tmp_dir / plans_file_name)
         self.vehicle_xml_path = Path(tmp_dir / vehicles_file_name)
 
-        self.data_list = []  # Store Data objects
+        self.node_mapping: bidict[str,int] = bidict()#: Store mapping of node IDs to indices in the graph
         
-        self.node_mapping = bidict()#: Store mapping of node IDs to indices in the graph
-        
-        self.edge_mapping = bidict()#: (key:edge id, value: index in edge list)
-        self.edge_attr_mapping = bidict()#: key: edge attribute name, value: index in edge attribute list
-        self.graph = Data()
+        self.edge_mapping: bidict[str,int] = bidict()#: (key:edge id, value: index in edge list)
+        self.edge_attr_mapping: bidict[str,int] = bidict()#: key: edge attribute name, value: index in edge attribute list
+        self.graph: Data = Data()
         self.charger_list = charger_list
         self.num_charger_types = len(self.charger_list)
         create_population_and_plans_xml_counts(self.network_xml_path, self.plan_xml_path,\
@@ -139,21 +139,3 @@ class MatsimXMLDataset(Dataset):
 
     def get_graph(self):
         return self.graph
-
-
-    
-if __name__ == "__main__":
-    network_xml_path = "/home/isaacp/repos/EvMatsim/contribs/ev/script_scenarios/utahevscenario/utahevnetwork.xml"
-    charger_xml_path = "/home/isaacp/repos/EvMatsim/contribs/ev/script_scenarios/utahevscenario/utahevchargers.xml"
-    charger_dict = {
-        "none": 0,
-        # in matsim the default charger is a static charger we could update this dictionary
-        # to include different charger types along with charger cost and other attributes
-        # the graph uses this dictionary to map the charger type to an integer
-        "default": 1,
-        "dynamic": 2
-    }
-    dataset = MatsimXMLDataset(network_xml_path, charger_xml_path, charger_dict)
-    graph : Data = dataset.get_graph()
-    torch.save(graph, '/home/isaacp/repos/EvMatsim/contribs/ev/data/utah_graph.pt')
-    print(graph)
