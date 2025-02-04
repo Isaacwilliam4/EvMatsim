@@ -16,13 +16,13 @@ from typing import List
 import os
 
 class MatsimGraphEnv(gym.Env):
-    def __init__(self):
+    def __init__(self, config_path):
         super().__init__()
         current_time = datetime.now()
         self.time_string = current_time.strftime("%Y%m%d_%H%M%S_%f")
 
         ########### Initialize the dataset with your custom variables ###########
-        self.config_path: Path = Path("/home/isaacp/EvMatsim/contribs/ev/script_scenarios/utahevscenario/utahevconfig.xml")
+        self.config_path: Path = Path(config_path)
         self.charger_list: List[Charger] = [NoneCharger, DynamicCharger, StaticCharger]
         self.dataset = MatsimXMLDataset(self.config_path, self.time_string, self.charger_list, num_agents=1, initial_soc=0.5)
         self.num_links_reward_scale = -10 #: this times the percentage of links that are chargers is added to your reward
@@ -30,7 +30,7 @@ class MatsimGraphEnv(gym.Env):
         
         self.num_edges: int = self.dataset.graph.edge_attr.size(0)
         self.edge_space: int = self.dataset.graph.edge_attr.size(1)
-
+        self.reward: int = 0
         self.num_charger_types: int = len(self.charger_list)
         # Define action and observation space
         # Example: Discrete action space with 3 actions
@@ -61,7 +61,7 @@ class MatsimGraphEnv(gym.Env):
         return reward
 
     def reset(self, **kwargs):
-        return self.state.numpy(), dict(info="info")
+        return self.state.numpy(), dict(reward=self.reward)
 
     def step(self, actions):
         """Take an action and return the next state, reward, done, and info."""
@@ -72,7 +72,8 @@ class MatsimGraphEnv(gym.Env):
         self.state = self.dataset.graph.edge_attr
         reward += (self.num_links_reward_scale*(torch.sum(self.state[:, 4:]) / torch.sum(self.state[:, 3:])).item())
         print(f"Reward: {reward}, Process Id: {os.getpid()}")
-        return self.state.numpy(), reward, self.done, self.done, dict(info="info")
+        self.reward = reward
+        return self.state.numpy(), reward, self.done, self.done, dict(reward=reward)
 
     def render(self):
         """Optional: Render the environment."""
