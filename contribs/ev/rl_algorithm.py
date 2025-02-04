@@ -18,7 +18,7 @@ class TensorboardCallback(BaseCallback):
 
     def _on_step(self) -> bool:
         avg_reward = 0
-        for i, infos in enumerate(self.training_env.reset_infos):
+        for i, infos in enumerate(self.locals['infos']):
             avg_reward += infos['reward']
 
         self.logger.record('Avg Reward', (avg_reward/(i+1)))
