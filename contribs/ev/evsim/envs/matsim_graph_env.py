@@ -83,10 +83,32 @@ class MatsimGraphEnv(gym.Env):
         """Optional: Clean up resources."""
         shutil.rmtree(self.dataset.config_path.parent)
 
+    def save_charger_config_to_csv(self, csv_path):
+        static_chargers = []
+        dynamic_chargers = []
+        charger_config = self.state[:, 3:]
+
+        for idx,row in enumerate(charger_config):
+            if not row[0]:
+                if row[1]:
+                    static_chargers.append(int(self.dataset.edge_mapping.inverse[idx]))
+                elif row[2]:
+                    dynamic_chargers.append(int(self.dataset.edge_mapping.inverse[idx]))
+
+        if Path(csv_path).exists():
+            df = pd.read_csv(csv_path)
+            iteration = df['iteration'].iloc[-1]
+            row = pd.DataFrame({'iteration':[iteration+1],'reward':[self.reward], 'static_chargers':[static_chargers], 'dynamic_chargers':[dynamic_chargers]})
+            df = pd.concat([df,row], ignore_index=True)
+            df.to_csv(csv_path, index=False)
+
+        else:
+            df = pd.DataFrame({'iteration':[0],'reward':[self.reward], 'static_chargers':[static_chargers], 'dynamic_chargers':[dynamic_chargers]})
+            df.to_csv(csv_path, index=False)
+
 
 if __name__ == "__main__":
-    env = MatsimGraphEnv()
+    env = MatsimGraphEnv(config_path="/home/isaacp/EvMatsim/contribs/ev/script_scenarios/utahevscenario/utahevconfig.xml")
     sample = env.action_space.sample()
-    env.step(env.action_space.sample())
-    env.dataset.save_charger_config_to_csv(Path(__file__, 'test_save_charger.csv'))
+    env.save_charger_config_to_csv(Path(Path(__file__).parent, 'test_save_charger.csv'))
     env.close()

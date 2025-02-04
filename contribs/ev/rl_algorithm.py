@@ -8,8 +8,6 @@ import os
 from datetime import datetime
 from pathlib import Path
 from evsim.envs.matsim_graph_env import MatsimGraphEnv
-from evsim.classes.matsim_xml_dataset import MatsimXMLDataset
-
 SAVE_DIR = ''
 
 class TensorboardCallback(BaseCallback):
@@ -21,7 +19,7 @@ class TensorboardCallback(BaseCallback):
         super(TensorboardCallback, self).__init__(verbose)
 
     def _on_step(self) -> bool:
-        max_reward_dataset: MatsimXMLDataset = None
+        best_env: MatsimGraphEnv = None
         max_reward = 0
         avg_reward = 0
 
@@ -31,9 +29,9 @@ class TensorboardCallback(BaseCallback):
             avg_reward += reward
             if reward > max_reward:
                 max_reward = reward
-                max_reward_dataset = env_inst.dataset
+                best_env = env_inst
 
-        max_reward_dataset.save_charger_config_to_csv(Path(SAVE_DIR, 'chargers.csv'))
+        best_env.dataset.save_charger_config_to_csv(Path(SAVE_DIR, 'chargers.csv'))
         self.logger.record('Avg Reward', (avg_reward/(i+1)))
         return True
 
