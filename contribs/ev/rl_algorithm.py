@@ -17,9 +17,13 @@ class TensorboardCallback(BaseCallback):
         super(TensorboardCallback, self).__init__(verbose)
 
     def _on_step(self) -> bool:
+        max_reward, max_reward_idx = (0, 0)
         avg_reward = 0
         for i, infos in enumerate(self.locals['infos']):
-            avg_reward += infos['reward']
+            rew = infos['reward']
+            if rew > max_reward:
+                max_reward_idx = i 
+            avg_reward += rew
 
         self.logger.record('Avg Reward', (avg_reward/(i+1)))
         return True
@@ -33,7 +37,9 @@ def main(args: argparse.Namespace):
         return gym.make("MatsimGraphEnv-v0", config_path = args.matsim_config)
 
     env = SubprocVecEnv([make_env for _ in range(args.num_envs)])
-
+    # n_steps: refers to the number of steps for each environment to collect data before
+    # a batch is processed
+    # batch_size: the amount of data that is sampled every n_steps from the replay buffer
     model = PPO("MlpPolicy", 
                 env, 
                 n_steps=1, 
@@ -42,9 +48,10 @@ def main(args: argparse.Namespace):
                 tensorboard_log=f"{args.results_dir}/{datetime.now().strftime('%Y%m%d_%H%M%S_%f')}/",
                 batch_size=2,
                 learning_rate=0.00001)
-
+    
+    # total_timesteps = n_steps * num_envs * iterations
     model.learn(total_timesteps=10, callback=TensorboardCallback())
-    model.save("ppo_matsim")
+    model.save(Path(args.results_dir, "ppo_matsim"))
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Train a PPO model on the MatsimGraphEnv.')
