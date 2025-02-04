@@ -61,7 +61,7 @@ class MatsimGraphEnv(gym.Env):
         return reward
 
     def reset(self, **kwargs):
-        return self.state.numpy(), dict(reward=self.reward)
+        return self.state.numpy(), dict(graph_env_inst=self)
 
     def step(self, actions):
         """Take an action and return the next state, reward, done, and info."""
@@ -73,7 +73,7 @@ class MatsimGraphEnv(gym.Env):
         reward += (self.num_links_reward_scale*(torch.sum(self.state[:, 4:]) / torch.sum(self.state[:, 3:])).item())
         print(f"Reward: {reward}, Process Id: {os.getpid()}")
         self.reward = reward
-        return self.state.numpy(), reward, self.done, self.done, dict(reward=reward)
+        return self.state.numpy(), reward, self.done, self.done, dict(graph_env_inst=self)
 
     def render(self):
         """Optional: Render the environment."""
@@ -88,4 +88,5 @@ if __name__ == "__main__":
     env = MatsimGraphEnv()
     sample = env.action_space.sample()
     env.step(env.action_space.sample())
+    env.dataset.save_charger_config_to_csv(Path(__file__, 'test_save_charger.csv'))
     env.close()

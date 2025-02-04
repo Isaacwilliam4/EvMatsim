@@ -7,6 +7,10 @@ import argparse
 import os
 from datetime import datetime
 from pathlib import Path
+from evsim.envs.matsim_graph_env import MatsimGraphEnv
+from evsim.classes.matsim_xml_dataset import MatsimXMLDataset
+
+SAVE_DIR = ''
 
 class TensorboardCallback(BaseCallback):
     """
@@ -17,14 +21,19 @@ class TensorboardCallback(BaseCallback):
         super(TensorboardCallback, self).__init__(verbose)
 
     def _on_step(self) -> bool:
-        max_reward, max_reward_idx = (0, 0)
+        max_reward_dataset: MatsimXMLDataset = None
+        max_reward = 0
         avg_reward = 0
-        for i, infos in enumerate(self.locals['infos']):
-            rew = infos['reward']
-            if rew > max_reward:
-                max_reward_idx = i 
-            avg_reward += rew
 
+        for i, infos in enumerate(self.locals['infos']):
+            env_inst: MatsimGraphEnv = infos['graph_env_list']
+            reward = env_inst.reward
+            avg_reward += reward
+            if reward > max_reward:
+                max_reward = reward
+                max_reward_dataset = env_inst.dataset
+
+        max_reward_dataset.save_charger_config_to_csv(Path(SAVE_DIR, 'chargers.csv'))
         self.logger.record('Avg Reward', (avg_reward/(i+1)))
         return True
 
@@ -32,6 +41,8 @@ class TensorboardCallback(BaseCallback):
 def main(args: argparse.Namespace):
     if not os.path.exists(args.results_dir):
         os.makedirs(args.results_dir)
+
+    SAVE_DIR = f"{args.results_dir}/{datetime.now().strftime('%Y%m%d_%H%M%S_%f')}/"
 
     def make_env():
         return gym.make("MatsimGraphEnv-v0", config_path = args.matsim_config)
@@ -45,7 +56,7 @@ def main(args: argparse.Namespace):
                 n_steps=1, 
                 verbose=1, 
                 device='cpu', 
-                tensorboard_log=f"{args.results_dir}/{datetime.now().strftime('%Y%m%d_%H%M%S_%f')}/",
+                tensorboard_log=SAVE_DIR,
                 batch_size=2,
                 learning_rate=0.00001)
     

@@ -8,6 +8,7 @@ import shutil
 from bidict import bidict
 from evsim.classes.chargers import *
 from evsim.scripts.create_population import *
+import pandas
 import os
 #TODO create class for matsim link to handle the link attrbutes
 
@@ -53,6 +54,7 @@ class MatsimXMLDataset(Dataset):
 
         cont_var_norm = (cont_var - mins) / (maxs - mins)
         self.graph.edge_attr[:,:3] = cont_var_norm
+        self.state = self.graph.edge_attr
 
     def len(self):
         return len(self.data_list)
@@ -134,7 +136,29 @@ class MatsimXMLDataset(Dataset):
             if not (self.graph.edge_attr[self.edge_mapping[link_id]][self.edge_attr_mapping['default']] == 1 or\
             self.graph.edge_attr[self.edge_mapping[link_id]][self.edge_attr_mapping['dynamic']] == 1):
                 self.graph.edge_attr[self.edge_mapping[link_id]][self.edge_attr_mapping['none']] = 1
-        
+    
+    def save_charger_config_to_csv(self, csv_path):
+        static_chargers = []
+        dynamic_chargers = []
+        charger_config = self.state[:, 4:]
+
+        for idx,row in enumerate(charger_config):
+            if not row[0]:
+                if row[1]:
+                    static_chargers.append(self.edge_mapping.inverse[idx])
+                elif row[2]:
+                    dynamic_chargers.append(self.edge_mapping.inverse[idx])
+
+        if Path(csv_path).exists():
+            df = pd.read_csv(csv_path)
+            iteration = df['iteration'].iloc[-1]
+            row = pd.DataFrame({'iteration':[iteration+1],'static_chargers':[static_chargers], 'dynamic_chargers':dynamic_chargers})
+            df = pd.concat([df,row], ignore_index=True)
+            df.to_csv(csv_path, index=False)
+
+        else:
+            df = pd.DataFrame({'iteration':[0],'static_chargers':[static_chargers], 'dynamic_chargers':dynamic_chargers})
+            df.to_csv(csv_path, index=False)
 
     def get_graph(self):
         return self.graph
