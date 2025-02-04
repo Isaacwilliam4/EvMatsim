@@ -16,15 +16,20 @@ from typing import List
 import os
 
 class MatsimGraphEnv(gym.Env):
-    def __init__(self, config_path):
+    def __init__(self, config_path, num_agents=100):
         super().__init__()
         current_time = datetime.now()
         self.time_string = current_time.strftime("%Y%m%d_%H%M%S_%f")
+        self.num_agents = num_agents
 
         ########### Initialize the dataset with your custom variables ###########
         self.config_path: Path = Path(config_path)
         self.charger_list: List[Charger] = [NoneCharger, DynamicCharger, StaticCharger]
-        self.dataset = MatsimXMLDataset(self.config_path, self.time_string, self.charger_list, num_agents=1, initial_soc=0.5)
+        self.dataset = MatsimXMLDataset(self.config_path, 
+                                        self.time_string, 
+                                        self.charger_list, 
+                                        num_agents=self.num_agents, 
+                                        initial_soc=0.5)
         self.num_links_reward_scale = -10 #: this times the percentage of links that are chargers is added to your reward
         ########### Initialize the dataset with your custom variables ###########
         
@@ -84,6 +89,13 @@ class MatsimGraphEnv(gym.Env):
         shutil.rmtree(self.dataset.config_path.parent)
 
     def save_charger_config_to_csv(self, csv_path):
+        """Saves the current configuration with the chargers and their
+        link ids to the specifies csv path, overwrites the path if it
+        exists
+
+        Args:
+            csv_path (str): Path where to save the csv
+        """
         static_chargers = []
         dynamic_chargers = []
         charger_config = self.state[:, 3:]
@@ -95,16 +107,8 @@ class MatsimGraphEnv(gym.Env):
                 elif row[2]:
                     dynamic_chargers.append(int(self.dataset.edge_mapping.inverse[idx]))
 
-        if Path(csv_path).exists():
-            df = pd.read_csv(csv_path)
-            iteration = df['iteration'].iloc[-1]
-            row = pd.DataFrame({'iteration':[iteration+1],'reward':[self.reward], 'static_chargers':[static_chargers], 'dynamic_chargers':[dynamic_chargers]})
-            df = pd.concat([df,row], ignore_index=True)
-            df.to_csv(csv_path, index=False)
-
-        else:
-            df = pd.DataFrame({'iteration':[0],'reward':[self.reward], 'static_chargers':[static_chargers], 'dynamic_chargers':[dynamic_chargers]})
-            df.to_csv(csv_path, index=False)
+        df = pd.DataFrame({'iteration':[0],'reward':[self.reward], 'static_chargers':[static_chargers], 'dynamic_chargers':[dynamic_chargers]})
+        df.to_csv(csv_path, index=False)
 
 
 if __name__ == "__main__":

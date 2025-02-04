@@ -137,28 +137,5 @@ class MatsimXMLDataset(Dataset):
             self.graph.edge_attr[self.edge_mapping[link_id]][self.edge_attr_mapping['dynamic']] == 1):
                 self.graph.edge_attr[self.edge_mapping[link_id]][self.edge_attr_mapping['none']] = 1
     
-    def save_charger_config_to_csv(self, csv_path):
-        static_chargers = []
-        dynamic_chargers = []
-        charger_config = self.state[:, 4:]
-
-        for idx,row in enumerate(charger_config):
-            if not row[0]:
-                if row[1]:
-                    static_chargers.append(self.edge_mapping.inverse[idx])
-                elif row[2]:
-                    dynamic_chargers.append(self.edge_mapping.inverse[idx])
-
-        if Path(csv_path).exists():
-            df = pd.read_csv(csv_path)
-            iteration = df['iteration'].iloc[-1]
-            row = pd.DataFrame({'iteration':[iteration+1],'static_chargers':[static_chargers], 'dynamic_chargers':dynamic_chargers})
-            df = pd.concat([df,row], ignore_index=True)
-            df.to_csv(csv_path, index=False)
-
-        else:
-            df = pd.DataFrame({'iteration':[0],'static_chargers':[static_chargers], 'dynamic_chargers':dynamic_chargers})
-            df.to_csv(csv_path, index=False)
-
     def get_graph(self):
         return self.graph
