@@ -22,9 +22,9 @@ class MatsimGraphEnv(gym.Env):
         self.time_string = current_time.strftime("%Y%m%d_%H%M%S_%f")
 
         ########### Initialize the dataset with your custom variables ###########
-        self.config_path: Path = Path("/home/isaacp/repos/EvMatsim/contribs/ev/script_scenarios/utahevscenario/utahevconfig.xml")
+        self.config_path: Path = Path("/home/isaacp/EvMatsim/contribs/ev/script_scenarios/utahevscenario/utahevconfig.xml")
         self.charger_list: List[Charger] = [NoneCharger, DynamicCharger, StaticCharger]
-        self.dataset = MatsimXMLDataset(self.config_path, self.time_string, self.charger_list, num_agents=100, initial_soc=0.5)
+        self.dataset = MatsimXMLDataset(self.config_path, self.time_string, self.charger_list, num_agents=1, initial_soc=0.5)
         self.num_links_reward_scale = -10 #: this times the percentage of links that are chargers is added to your reward
         ########### Initialize the dataset with your custom variables ###########
         
