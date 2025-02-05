@@ -40,7 +40,8 @@ class MatsimXMLDataset(Dataset):
         self.graph: Data = Data()
         self.charger_list = charger_list
         self.num_charger_types = len(self.charger_list)
-        create_population_and_plans_xml_counts(self.network_xml_path, self.plan_xml_path,\
+        if num_agents:
+            create_population_and_plans_xml_counts(self.network_xml_path, self.plan_xml_path,\
                                                 self.vehicle_xml_path, num_agents=num_agents, initial_soc=initial_soc)
         self.create_edge_attr_mapping()
         self.parse_matsim_network()

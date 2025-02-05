@@ -20,6 +20,8 @@ class MatsimGraphEnv(gym.Env):
         super().__init__()
         current_time = datetime.now()
         self.time_string = current_time.strftime("%Y%m%d_%H%M%S_%f")
+        if num_agents < 0:
+            num_agents = None
         self.num_agents = num_agents
 
         ########### Initialize the dataset with your custom variables ###########

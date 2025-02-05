@@ -28,7 +28,7 @@
         <param name="handlingOfPlansWithoutRoutingMode" value="useMainModeIdentifier" />
     </module>
 
-    <module name="controler">
+    <module name="controller">
         <param name="outputDirectory" value="./scenarios/tinytown/output" />
         <param name="firstIteration" value="0" />
         <param name="lastIteration" value="0" />

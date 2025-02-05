@@ -48,7 +48,7 @@ def main(args: argparse.Namespace):
     save_dir = f"{args.results_dir}/{datetime.now().strftime('%Y%m%d_%H%M%S_%f')}/"
 
     def make_env():
-        return gym.make("MatsimGraphEnv-v0", config_path=args.matsim_config, num_agents=1000)
+        return gym.make("MatsimGraphEnv-v0", config_path=args.matsim_config, num_agents=args.num_agents)
 
     env = SubprocVecEnv([make_env for _ in range(args.num_envs)])
     # n_steps: refers to the number of steps for each environment to collect data before
@@ -77,7 +77,8 @@ if __name__ == "__main__":
                         num_timesteps = n_steps * num_envs * iterations')
     parser.add_argument('--num_envs', type=int, default=10, help='Number of environments to run in parallel.')
     parser.add_argument('--num_agents', type=int, default=1000, help='The number of vehicles to simulate in the \
-                        matsim simulator')
+                        matsim simulator, if num_agents<0, then the current plans.xml and vehicles.xml file will\
+                        be used and not updated')
     parser.add_argument('--results_dir', type=str, default=Path(Path(__file__).parent, 'ppo_results'), \
                         help='where to save tensorboard logs and model checkpoints.')
     parser.add_argument('--matsim_config', type=str, help='path to the matsim config.xml file')
