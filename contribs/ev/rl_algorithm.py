@@ -9,6 +9,8 @@ from datetime import datetime
 from pathlib import Path
 from evsim.envs.matsim_graph_env import MatsimGraphEnv
 import numpy as np
+import torch
+
 
 class TensorboardCallback(BaseCallback):
     """
@@ -57,12 +59,12 @@ def main(args: argparse.Namespace):
 
     model = PPO("MlpPolicy", 
                 env, 
-                n_steps=1, 
+                n_steps=args.num_steps, 
                 verbose=1, 
-                device='cuda:0', 
+                device='cuda:0' if torch.cuda.is_available() else "cpu", 
                 tensorboard_log=save_dir,
-                batch_size=5,
-                learning_rate=0.000001,
+                batch_size=args.batch_size,
+                learning_rate=args.learning_rate,
                 policy_kwargs=policy_kwargs)
     
     # total_timesteps = n_steps * num_envs * iterations
@@ -71,11 +73,22 @@ def main(args: argparse.Namespace):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Train a PPO model on the MatsimGraphEnv.')
+    parser.add_argument('--num_timesteps', type=int, default=1000, help='The total number of timesteps to train, \
+                        num_timesteps = n_steps * num_envs * iterations')
     parser.add_argument('--num_envs', type=int, default=10, help='Number of environments to run in parallel.')
+    parser.add_argument('--num_agents', type=int, default=1000, help='The number of vehicles to simulate in the \
+                        matsim simulator')
     parser.add_argument('--results_dir', type=str, default=Path(Path(__file__).parent, 'ppo_results'), \
                         help='where to save tensorboard logs and model checkpoints.')
     parser.add_argument('--matsim_config', type=str, help='path to the matsim config.xml file')
-
+    parser.add_argument('--num_steps', type=int, default=1, help='the number of steps each environment takes before \
+                        the policy and value function are updated')
+    parser.add_argument('--batch_size', type=int, default=5, help='the number of samples PPO should pull from the \
+                        replay buffer when updating the policy and value function')
+    parser.add_argument('--learning_rate', type=float, default=0.000001, help='the learning rate for the optimizer, if \
+                        you are running into errors where your actor is outputing nans from the mlp network\
+                        then you probably need to  make this smaller')
+    
     args = parser.parse_args()
 
     main(args)
