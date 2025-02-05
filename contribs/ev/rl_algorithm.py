@@ -46,29 +46,32 @@ def main(args: argparse.Namespace):
     save_dir = f"{args.results_dir}/{datetime.now().strftime('%Y%m%d_%H%M%S_%f')}/"
 
     def make_env():
-        return gym.make("MatsimGraphEnv-v0", config_path=args.matsim_config, num_agents=1)
+        return gym.make("MatsimGraphEnv-v0", config_path=args.matsim_config, num_agents=1000)
 
     env = SubprocVecEnv([make_env for _ in range(args.num_envs)])
     # n_steps: refers to the number of steps for each environment to collect data before
     # a batch is processed
     # batch_size: the amount of data that is sampled every n_steps from the replay buffer
     # total samples = num_envs * iterations
+    policy_kwargs = dict(net_arch=[2048, 1024, 512])
+
     model = PPO("MlpPolicy", 
                 env, 
                 n_steps=1, 
                 verbose=1, 
-                device='cpu', 
+                device='cuda:0', 
                 tensorboard_log=save_dir,
-                batch_size=2,
-                learning_rate=0.00001)
+                batch_size=5,
+                learning_rate=0.000001,
+                policy_kwargs=policy_kwargs)
     
     # total_timesteps = n_steps * num_envs * iterations
-    model.learn(total_timesteps=10, callback=TensorboardCallback(save_dir=save_dir))
+    model.learn(total_timesteps=10000, callback=TensorboardCallback(save_dir=save_dir))
     model.save(Path(args.results_dir, "ppo_matsim"))
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Train a PPO model on the MatsimGraphEnv.')
-    parser.add_argument('--num_envs', type=int, default=2, help='Number of environments to run in parallel.')
+    parser.add_argument('--num_envs', type=int, default=10, help='Number of environments to run in parallel.')
     parser.add_argument('--results_dir', type=str, default=Path(Path(__file__).parent, 'ppo_results'), \
                         help='where to save tensorboard logs and model checkpoints.')
     parser.add_argument('--matsim_config', type=str, help='path to the matsim config.xml file')

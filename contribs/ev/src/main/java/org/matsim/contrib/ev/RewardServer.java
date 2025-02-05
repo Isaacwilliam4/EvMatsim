@@ -144,18 +144,15 @@ public class RewardServer {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
+                
+                double reward = 0;
 
-                // Parse the csv path to get the reward
-                double reward = Double.parseDouble(lastRecord.values()[0].split(";")[1]);
-
-                // Delete the folder
-                try {
+                if (lastRecord != null){
+                    reward = Double.parseDouble(lastRecord.values()[0].split(";")[1]);
                     FileUtils.deleteDirectory(configPath.getParent().toFile());
                     System.out.println("Folder and subdirectories deleted successfully.");
-                } catch (Exception e) {
-                    System.err.println("Error deleting folder: " + e.getMessage());
                 }
-
+                // Parse the csv path to get the reward
                 String response = "reward:" + reward;
                 exchange.sendResponseHeaders(200, response.getBytes().length);
                 exchange.getResponseBody().write(response.getBytes());
