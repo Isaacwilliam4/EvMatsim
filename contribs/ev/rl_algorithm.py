@@ -79,6 +79,8 @@ if __name__ == "__main__":
     parser.add_argument('--num_agents', type=int, default=1000, help='The number of vehicles to simulate in the \
                         matsim simulator, if num_agents<0, then the current plans.xml and vehicles.xml file will\
                         be used and not updated')
+    parser.add_argument('--mlp_dims', default='2048 1024 512' , help='Dimensions of the multi layer perception given as ints separated\
+                        by spaces')
     parser.add_argument('--results_dir', type=str, default=Path(Path(__file__).parent, 'ppo_results'), \
                         help='where to save tensorboard logs and model checkpoints.')
     parser.add_argument('--matsim_config', type=str, help='path to the matsim config.xml file')
@@ -91,5 +93,6 @@ if __name__ == "__main__":
                         then you probably need to  make this smaller')
     
     args = parser.parse_args()
+    args.mlp_dims = [int(x) for x in args.mlp_dims.split(' ')]
 
     main(args)
