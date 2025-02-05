@@ -55,7 +55,7 @@ def main(args: argparse.Namespace):
     # a batch is processed
     # batch_size: the amount of data that is sampled every n_steps from the replay buffer
     # total samples = num_envs * iterations
-    policy_kwargs = dict(net_arch=[2048, 1024, 512])
+    policy_kwargs = dict(net_arch=args.mlp_dims)
 
     model = PPO("MlpPolicy", 
                 env, 
@@ -80,7 +80,7 @@ if __name__ == "__main__":
                         matsim simulator, if num_agents<0, then the current plans.xml and vehicles.xml file will\
                         be used and not updated')
     parser.add_argument('--mlp_dims', default='2048 1024 512' , help='Dimensions of the multi layer perception given as ints separated\
-                        by spaces')
+                        by spaces, can be any number of layers, the default has 3 layers')
     parser.add_argument('--results_dir', type=str, default=Path(Path(__file__).parent, 'ppo_results'), \
                         help='where to save tensorboard logs and model checkpoints.')
     parser.add_argument('--matsim_config', type=str, help='path to the matsim config.xml file')
