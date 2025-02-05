@@ -42,10 +42,12 @@ class TensorboardCallback(BaseCallback):
 
 
 def main(args: argparse.Namespace):
-    if not os.path.exists(args.results_dir):
-        os.makedirs(args.results_dir)
-
     save_dir = f"{args.results_dir}/{datetime.now().strftime('%Y%m%d_%H%M%S_%f')}/"
+    os.makedirs(save_dir)
+
+    with open(Path(save_dir, 'args.txt'), 'w') as f:
+        for key,val in args.__dict__.items():
+            f.write(f"{key}:{val}\n")
 
     def make_env():
         return gym.make("MatsimGraphEnv-v0", config_path=args.matsim_config, num_agents=args.num_agents)
