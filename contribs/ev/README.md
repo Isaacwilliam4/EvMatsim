@@ -14,26 +14,38 @@ mvn clean install -DskipTests
 First you need to create a conda environment with the appropriate dependencies, you may need to change some things based on your cuda
 version.
 
-Linux
-```
-conda create -n matsimenv python=3.10 -y
-conda activate matsimenv
-conda install -c conda-forge pandas numpy matplotlib tqdm bidict gymnasium requests tensorboard -y
-conda install pytorch torchvision torchaudio pytorch-cuda=12.4 -c pytorch -c nvidia -y
-conda install pyg -c pyg
+The `./setup.sh` file will automatically setup the conda environment for you, again,  you may need to change the cuda version based on 
+the specs of your machine.
 ```
 
-The `run_algorithm.py` serves as a basis on how to implement your own algorithm for optimizing the charger placement. The code is well commented so you can refer to it in order implement your own algorithm. But this will give you an understanding of the structure of the code and how it works.
-If you've saved the appropriate xml files in for example `/script_scenarios/utahevscenario`. below shows you how to run the algorithm.
+## Running the Java Server
+Once you have maven 3.8* installed and the Java JDK 21.* setup, you can run the java server as follows
 
 ```
-cd EvMatsim/contribs/ev
-python run_algorithm.py ./script_scenarios/utahevscenario/utahevconfig.xml --percent_dynamic .5 --algorithm egreedy --epsilon 0.05 --initial_q_values 9999 --num_runs 100 --num_matsim_iters 1 --num_agents 1000 --num_chargers 1000 --initial_soc .3
+cd /EvMatsim/contribs/ev
+java -cp ./target/classes/ org.matsim.contrib.ev.RewardServer 100
 ```
-The above script shows how to run the algorithm, make sure to change whatever params you need. You can run the following to see the help.
+
+The above command will spawn the server with 100 threads, ready to process incoming requests from the python client
+
+## Running the Reinforcement learning python client 
+
+Once the java server is up and running you can run the python client to make requests, you should always create the same number
+of environments for the number of threads on the server for the best performance.
+
 ```
-python run_algorithm.py -h
+cd /EvMatsim/contribs/ev
+python rl_algorithm.py ./script_scenarios/tinytown_scenario_example/ev_tiny_town_config.xml
 ```
+
+This will run the rl algorithm with the default parameters, you can run
+
+```
+python rl_algorithm.py --help
+```
+
+to get a description of the variables and what they mean.
+
 
 ## XML files
 

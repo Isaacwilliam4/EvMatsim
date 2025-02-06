@@ -34,8 +34,8 @@ import com.sun.net.httpserver.HttpServer;
 
 public class RewardServer {
     private final BlockingQueue<RequestData> requestQueue = new LinkedBlockingQueue<>();
-    private final int THREAD_POOL_SIZE = 10;
-    private final ExecutorService executorService = Executors.newFixedThreadPool(THREAD_POOL_SIZE);
+    private int thread_pool_size = 10;
+    private final ExecutorService executorService = Executors.newFixedThreadPool(thread_pool_size);
     private final String javaHome = System.getProperty("java.home");
     private final String javaBin = javaHome + File.separator + "bin" + File.separator + "java";
     private final String classpath = System.getProperty("java.class.path");
@@ -44,6 +44,7 @@ public class RewardServer {
     public static void main(String[] args) throws Exception {
         RewardServer rewardServer = new RewardServer();
 
+        rewardServer.thread_pool_size = Integer.parseInt(args[0]) ; 
         // Set up the HTTP server
         int port = 8000;
         HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
@@ -53,7 +54,7 @@ public class RewardServer {
         server.start();
         System.out.println("Reward server is running on https://localhost:" + port);
 
-        for (int i = 0; i < rewardServer.THREAD_POOL_SIZE; i++) {
+        for (int i = 0; i < rewardServer.thread_pool_size; i++) {
             System.out.println("Starting thread: " + i);
             rewardServer.executorService.submit(() -> {
                 rewardServer.processRequest();
@@ -78,17 +79,6 @@ public class RewardServer {
 
         // Gracefully shutdown the executor service
         rewardServer.executorService.shutdown();
-        try {
-            if (!rewardServer.executorService.awaitTermination(60, TimeUnit.SECONDS)) {
-                rewardServer.executorService.shutdownNow();
-                if (!rewardServer.executorService.awaitTermination(60, TimeUnit.SECONDS)) {
-                    System.err.println("Executor service did not terminate in time.");
-                }
-            }
-        } catch (InterruptedException e) {
-            rewardServer.executorService.shutdownNow();
-            Thread.currentThread().interrupt();
-        }
 
         System.out.println("Server shut down gracefully.");
     }

@@ -74,27 +74,33 @@ def main(args: argparse.Namespace):
     model.save(Path(args.results_dir, "ppo_matsim"))
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Train a PPO model on the MatsimGraphEnv.')
-    parser.add_argument('--num_timesteps', type=int, default=1000, help='The total number of timesteps to train, \
+    parser = argparse.ArgumentParser(description='Train a PPO model on the MatsimGraphEnv.', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument('matsim_config', type=str, help='path to the matsim config.xml file')
+    parser.add_argument('--num_timesteps', type=int, default=1_000_000, help='The total number of timesteps to train, \
                         num_timesteps = n_steps * num_envs * iterations')
-    parser.add_argument('--num_envs', type=int, default=10, help='Number of environments to run in parallel.')
-    parser.add_argument('--num_agents', type=int, default=1000, help='The number of vehicles to simulate in the \
+    parser.add_argument('--num_envs', type=int, default=100, help='Number of environments to run in parallel.')
+    parser.add_argument('--num_agents', type=int, default=-1, help='The number of vehicles to simulate in the \
                         matsim simulator, if num_agents<0, then the current plans.xml and vehicles.xml file will\
                         be used and not updated')
-    parser.add_argument('--mlp_dims', default='2048 1024 512' , help='Dimensions of the multi layer perception given as ints separated\
+    parser.add_argument('--mlp_dims', default='256 128 64' , help='Dimensions of the multi layer perception given as ints separated\
                         by spaces, can be any number of layers, the default has 3 layers')
     parser.add_argument('--results_dir', type=str, default=Path(Path(__file__).parent, 'ppo_results'), \
                         help='where to save tensorboard logs and model checkpoints.')
-    parser.add_argument('--matsim_config', type=str, help='path to the matsim config.xml file')
     parser.add_argument('--num_steps', type=int, default=1, help='the number of steps each environment takes before \
                         the policy and value function are updated')
-    parser.add_argument('--batch_size', type=int, default=5, help='the number of samples PPO should pull from the \
+    parser.add_argument('--batch_size', type=int, default=25, help='the number of samples PPO should pull from the \
                         replay buffer when updating the policy and value function')
-    parser.add_argument('--learning_rate', type=float, default=0.000001, help='the learning rate for the optimizer, if \
+    parser.add_argument('--learning_rate', type=float, default=0.00001, help='the learning rate for the optimizer, if \
                         you are running into errors where your actor is outputing nans from the mlp network\
                         then you probably need to  make this smaller')
     
+    parser.print_help()
     args = parser.parse_args()
     args.mlp_dims = [int(x) for x in args.mlp_dims.split(' ')]
 
     main(args)
+
+
+
+
+
