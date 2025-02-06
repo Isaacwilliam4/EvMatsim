@@ -4,6 +4,8 @@
  these IDs can then be used with the PeMS
  service to collect data on traffic
 """
+
+# Use this for testing scrapers on smaller subset of data
 sensors_subset = [3103020,
 3103060,
 3103114,

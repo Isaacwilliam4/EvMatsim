@@ -6,7 +6,6 @@ import pandas as pd
 import io
 from tqdm import tqdm
 import json
-
 from sensors import sensors, sensors_subset
 
 def get_pems_timeseries_report(
@@ -169,8 +168,7 @@ def get_all_sensor_averages(
     """
     flows_per_sensor = {}
 
-    # Get current day, subtract by 1 to ensure consistent quantities for
-    # each hour
+
     if is_test:
         print("USING TEST SENSOR SUBSET")
         for sensor in sensors_subset:
