@@ -52,6 +52,7 @@ def main(args: argparse.Namespace):
     def make_env():
         return gym.make("MatsimGraphEnv-v0", config_path=args.matsim_config, num_agents=args.num_agents)
 
+    tot_timesteps = 0
     env = SubprocVecEnv([make_env for _ in range(args.num_envs)])
     # n_steps: refers to the number of steps for each environment to collect data before
     # a batch is processed
@@ -59,19 +60,32 @@ def main(args: argparse.Namespace):
     # total samples = num_envs * iterations
     policy_kwargs = dict(net_arch=args.mlp_dims)
 
-    model = PPO("MlpPolicy", 
-                env, 
-                n_steps=args.num_steps, 
-                verbose=1, 
-                device='cuda:0' if torch.cuda.is_available() else "cpu", 
-                tensorboard_log=save_dir,
-                batch_size=args.batch_size,
-                learning_rate=args.learning_rate,
-                policy_kwargs=policy_kwargs)
+    if args.model_path:
+        model = PPO.load(args.model_path,
+                    env, 
+                    n_steps=args.num_steps, 
+                    verbose=1, 
+                    device='cuda:0' if torch.cuda.is_available() else "cpu", 
+                    tensorboard_log=save_dir,
+                    batch_size=args.batch_size,
+                    learning_rate=args.learning_rate,
+                    policy_kwargs=policy_kwargs)
+    else:
+        model = PPO("MlpPolicy", 
+                    env, 
+                    n_steps=args.num_steps, 
+                    verbose=1, 
+                    device='cuda:0' if torch.cuda.is_available() else "cpu", 
+                    tensorboard_log=save_dir,
+                    batch_size=args.batch_size,
+                    learning_rate=args.learning_rate,
+                    policy_kwargs=policy_kwargs)
     
-    # total_timesteps = n_steps * num_envs * iterations
-    model.learn(total_timesteps=10000, callback=TensorboardCallback(save_dir=save_dir))
-    model.save(Path(args.results_dir, "ppo_matsim"))
+    while tot_timesteps < args.num_timesteps:
+        # total_timesteps = n_steps * num_envs * iterations
+        model.learn(total_timesteps=args.save_frequency, callback=TensorboardCallback(save_dir=save_dir))
+        model.save(Path(save_dir, "ppo_matsim"))
+        tot_timesteps += args.save_frequency
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Train a PPO model on the MatsimGraphEnv.', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -93,6 +107,9 @@ if __name__ == "__main__":
     parser.add_argument('--learning_rate', type=float, default=0.00001, help='the learning rate for the optimizer, if \
                         you are running into errors where your actor is outputing nans from the mlp network\
                         then you probably need to  make this smaller')
+    parser.add_argument('--model_path', default=None, help='path to the saved model.zip file if you saved your model previously\
+                        and wish to keep training')
+    parser.add_argument('--save_frequency', default=10000, help='how often to save the model weights')
     
     parser.print_help()
     args = parser.parse_args()

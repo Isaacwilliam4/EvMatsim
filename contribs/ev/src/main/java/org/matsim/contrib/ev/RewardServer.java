@@ -19,7 +19,6 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
@@ -34,17 +33,21 @@ import com.sun.net.httpserver.HttpServer;
 
 public class RewardServer {
     private final BlockingQueue<RequestData> requestQueue = new LinkedBlockingQueue<>();
-    private int thread_pool_size = 10;
-    private final ExecutorService executorService = Executors.newFixedThreadPool(thread_pool_size);
+    private int threadPoolSize;
+    private ExecutorService executorService;
     private final String javaHome = System.getProperty("java.home");
     private final String javaBin = javaHome + File.separator + "bin" + File.separator + "java";
     private final String classpath = System.getProperty("java.class.path");
     private final String className = "org.matsim.contrib.ev.example.RunEvExampleWithEvScoring";
 
-    public static void main(String[] args) throws Exception {
-        RewardServer rewardServer = new RewardServer();
+    public RewardServer(int threadPoolSize){
+        this.threadPoolSize = threadPoolSize;
+        this.executorService = Executors.newFixedThreadPool(this.threadPoolSize);
+    }
 
-        rewardServer.thread_pool_size = Integer.parseInt(args[0]) ; 
+    public static void main(String[] args) throws Exception {
+        int argsThreadPoolSize =  Integer.parseInt(args[0]); 
+        RewardServer rewardServer = new RewardServer(argsThreadPoolSize);
         // Set up the HTTP server
         int port = 8000;
         HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
@@ -54,13 +57,12 @@ public class RewardServer {
         server.start();
         System.out.println("Reward server is running on https://localhost:" + port);
 
-        for (int i = 0; i < rewardServer.thread_pool_size; i++) {
+        for (int i = 0; i < rewardServer.threadPoolSize; i++) {
             System.out.println("Starting thread: " + i);
             rewardServer.executorService.submit(() -> {
                 rewardServer.processRequest();
             });
         }
-
 
         // Register shutdown hook for graceful shutdown
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
@@ -153,7 +155,7 @@ public class RewardServer {
         }
     }
 
-    public class RewardHandler extends RewardServer implements HttpHandler {
+    public class RewardHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange exchange) throws IOException {
             String contentType = exchange.getRequestHeaders().getFirst("Content-Type");
