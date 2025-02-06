@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <!DOCTYPE config SYSTEM "http://www.matsim.org/files/dtd/config_v2.dtd">
 <config>
-<!-- note: you have to leave the discharge and charge timestep to 1 or you'll run into issues with
+<!-- note: you have to leave the discharge and charge timestep to 1 or you'll run into issues with 
 vehicles charging at two different chargers -->
     <module name="ev">
         <param name="auxDischargeTimeStep" value="1" />
