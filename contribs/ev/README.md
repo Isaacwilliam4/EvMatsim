@@ -16,12 +16,22 @@ version.
 
 The `./setup.sh` file will automatically setup the conda environment for you, again,  you may need to change the cuda version based on 
 the specs of your machine.
+
+## Installing the MatsimGraphEnv
+In order to get the reinforcement learning working with Gymnasium, you need to install the environement, after running the `setup.sh` file
+to setup the conda environment, run the following commands
+
+```bash
+conda activate matsimenv
+cd Evmatsim/contribs/ev/evsim
+pip install -e .
 ```
+This should set the MatsimGraphEnv and register it with the gymnasium environments so you can run the `rl_algorithm.py` script.
 
 ## Running the Java Server
 Once you have maven 3.8* installed and the Java JDK 21.* setup, you can run the java server as follows
 
-```
+```bash
 cd /EvMatsim/contribs/ev
 java -cp ./target/classes/ org.matsim.contrib.ev.RewardServer 100
 ```
@@ -30,17 +40,17 @@ The above command will spawn the server with 100 threads, ready to process incom
 
 ## Running the Reinforcement learning python client 
 
-Once the java server is up and running you can run the python client to make requests, you should always create the same number
+Once the java server is up and running, and you've registered the environment with gymnasium you can run the python client to make requests, you should always create the same number
 of environments for the number of threads on the server for the best performance.
 
-```
+```bash
 cd /EvMatsim/contribs/ev
 python rl_algorithm.py ./script_scenarios/tinytown_scenario_example/ev_tiny_town_config.xml
 ```
 
 This will run the rl algorithm with the default parameters, you can run
 
-```
+```bash
 python rl_algorithm.py --help
 ```
 
@@ -57,15 +67,6 @@ The MATsim simulator works by simulating plans for agents specified in the `tiny
 
 ![Utility Math1](./figs/utilility_math1.png)
 ![Utility Math2](./figs/matsimmath2.png)
-
-To handle electric vehicles the utility has been modified to be 
-
-$S_{plan}=\sum_{q=0}^{N-1}S_{act,q}+\sum_{q=0}^{N-1}(S_{trav,mode(q)}+100c)$
-
-<<<<<<< Updated upstream
-Where $0\leq c \leq1$ is the state of charge of the battery for each agent.
-=======
-Where $0\leq c \leq1$ is the state of charge of the battery for each agent.
 
 ## UDOT data
 [link to udot data](https://udot.iteris-pems.com/?chart_x=47&report_form=1&dow_0=on&dow_1=on&dow_2=on&dow_3=on&dow_4=on&dow_5=on&dow_6=on&tod=all&tod_from=0&tod_to=0&holidays=on&agg=on&s_time_id=1729641600&e_time_id=1730066340&fwy=15&dir=N&county_id=49035&station_id=6008&dnode=VDS)
@@ -197,7 +198,7 @@ Next, add the **Vehicle From Events** layer and click **Load Data**. You can adj
 Matsim lets you provide a counts xml to compare the simulation data against real observed data.
 
 
-```
+```bash
 cd EvMatsim/contribs/ev
 python python/scripts/create_counts.py ./scenarios/utahev/udot_flow_data/ ./scenarios/utahev/station_data.csv ./scenarios/utahev/utahevcounts.xml 
 ```
