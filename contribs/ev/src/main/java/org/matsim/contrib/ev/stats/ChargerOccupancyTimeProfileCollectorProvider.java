@@ -66,7 +66,7 @@ public final class ChargerOccupancyTimeProfileCollectorProvider implements Provi
 			return ImmutableMap.of(PLUGGED_ID, (double)plugged, QUEUED_ID, (double)queued, ASSIGNED_ID, (double)assigned);
 		};
 
-		var collector = new TimeProfileCollector(header, calc, 300, "charger_occupancy_time_profiles", matsimServices);
+		var collector = new TimeProfileCollector(header, calc, 60, "charger_occupancy_time_profiles", matsimServices);
 		if (matsimServices.getConfig().controller().getCreateGraphsInterval()>0) {
 			collector.setChartTypes(ChartType.Line, ChartType.StackedArea);
 		} else {

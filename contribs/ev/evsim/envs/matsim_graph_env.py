@@ -32,7 +32,7 @@ class MatsimGraphEnv(gym.Env):
                                         self.charger_list, 
                                         num_agents=self.num_agents, 
                                         initial_soc=0.5)
-        self.num_links_reward_scale = -10 #: this times the percentage of links that are chargers is added to your reward
+        self.num_links_reward_scale = -100 #: this times the percentage of links that are chargers is added to your reward
         ########### Initialize the dataset with your custom variables ###########
         
         self.num_edges: int = self.dataset.graph.edge_attr.size(0)

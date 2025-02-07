@@ -61,6 +61,6 @@ public final class IndividualChargeTimeProfileCollectorProvider implements Provi
 		ProfileCalculator calculator = () -> selectedEvs.stream()
 				.collect(toImmutableMap(ev -> ev.getId() + "", ev -> EvUnits.J_to_kWh(ev.getBattery().getCharge())));/*in [kWh]*/
 
-		return new TimeProfileCollector(header, calculator, 300, "individual_charge_time_profiles", matsimServices);
+		return new TimeProfileCollector(header, calculator, 60, "individual_charge_time_profiles", matsimServices);
 	}
 }

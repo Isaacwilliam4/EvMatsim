@@ -63,7 +63,7 @@ public class SocHistogramTimeProfileCollectorProvider implements Provider<Mobsim
 			return builder.build();
 		};
 
-		var collector = new TimeProfileCollector(header, calculator, 300, "soc_histogram_time_profiles", matsimServices);
+		var collector = new TimeProfileCollector(header, calculator, 60, "soc_histogram_time_profiles", matsimServices);
 		collector.setChartTypes(ChartType.StackedArea);
 		collector.setChartCustomizer((chart, chartType) -> TimeProfileCharts.changeSeriesColors(chart, new Color(0, 0f, 0), // 0+
 				new Color(1, 0f, 0), // 0.1+

@@ -74,6 +74,6 @@ public class VehicleTypeAggregatedChargeTimeProfileCollectorProvider implements 
 			return ImmutableMap.copyOf(averageSocByType);
 		};
 
-		return new TimeProfileCollector(header, calculator, 300, "average_charge_time_profiles", matsimServices);
+		return new TimeProfileCollector(header, calculator, 60, "average_charge_time_profiles", matsimServices);
 	}
 }
