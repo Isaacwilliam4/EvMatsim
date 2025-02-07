@@ -2,7 +2,7 @@ import gymnasium as gym
 import evsim.envs
 from stable_baselines3 import PPO
 from stable_baselines3.common.vec_env import SubprocVecEnv
-from stable_baselines3.common.callbacks import BaseCallback
+from stable_baselines3.common.callbacks import BaseCallback, CheckpointCallback, CallbackList
 import argparse
 import os
 from datetime import datetime
@@ -52,12 +52,16 @@ def main(args: argparse.Namespace):
     def make_env():
         return gym.make("MatsimGraphEnv-v0", config_path=args.matsim_config, num_agents=args.num_agents)
 
-    tot_timesteps = 0
     env = SubprocVecEnv([make_env for _ in range(args.num_envs)])
     # n_steps: refers to the number of steps for each environment to collect data before
     # a batch is processed
     # batch_size: the amount of data that is sampled every n_steps from the replay buffer
     # total samples = num_envs * iterations
+    tensorboard_callback = TensorboardCallback(save_dir=save_dir)
+    checkpoint_callback = CheckpointCallback(save_freq=args.save_frequency, save_path=save_dir)
+    callback = CallbackList([tensorboard_callback, checkpoint_callback])
+
+
     policy_kwargs = dict(net_arch=args.mlp_dims)
 
     if args.model_path:
@@ -79,13 +83,12 @@ def main(args: argparse.Namespace):
                     tensorboard_log=save_dir,
                     batch_size=args.batch_size,
                     learning_rate=args.learning_rate,
+                    clip_range=args.clip_range,
                     policy_kwargs=policy_kwargs)
     
-    while tot_timesteps < args.num_timesteps:
-        # total_timesteps = n_steps * num_envs * iterations
-        model.learn(total_timesteps=args.save_frequency, callback=TensorboardCallback(save_dir=save_dir))
-        model.save(Path(save_dir, "ppo_matsim"))
-        tot_timesteps += args.save_frequency
+    # total_timesteps = n_steps * num_envs * iterations
+    model.learn(total_timesteps=args.num_timesteps, callback=callback)
+    model.save(Path(save_dir, "ppo_matsim"))
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Train a PPO model on the MatsimGraphEnv.', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -110,6 +113,7 @@ if __name__ == "__main__":
     parser.add_argument('--model_path', default=None, help='path to the saved model.zip file if you saved your model previously\
                         and wish to keep training')
     parser.add_argument('--save_frequency', default=10000, help='how often to save the model weights')
+    parser.add_argument('--clip_range', default=0.2, type=float, help='the clip range for the PPO algorithm')
     
     parser.print_help()
     args = parser.parse_args()
