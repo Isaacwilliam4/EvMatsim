@@ -122,8 +122,10 @@ public class RewardServer {
                 // Wait for the process to complete and get the exit value
                 int exitCode = process.waitFor();
                 System.out.println("Process exited with code: " + exitCode);
-                Path csvPath = new File(configPath.getParent().toString() + "/output/scorestats.csv").toPath();
+                Path csvPath = new File(configPath.getParent().toString() + "/output/ITERS/it.0/0.average_charge_time_profiles.txt").toPath();
                 CSVRecord lastRecord = null;
+                double avgChargeIntegral = 0.0;
+                double totRecords = .0;
 
                 try (Reader reader = new FileReader(csvPath.toString())) {
                     Iterable<CSVRecord> records = CSVFormat.DEFAULT
@@ -131,21 +133,20 @@ public class RewardServer {
                             .parse(reader);
 
                     for (CSVRecord record : records) {
-                        lastRecord = record;
+                        String[] vals = record.values()[0].split("\t");
+                        double avgVal = Double.parseDouble(vals[2]);
+                        avgChargeIntegral += avgVal;
+                        totRecords += 1;
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
                 
-                double reward = 0;
+                FileUtils.deleteDirectory(configPath.getParent().toFile());
+                System.out.println("Folder and subdirectories deleted successfully.");
 
-                if (lastRecord != null){
-                    reward = Double.parseDouble(lastRecord.values()[0].split(";")[1]);
-                    FileUtils.deleteDirectory(configPath.getParent().toFile());
-                    System.out.println("Folder and subdirectories deleted successfully.");
-                }
                 // Parse the csv path to get the reward
-                String response = "reward:" + reward;
+                String response = "reward:" + (avgChargeIntegral / totRecords);
                 exchange.sendResponseHeaders(200, response.getBytes().length);
                 exchange.getResponseBody().write(response.getBytes());
                 exchange.close();

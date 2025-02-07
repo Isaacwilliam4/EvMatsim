@@ -77,7 +77,8 @@ class MatsimGraphEnv(gym.Env):
         self.dataset.parse_charger_network()
         reward = self.send_reward_request()
         self.state = self.dataset.graph.edge_attr
-        reward += (self.num_links_reward_scale*(torch.sum(self.state[:, 4:]) / torch.sum(self.state[:, 3:])).item())
+        num_chargers_reward = (self.num_links_reward_scale*(torch.sum(self.state[:, 4:]) / torch.sum(self.state[:, 3:])).item())
+        reward += num_chargers_reward
         self.reward = reward
         return self.state.numpy(), reward, self.done, self.done, dict(graph_env_inst=self)
 
