@@ -139,7 +139,7 @@ public class RewardServer {
                         totRecords += 1;
                     }
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    throw new IOException(e);
                 }
                 
                 FileUtils.deleteDirectory(configPath.getParent().toFile());

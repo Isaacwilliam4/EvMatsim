@@ -57,6 +57,11 @@ def main(args: argparse.Namespace):
     # a batch is processed
     # batch_size: the amount of data that is sampled every n_steps from the replay buffer
     # total samples = num_envs * iterations
+
+    #the save frequency only accounts for the number of times each env has run, so we divide it to get it to save every args.save_frequency
+    # timesteps
+    args.save_frequency //= args.num_envs
+
     tensorboard_callback = TensorboardCallback(save_dir=save_dir)
     checkpoint_callback = CheckpointCallback(save_freq=args.save_frequency, save_path=save_dir)
     callback = CallbackList([tensorboard_callback, checkpoint_callback])
@@ -112,7 +117,7 @@ if __name__ == "__main__":
                         then you probably need to  make this smaller')
     parser.add_argument('--model_path', default=None, help='path to the saved model.zip file if you saved your model previously\
                         and wish to keep training')
-    parser.add_argument('--save_frequency', default=10000, help='how often to save the model weights')
+    parser.add_argument('--save_frequency', type=int, default=10000, help='how often to save the model weights in total timesteps')
     parser.add_argument('--clip_range', default=0.2, type=float, help='the clip range for the PPO algorithm')
     
     parser.print_help()
