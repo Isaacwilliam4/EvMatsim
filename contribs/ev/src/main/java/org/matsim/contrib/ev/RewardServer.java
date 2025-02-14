@@ -4,12 +4,14 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.Reader;
 import java.net.InetSocketAddress;
 import java.net.URL;
@@ -27,9 +29,15 @@ import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigReader;
 import org.matsim.core.config.ConfigUtils;
 
+import java.nio.file.Files;
+
+import com.google.common.util.concurrent.AtomicDouble;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 public class RewardServer {
     private final BlockingQueue<RequestData> requestQueue = new LinkedBlockingQueue<>();
@@ -39,8 +47,8 @@ public class RewardServer {
     private final String javaBin = javaHome + File.separator + "bin" + File.separator + "java";
     private final String classpath = System.getProperty("java.class.path");
     private final String className = "org.matsim.contrib.ev.example.RunEvExampleWithEvScoring";
-    private double bestReward = Double.NEGATIVE_INFINITY;
-    private boolean isFirstResponse;
+    private AtomicDouble bestReward = new AtomicDouble(Double.NEGATIVE_INFINITY);
+    private AtomicBoolean initialResponse = new AtomicBoolean(true);
 
     public RewardServer(int threadPoolSize){
         this.threadPoolSize = threadPoolSize;
@@ -75,6 +83,14 @@ public class RewardServer {
                 e.printStackTrace();
             }
         }));
+    }
+
+    public synchronized void setBestReward(double newReward){
+        bestReward.set(newReward);
+    }
+
+    public synchronized double getBestReward(){
+        return bestReward.get();
     }
 
     private static void stopServer(HttpServer server, RewardServer rewardServer) throws IOException {
@@ -143,25 +159,68 @@ public class RewardServer {
                     e.printStackTrace();
                 }
                 
-                FileUtils.deleteDirectory(configPath.getParent().toFile());
-                System.out.println("Folder and subdirectories deleted successfully.");
-                
+                boolean isBestReward = false;
                 double reward = 0;
-                // Parse the csv path to get the reward
                 String response = "reward:" + reward;
                 if (totRecords > 1){
                     reward = avgChargeIntegral / totRecords;
                     response = "reward:" + (reward);
-                    if (reward > bestReward){
-                        bestReward = reward;
+                    if (reward > getBestReward()){
+                        setBestReward(reward);
+                        isBestReward = true;
                     }
                 }
-                exchange.sendResponseHeaders(200, response.getBytes().length);
-                exchange.getResponseBody().write(response.getBytes());
-                exchange.close();
+
+                File outputFolder = new File(configPath.getParent().toString() + "/output/");
+                File zipFile = new File("output.zip");
+                zipDirectory(outputFolder, zipFile);
+    
+                byte[] zipContent = Files.readAllBytes(zipFile.toPath());
+
+                
+                exchange.getResponseHeaders().set("X-Response-Message", response);
+
+                if (isBestReward | initialResponse.get()){
+                    //If  its the first iteration we save the output to get something to compare
+                    //against, if its the best reward we save it to compare results
+                    exchange.sendResponseHeaders(200, zipContent.length);
+                    OutputStream os = exchange.getResponseBody();
+                    os.write(zipContent);
+                    exchange.close();
+                }
+
+
+                FileUtils.deleteDirectory(configPath.getParent().toFile());
+                System.out.println("Folder and subdirectories deleted successfully.");
             } catch (Exception e) {
                 e.printStackTrace();
             }
+        }
+    }
+
+    private static void zipDirectory(File folder, File zipFile) throws IOException {
+        FileOutputStream fos = new FileOutputStream(zipFile);
+        ZipOutputStream zos = new ZipOutputStream(fos);
+        zipFile(folder, folder.getName(), zos);
+        zos.close();
+        fos.close();
+    }
+
+    private static void zipFile(File file, String fileName, ZipOutputStream zos) throws IOException {
+        if (file.isDirectory()) {
+            for (File subFile : file.listFiles()) {
+                zipFile(subFile, fileName + "/" + subFile.getName(), zos);
+            }
+        } else {
+            FileInputStream fis = new FileInputStream(file);
+            ZipEntry zipEntry = new ZipEntry(fileName);
+            zos.putNextEntry(zipEntry);
+            byte[] bytes = new byte[1024];
+            int length;
+            while ((length = fis.read(bytes)) >= 0) {
+                zos.write(bytes, 0, length);
+            }
+            fis.close();
         }
     }
 
