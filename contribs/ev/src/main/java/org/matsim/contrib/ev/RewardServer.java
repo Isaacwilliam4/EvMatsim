@@ -161,10 +161,13 @@ public class RewardServer {
                 
                 boolean isBestReward = false;
                 double reward = 0;
-                String response = "reward:" + reward;
+                String[] response = new String[2];
+                response[0] = "0.0";
+                response[1] = "none";
+
                 if (totRecords > 1){
                     reward = avgChargeIntegral / totRecords;
-                    response = "reward:" + (reward);
+                    response[0] = Double.toString(reward);
                     if (reward > getBestReward()){
                         setBestReward(reward);
                         isBestReward = true;
@@ -176,20 +179,26 @@ public class RewardServer {
                 zipDirectory(outputFolder, zipFile);
     
                 byte[] zipContent = Files.readAllBytes(zipFile.toPath());
-
                 
-                exchange.getResponseHeaders().set("X-Response-Message", response);
-
-                if (isBestReward | initialResponse.get()){
-                    //If  its the first iteration we save the output to get something to compare
-                    //against, if its the best reward we save it to compare results
+                //If  its the first iteration we save the output to get something to compare
+                //against, if its the best reward we save it to compare results
+                if (initialResponse.get()){
+                    response[1] = "firstoutput";
                     exchange.sendResponseHeaders(200, zipContent.length);
                     OutputStream os = exchange.getResponseBody();
                     os.write(zipContent);
                     exchange.close();
                 }
-
-
+                else if (isBestReward){
+                    response[1] = "bestoutput";
+                    exchange.sendResponseHeaders(200, zipContent.length);
+                    OutputStream os = exchange.getResponseBody();
+                    os.write(zipContent);
+                    exchange.close();
+                }
+                
+                
+                exchange.getResponseHeaders().set("X-Response-Message", response);
                 FileUtils.deleteDirectory(configPath.getParent().toFile());
                 System.out.println("Folder and subdirectories deleted successfully.");
             } catch (Exception e) {

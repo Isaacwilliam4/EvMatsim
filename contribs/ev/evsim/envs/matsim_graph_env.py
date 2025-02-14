@@ -64,7 +64,10 @@ class MatsimGraphEnv(gym.Env):
             'chargers': open(self.dataset.charger_xml_path, 'rb')
         }
         response = requests.post(url, params={'folder_name':self.time_string}, files=files)
-        reward  = float(response.text.split(":")[1])
+        #idx:0=reward, idx:1=output if any
+        str_reponse_arr = response.headers['X-response-message'].split(':')
+        reward = float(str_reponse_arr[0])
+        outputType = str_reponse_arr[1]
         return reward
 
     def reset(self, **kwargs):
