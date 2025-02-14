@@ -39,6 +39,8 @@ public class RewardServer {
     private final String javaBin = javaHome + File.separator + "bin" + File.separator + "java";
     private final String classpath = System.getProperty("java.class.path");
     private final String className = "org.matsim.contrib.ev.example.RunEvExampleWithEvScoring";
+    private double bestReward = Double.NEGATIVE_INFINITY;
+    private boolean isFirstResponse;
 
     public RewardServer(int threadPoolSize){
         this.threadPoolSize = threadPoolSize;
@@ -143,11 +145,16 @@ public class RewardServer {
                 
                 FileUtils.deleteDirectory(configPath.getParent().toFile());
                 System.out.println("Folder and subdirectories deleted successfully.");
-
+                
+                double reward = 0;
                 // Parse the csv path to get the reward
-                String response = "reward:" + 0.0;
+                String response = "reward:" + reward;
                 if (totRecords > 1){
-                    response = "reward:" + (avgChargeIntegral / totRecords);
+                    reward = avgChargeIntegral / totRecords;
+                    response = "reward:" + (reward);
+                    if (reward > bestReward){
+                        bestReward = reward;
+                    }
                 }
                 exchange.sendResponseHeaders(200, response.getBytes().length);
                 exchange.getResponseBody().write(response.getBytes());
