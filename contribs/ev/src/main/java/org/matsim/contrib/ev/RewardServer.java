@@ -123,9 +123,8 @@ public class RewardServer {
                 int exitCode = process.waitFor();
                 System.out.println("Process exited with code: " + exitCode);
                 Path csvPath = new File(configPath.getParent().toString() + "/output/ITERS/it.0/0.average_charge_time_profiles.txt").toPath();
-                CSVRecord lastRecord = null;
                 double avgChargeIntegral = 0.0;
-                double totRecords = .0;
+                double totRecords = 0.0;
 
                 try (Reader reader = new FileReader(csvPath.toString())) {
                     Iterable<CSVRecord> records = CSVFormat.DEFAULT
@@ -139,14 +138,17 @@ public class RewardServer {
                         totRecords += 1;
                     }
                 } catch (IOException e) {
-                    throw new IOException(e);
+                    e.printStackTrace();
                 }
                 
                 FileUtils.deleteDirectory(configPath.getParent().toFile());
                 System.out.println("Folder and subdirectories deleted successfully.");
 
                 // Parse the csv path to get the reward
-                String response = "reward:" + (avgChargeIntegral / totRecords);
+                String response = "reward:" + 0.0;
+                if (totRecords > 1){
+                    response = "reward:" + (avgChargeIntegral / totRecords);
+                }
                 exchange.sendResponseHeaders(200, response.getBytes().length);
                 exchange.getResponseBody().write(response.getBytes());
                 exchange.close();
