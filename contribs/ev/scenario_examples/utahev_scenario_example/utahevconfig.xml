@@ -24,7 +24,7 @@ vehicles charging at two different chargers -->
     </module>
 
     <module name="network">
-        
+
         <param name="inputNetworkFile" value="utahevnetwork.xml" />
     </module>
 
@@ -39,7 +39,7 @@ vehicles charging at two different chargers -->
     </module>
 
     <module name="controller">
-        <param name="outputDirectory" value="/output" />
+        <param name="outputDirectory" value="./output" />
         <param name="firstIteration" value="0" />
         <param name="lastIteration" value="0" />
         <param name="eventsFileFormat" value="xml" />
@@ -72,7 +72,7 @@ vehicles charging at two different chargers -->
         </parameterset>
 
         <parameterset type="activityParams">
-			<param name="activityType" value="w" /> 
+			<param name="activityType" value="w" />
 			<param name="priority" value="1" />
 			<param name="typicalDuration" value="08:00:00" />
 			<param name="openingTime" value="07:00:00" />
@@ -94,7 +94,7 @@ vehicles charging at two different chargers -->
     </module>
 
 	<module name="strategy">
-		<param name="maxAgentPlanMemorySize" value="5" /> 
+		<param name="maxAgentPlanMemorySize" value="5" />
 
 		<param name="ModuleProbability_1" value="0.9" />
 		<param name="Module_1" value="BestScore" />
