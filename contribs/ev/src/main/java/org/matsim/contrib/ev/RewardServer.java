@@ -198,7 +198,7 @@ public class RewardServer {
                 }
                 
                 
-                exchange.getResponseHeaders().set("X-Response-Message", response);
+                exchange.getResponseHeaders().set("X-Response-Message", response.toString());
                 FileUtils.deleteDirectory(configPath.getParent().toFile());
                 System.out.println("Folder and subdirectories deleted successfully.");
             } catch (Exception e) {
