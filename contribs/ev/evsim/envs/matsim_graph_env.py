@@ -92,7 +92,7 @@ class MatsimGraphEnv(gym.Env):
         if filetype != 'none':
             self.save_server_output(response, filetype)
 
-        return reward
+        return float(reward)
 
     def reset(self, **kwargs):
         return self.state.numpy(), dict(graph_env_inst=self)

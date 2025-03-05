@@ -176,7 +176,7 @@ public class RewardServer {
                 }
 
                 File outputFolder = new File(configPath.getParent().toString() + "/output/");
-                File zipFile = new File("output.zip");
+                File zipFile = new File(configPath.getParent().toString() + "/output.zip");
                 zipDirectory(outputFolder, zipFile);
                 
                 byte[] zipContent = Files.readAllBytes(zipFile.toPath());
@@ -189,6 +189,7 @@ public class RewardServer {
                     exchange.sendResponseHeaders(200, zipContent.length);
                     OutputStream os = exchange.getResponseBody();
                     os.write(zipContent);
+                    initialResponse.set(false);
                 }
                 else if (isBestReward){
                     response.put("filetype", "bestoutput");
@@ -199,7 +200,7 @@ public class RewardServer {
                 }
                 else{
                     exchange.getResponseHeaders().set("X-Response-Message", response.toString());
-                    exchange.sendResponseHeaders(200, response.toString().length());
+                    exchange.sendResponseHeaders(200, -1);
                 }
                 exchange.close();
                 FileUtils.deleteDirectory(configPath.getParent().toFile());
