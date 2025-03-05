@@ -14,10 +14,13 @@ from evsim.scripts.create_chargers import *
 from evsim.classes.chargers import *
 from typing import List
 import os
+import json
+import zipfile
 
 class MatsimGraphEnv(gym.Env):
-    def __init__(self, config_path, num_agents=100):
+    def __init__(self, config_path, num_agents=100, save_dir=None):
         super().__init__()
+        self.save_dir = save_dir
         current_time = datetime.now()
         self.time_string = current_time.strftime("%Y%m%d_%H%M%S_%f")
         if num_agents < 0:
@@ -54,6 +57,23 @@ class MatsimGraphEnv(gym.Env):
         self.state: torch.tensor = self.dataset.graph.edge_attr
         self.done: bool = False
 
+    def save_server_output(self, response, filetype):
+        zip_filename = Path(self.save_dir, f"{filetype}.zip") 
+        extract_folder = Path(self.save_dir, filetype)
+
+        # Save the zip file
+        with open(zip_filename, "wb") as f:
+            f.write(response.content)
+
+        print(f"Saved zip file: {zip_filename}")
+
+        # Extract the zip file
+        with zipfile.ZipFile(zip_filename, "r") as zip_ref:
+            zip_ref.extractall(extract_folder)
+
+        print(f"Extracted files to: {extract_folder}")
+
+
     def send_reward_request(self):
         url = "http://localhost:8000/getReward"
         files = {
@@ -65,9 +85,13 @@ class MatsimGraphEnv(gym.Env):
         }
         response = requests.post(url, params={'folder_name':self.time_string}, files=files)
         #idx:0=reward, idx:1=output if any
-        str_reponse_arr = response.headers['X-response-message'].split(':')
-        reward = float(str_reponse_arr[0])
-        outputType = str_reponse_arr[1]
+        json_response = json.loads(response.headers['X-response-message'])
+        reward = json_response['reward']
+        filetype = json_response['filetype']
+
+        if filetype != 'none':
+            self.save_server_output(response, filetype)
+
         return reward
 
     def reset(self, **kwargs):

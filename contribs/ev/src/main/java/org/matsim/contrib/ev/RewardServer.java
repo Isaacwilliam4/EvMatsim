@@ -25,6 +25,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.io.FileUtils;
+import org.jfree.data.json.impl.JSONObject;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigReader;
 import org.matsim.core.config.ConfigUtils;
@@ -103,6 +104,7 @@ public class RewardServer {
         System.out.println("Server shut down gracefully.");
     }
 
+    @SuppressWarnings("unchecked")
     public void processRequest() {
         while (!Thread.currentThread().isInterrupted()) {
             try {
@@ -159,15 +161,14 @@ public class RewardServer {
                     e.printStackTrace();
                 }
                 
+                JSONObject response = new JSONObject();
+                response.put("filetype", "none");
                 boolean isBestReward = false;
                 double reward = 0;
-                String[] response = new String[2];
-                response[0] = "0.0";
-                response[1] = "none";
 
                 if (totRecords > 1){
                     reward = avgChargeIntegral / totRecords;
-                    response[0] = Double.toString(reward);
+                    response.put("reward", Double.toString(reward));
                     if (reward > getBestReward()){
                         setBestReward(reward);
                         isBestReward = true;
@@ -177,28 +178,30 @@ public class RewardServer {
                 File outputFolder = new File(configPath.getParent().toString() + "/output/");
                 File zipFile = new File("output.zip");
                 zipDirectory(outputFolder, zipFile);
-    
+                
                 byte[] zipContent = Files.readAllBytes(zipFile.toPath());
                 
                 //If  its the first iteration we save the output to get something to compare
                 //against, if its the best reward we save it to compare results
                 if (initialResponse.get()){
-                    response[1] = "firstoutput";
+                    response.put("filetype", "initialoutput");
+                    exchange.getResponseHeaders().set("X-Response-Message", response.toString());
                     exchange.sendResponseHeaders(200, zipContent.length);
                     OutputStream os = exchange.getResponseBody();
                     os.write(zipContent);
-                    exchange.close();
                 }
                 else if (isBestReward){
-                    response[1] = "bestoutput";
+                    response.put("filetype", "bestoutput");
+                    exchange.getResponseHeaders().set("X-Response-Message", response.toString());
                     exchange.sendResponseHeaders(200, zipContent.length);
                     OutputStream os = exchange.getResponseBody();
                     os.write(zipContent);
-                    exchange.close();
                 }
-                
-                
-                exchange.getResponseHeaders().set("X-Response-Message", response.toString());
+                else{
+                    exchange.getResponseHeaders().set("X-Response-Message", response.toString());
+                    exchange.sendResponseHeaders(200, response.toString().length());
+                }
+                exchange.close();
                 FileUtils.deleteDirectory(configPath.getParent().toFile());
                 System.out.println("Folder and subdirectories deleted successfully.");
             } catch (Exception e) {

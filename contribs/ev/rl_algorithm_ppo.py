@@ -50,7 +50,7 @@ def main(args: argparse.Namespace):
             f.write(f"{key}:{val}\n")
 
     def make_env():
-        return gym.make("MatsimGraphEnv-v0", config_path=args.matsim_config, num_agents=args.num_agents)
+        return gym.make("MatsimGraphEnv-v0", config_path=args.matsim_config, num_agents=args.num_agents, save_dir=save_dir)
 
     env = SubprocVecEnv([make_env for _ in range(args.num_envs)])
     # n_steps: refers to the number of steps for each environment to collect data before
