@@ -80,7 +80,7 @@ def main(args: argparse.Namespace):
                     learning_rate=args.learning_rate,
                     policy_kwargs=policy_kwargs)
     else:
-        model = PPO("MlpPolicy", 
+        model = PPO("GNNPolicy", 
                     env, 
                     n_steps=args.num_steps, 
                     verbose=1, 
