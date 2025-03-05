@@ -46,11 +46,17 @@ class MatsimGraphEnv(gym.Env):
         # Example: Discrete action space with 3 actions
         self.action_space: spaces.MultiDiscrete = spaces.MultiDiscrete([self.num_charger_types] * self.num_edges)
         
-        self.observation_space: spaces.Box = spaces.Box(
+        observation_space=spaces.Box(
             low=0.0,                     # Minimum value for all features
             high=1.0,                    # Maximum value for all features
             shape=(self.num_edges, self.edge_space),   # Shape of the observation space
-            dtype=np.float32             # Data type of the features
+            dtype=np.float32)
+        
+        edge_idx = self.dataset.get_graph().edge_index
+        edge_idx_space = spaces.Box(low=edge_idx.numpy(), high=edge_idx.numpy(), shape=edge_idx.shape, dtype=np.float32)
+
+        self.observation_space: spaces.Dict = spaces.Dict(
+            spaces=dict(observation_space=observation_space, edge_idx=edge_idx_space)
         )
         
         # Initialize environment-specific variables
@@ -107,7 +113,7 @@ class MatsimGraphEnv(gym.Env):
         num_chargers_reward = (self.num_links_reward_scale*(torch.sum(self.state[:, 4:]) / torch.sum(self.state[:, 3:])).item())
         reward += num_chargers_reward
         self.reward = reward
-        return self.state.numpy(), reward, self.done, self.done, dict(graph_env_inst=self)
+        return dict(state=self.state.numpy(), edge_idx=self.dataset.get_graph().edge_index), reward, self.done, self.done, dict(graph_env_inst=self)
 
     def render(self):
         """Optional: Render the environment."""
