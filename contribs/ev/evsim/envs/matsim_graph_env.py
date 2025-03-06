@@ -46,17 +46,12 @@ class MatsimGraphEnv(gym.Env):
         # Example: Discrete action space with 3 actions
         self.action_space: spaces.MultiDiscrete = spaces.MultiDiscrete([self.num_charger_types] * self.num_edges)
         
-        observation_space=spaces.Box(
-            low=0.0,                     # Minimum value for all features
-            high=1.0,                    # Maximum value for all features
-            shape=(self.num_edges, self.edge_space),   # Shape of the observation space
-            dtype=np.float32)
-        
-        edge_idx = self.dataset.get_graph().edge_index
-        edge_idx_space = spaces.Box(low=edge_idx.numpy(), high=edge_idx.numpy(), shape=edge_idx.shape, dtype=np.float32)
+        x = spaces.Box(low=0, high=1, shape=self.dataset.linegraph.x.shape, dtype=np.float32)
+        edge_idx = self.dataset.linegraph.edge_index
+        edge_idx_space = spaces.Box(low=edge_idx.numpy(), high=edge_idx.numpy(), shape=edge_idx.shape, dtype=np.int32)
 
         self.observation_space: spaces.Dict = spaces.Dict(
-            spaces=dict(observation_space=observation_space, edge_idx=edge_idx_space)
+            spaces=dict(x=x, edge_idx=edge_idx_space)
         )
         
         # Initialize environment-specific variables

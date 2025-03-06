@@ -1,4 +1,5 @@
 from torch_geometric.data import Dataset
+from torch_geometric.transforms import LineGraph
 import xml.etree.ElementTree as ET
 from torch_geometric.data import Data
 import torch
@@ -47,6 +48,8 @@ class MatsimXMLDataset(Dataset):
         self.parse_matsim_network()
         self.parse_charger_network()
 
+        linegraph_transform = LineGraph()
+        self.linegraph = linegraph_transform(self.graph)
         # min max normalize  continuous edge attr
 
         cont_var = self.graph.edge_attr[:,:3]
