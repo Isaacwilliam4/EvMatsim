@@ -17,6 +17,7 @@ import java.net.InetSocketAddress;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -26,9 +27,11 @@ import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.io.FileUtils;
 import org.jfree.data.json.impl.JSONObject;
+import org.matsim.contrib.ev.RewardServer.RewardHandler;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigReader;
 import org.matsim.core.config.ConfigUtils;
+import org.w3c.dom.NodeList;
 
 import java.nio.file.Files;
 
@@ -39,6 +42,15 @@ import com.sun.net.httpserver.HttpServer;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+
+import org.w3c.dom.*;
+import javax.xml.parsers.*;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 public class RewardServer {
     private final BlockingQueue<RequestData> requestQueue = new LinkedBlockingQueue<>();
@@ -139,10 +151,18 @@ public class RewardServer {
                     e.printStackTrace();
                 }
 
+                Config config = new Config();
+                new ConfigReader(config).parse(configPath.toUri().toURL()); 
+
+                String vehiclesFileName = config.getParam("vehicles", "vehiclesFile");
+                ConfigUtils.writeConfig(config, configPath.toString());
+
                 // Wait for the process to complete and get the exit value
                 int exitCode = process.waitFor();
                 System.out.println("Process exited with code: " + exitCode);
                 Path csvPath = new File(configPath.getParent().toString() + "/output/ITERS/it.0/0.average_charge_time_profiles.txt").toPath();
+                Path evehiclesXMLPath = new File(configPath.getParent().toString() + vehiclesFileName).toPath();
+                double avgEnergyCapacity = getAverageEnergyCapacity(evehiclesXMLPath.toString());
                 double avgChargeIntegral = 0.0;
                 double totRecords = 0.0;
 
@@ -160,6 +180,8 @@ public class RewardServer {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
+
+                double totEnergyCapacity = avgEnergyCapacity * totRecords;
                 
                 JSONObject response = new JSONObject();
                 response.put("filetype", "none");
@@ -167,7 +189,7 @@ public class RewardServer {
                 double reward = 0;
 
                 if (totRecords > 1){
-                    reward = avgChargeIntegral / totRecords;
+                    reward = avgChargeIntegral / totEnergyCapacity;
                     response.put("reward", Double.toString(reward));
                     if (reward > getBestReward()){
                         setBestReward(reward);
@@ -234,6 +256,42 @@ public class RewardServer {
                 zos.write(bytes, 0, length);
             }
             fis.close();
+        }
+    }
+
+    public static double getAverageEnergyCapacity(String filePath) {
+        try {
+            File xmlFile = new File(filePath);
+            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder builder = factory.newDocumentBuilder();
+            Document document = builder.parse(xmlFile);
+            document.getDocumentElement().normalize();
+
+            NodeList vehicleTypes = document.getElementsByTagName("vehicleType");
+            List<Double> energyCapacities = new ArrayList<>();
+
+            for (int i = 0; i < vehicleTypes.getLength(); i++) {
+                Node node = vehicleTypes.item(i);
+                if (node.getNodeType() == Node.ELEMENT_NODE) {
+                    Element vehicleType = (Element) node;
+                    NodeList attributes = vehicleType.getElementsByTagName("attribute");
+
+                    for (int j = 0; j < attributes.getLength(); j++) {
+                        Element attribute = (Element) attributes.item(j);
+                        if ("energyCapacityInKWhOrLiters".equals(attribute.getAttribute("name"))) {
+                            double energyCapacity = Double.parseDouble(attribute.getTextContent().trim());
+                            energyCapacities.add(energyCapacity);
+                        }
+                    }
+                }
+            }
+
+            // Compute and return the average energy capacity
+            return energyCapacities.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return 0.0; // Return 0.0 if an error occurs
         }
     }
 

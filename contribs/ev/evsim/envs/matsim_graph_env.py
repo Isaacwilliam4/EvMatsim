@@ -38,24 +38,24 @@ class MatsimGraphEnv(gym.Env):
         self.num_links_reward_scale = -100 #: this times the percentage of links that are chargers is added to your reward
         ########### Initialize the dataset with your custom variables ###########
         
-        self.num_edges: int = self.dataset.graph.edge_attr.size(0)
-        self.edge_space: int = self.dataset.graph.edge_attr.size(1)
+        # self.num_edges: int = self.dataset.linegraph.edge_attr.size(0)
+        # self.edge_space: int = self.dataset.linegraph.edge_attr.size(1)
         self.reward: int = 0
         self.num_charger_types: int = len(self.charger_list)
         # Define action and observation space
         # Example: Discrete action space with 3 actions
-        self.action_space: spaces.MultiDiscrete = spaces.MultiDiscrete([self.num_charger_types] * self.num_edges)
         
-        x = spaces.Box(low=0, high=1, shape=self.dataset.linegraph.x.shape, dtype=np.float32)
-        edge_idx = self.dataset.linegraph.edge_index
-        edge_idx_space = spaces.Box(low=edge_idx.numpy(), high=edge_idx.numpy(), shape=edge_idx.shape, dtype=np.int32)
+        self.action_space: spaces.MultiDiscrete = spaces.MultiDiscrete([self.num_charger_types] * self.dataset.linegraph.num_nodes)
+        self.x = spaces.Box(low=0, high=1, shape=self.dataset.linegraph.x.shape, dtype=np.float32)
+        self.edge_index = self.dataset.linegraph.edge_index.to(torch.int32)
+        self.edge_index_space = spaces.Box(low=self.edge_index.numpy(), high=self.edge_index.numpy(), shape=self.edge_index.shape, dtype=np.int32)
 
         self.observation_space: spaces.Dict = spaces.Dict(
-            spaces=dict(x=x, edge_idx=edge_idx_space)
+            spaces=dict(x=self.x, edge_index=self.edge_index_space)
         )
         
         # Initialize environment-specific variables
-        self.state: torch.tensor = self.dataset.graph.edge_attr
+        self.state = self.observation_space
         self.done: bool = False
 
     def save_server_output(self, response, filetype):
@@ -96,19 +96,19 @@ class MatsimGraphEnv(gym.Env):
         return float(reward)
 
     def reset(self, **kwargs):
-        return self.state.numpy(), dict(graph_env_inst=self)
+        return dict(x=self.dataset.linegraph.x, edge_index=self.edge_index), dict(info="info")
 
     def step(self, actions):
         """Take an action and return the next state, reward, done, and info."""
 
         create_chargers_xml_gymnasium(self.dataset.charger_xml_path, self.charger_list, actions, self.dataset.edge_mapping)
-        self.dataset.parse_charger_network()
+        charger_cost = self.dataset.parse_charger_network_get_charger_cost()
         reward = self.send_reward_request()
         self.state = self.dataset.graph.edge_attr
         num_chargers_reward = (self.num_links_reward_scale*(torch.sum(self.state[:, 4:]) / torch.sum(self.state[:, 3:])).item())
         reward += num_chargers_reward
         self.reward = reward
-        return dict(state=self.state.numpy(), edge_idx=self.dataset.get_graph().edge_index), reward, self.done, self.done, dict(graph_env_inst=self)
+        return dict(x=self.dataset.linegraph.x, edge_index=self.edge_index), reward, self.done, self.done, dict(graph_env_inst=self)
 
     def render(self):
         """Optional: Render the environment."""

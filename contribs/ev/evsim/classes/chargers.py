@@ -18,11 +18,11 @@ class DynamicCharger(Charger):
     plug_count:int = 9999
 
     # cost in USD per km, pulled from https://www.nature.com/articles/s41467-024-49157-5
-    price:2_600_000
+    price:float = 2_600_000
 
 class StaticCharger(Charger):
     type:str = "default"
     plug_power:float = 150
     plug_count:int = 5
     # cost in USD per charger, pulled from https://www.nature.com/articles/s41467-024-49157-5
-    price:120_000
+    price:float = 120_000
