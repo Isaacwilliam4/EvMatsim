@@ -161,7 +161,7 @@ public class RewardServer {
                 int exitCode = process.waitFor();
                 System.out.println("Process exited with code: " + exitCode);
                 Path csvPath = new File(configPath.getParent().toString() + "/output/ITERS/it.0/0.average_charge_time_profiles.txt").toPath();
-                Path evehiclesXMLPath = new File(configPath.getParent().toString() + vehiclesFileName).toPath();
+                Path evehiclesXMLPath = new File(configPath.getParent().toString() + "/" + vehiclesFileName).toPath();
                 double avgEnergyCapacity = getAverageEnergyCapacity(evehiclesXMLPath.toString());
                 double avgChargeIntegral = 0.0;
                 double totRecords = 0.0;
