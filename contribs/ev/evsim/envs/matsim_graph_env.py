@@ -48,7 +48,10 @@ class MatsimGraphEnv(gym.Env):
         self.action_space: spaces.MultiDiscrete = spaces.MultiDiscrete([self.num_charger_types] * self.dataset.linegraph.num_nodes)
         self.x = spaces.Box(low=0, high=1, shape=self.dataset.linegraph.x.shape, dtype=np.float32)
         self.edge_index = self.dataset.linegraph.edge_index.to(torch.int32)
-        self.edge_index_space = spaces.Box(low=self.edge_index.numpy(), high=self.edge_index.numpy(), shape=self.edge_index.shape, dtype=np.int32)
+        edge_index_np = self.edge_index.numpy()
+        max_edge_index = np.max(edge_index_np) + 1
+        #We store the edge index in the low space of the box to work with stable-baselines3
+        self.edge_index_space = spaces.Box(low=edge_index_np, high=np.full(edge_index_np.shape, max_edge_index), shape=self.edge_index.shape, dtype=np.int32)
 
         self.observation_space: spaces.Dict = spaces.Dict(
             spaces=dict(x=self.x, edge_index=self.edge_index_space)
@@ -96,7 +99,7 @@ class MatsimGraphEnv(gym.Env):
         return float(reward)
 
     def reset(self, **kwargs):
-        return dict(x=self.dataset.linegraph.x, edge_index=self.edge_index), dict(info="info")
+        return dict(x=self.dataset.linegraph.x.numpy(), edge_index=self.edge_index.numpy()), dict(info="info")
 
     def step(self, actions):
         """Take an action and return the next state, reward, done, and info."""
