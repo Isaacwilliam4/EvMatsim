@@ -99,7 +99,7 @@ class MatsimGraphEnv(gym.Env):
         return float(reward)
 
     def reset(self, **kwargs):
-        return dict(x=self.dataset.linegraph.x.numpy(), edge_index=self.dataset.linegraph.numpy()), dict(info="info")
+        return dict(x=self.dataset.linegraph.x.numpy(), edge_index=self.dataset.linegraph.edge_index.numpy()), dict(info="info")
 
     def step(self, actions):
         """Take an action and return the next state, reward, done, and info."""
@@ -111,7 +111,7 @@ class MatsimGraphEnv(gym.Env):
         # self.state = self.dataset.graph.edge_attr
         _reward = 100*(avg_charge_reward - charger_cost_reward.item())
         self.reward = _reward
-        return dict(x=self.dataset.linegraph.x.numpy(), edge_index=self.dataset.linegraph.numpy()), _reward, self.done, self.done, dict(graph_env_inst=self)
+        return dict(x=self.dataset.linegraph.x.numpy(), edge_index=self.dataset.linegraph.edge_index.numpy()), _reward, self.done, self.done, dict(graph_env_inst=self)
 
     def render(self):
         """Optional: Render the environment."""
