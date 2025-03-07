@@ -103,12 +103,12 @@ class MatsimGraphEnv(gym.Env):
 
         create_chargers_xml_gymnasium(self.dataset.charger_xml_path, self.charger_list, actions, self.dataset.edge_mapping)
         charger_cost = self.dataset.parse_charger_network_get_charger_cost()
-        reward = self.send_reward_request()
-        self.state = self.dataset.graph.edge_attr
-        num_chargers_reward = (self.num_links_reward_scale*(torch.sum(self.state[:, 4:]) / torch.sum(self.state[:, 3:])).item())
-        reward += num_chargers_reward
-        self.reward = reward
-        return dict(x=self.dataset.linegraph.x, edge_index=self.edge_index), reward, self.done, self.done, dict(graph_env_inst=self)
+        charger_cost_reward = charger_cost / self.dataset.max_charger_cost
+        avg_charge_reward = self.send_reward_request()
+        # self.state = self.dataset.graph.edge_attr
+        _reward = 100*(avg_charge_reward - charger_cost_reward.item())
+        self.reward = _reward
+        return dict(x=self.dataset.linegraph.x, edge_index=self.edge_index), _reward, self.done, self.done, dict(graph_env_inst=self)
 
     def render(self):
         """Optional: Render the environment."""
@@ -128,7 +128,7 @@ class MatsimGraphEnv(gym.Env):
         """
         static_chargers = []
         dynamic_chargers = []
-        charger_config = self.state[:, 3:]
+        charger_config = self.dataset.graph.edge_attr[:, 3:]
 
         for idx,row in enumerate(charger_config):
             if not row[0]:
