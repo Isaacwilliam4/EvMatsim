@@ -16,6 +16,7 @@ from typing import List
 import os
 import json
 import zipfile
+from filelock import FileLock
 
 class MatsimGraphEnv(gym.Env):
     def __init__(self, config_path, num_agents=100, save_dir=None):
@@ -41,6 +42,7 @@ class MatsimGraphEnv(gym.Env):
         # self.num_edges: int = self.dataset.linegraph.edge_attr.size(0)
         # self.edge_space: int = self.dataset.linegraph.edge_attr.size(1)
         self.reward: int = 0
+        self.best_reward = -np.inf
         self.num_charger_types: int = len(self.charger_list)
         # Define action and observation space
         # Example: Discrete action space with 3 actions
@@ -60,22 +62,27 @@ class MatsimGraphEnv(gym.Env):
         # Initialize environment-specific variables
         self.state = self.observation_space
         self.done: bool = False
+        self.lock_file = Path(self.save_dir, "lockfile.lock")
 
     def save_server_output(self, response, filetype):
         zip_filename = Path(self.save_dir, f"{filetype}.zip") 
         extract_folder = Path(self.save_dir, filetype)
 
-        # Save the zip file
-        with open(zip_filename, "wb") as f:
-            f.write(response.content)
+        # Use a lock to prevent simultaneous access
+        lock = FileLock(self.lock_file)
 
-        print(f"Saved zip file: {zip_filename}")
+        with lock:
+            # Save the zip file
+            with open(zip_filename, "wb") as f:
+                f.write(response.content)
 
-        # Extract the zip file
-        with zipfile.ZipFile(zip_filename, "r") as zip_ref:
-            zip_ref.extractall(extract_folder)
+            print(f"Saved zip file: {zip_filename}")
 
-        print(f"Extracted files to: {extract_folder}")
+            # Extract the zip file
+            with zipfile.ZipFile(zip_filename, "r") as zip_ref:
+                zip_ref.extractall(extract_folder)
+
+            print(f"Extracted files to: {extract_folder}")
 
 
     def send_reward_request(self):
@@ -93,10 +100,10 @@ class MatsimGraphEnv(gym.Env):
         reward = json_response['reward']
         filetype = json_response['filetype']
 
-        if filetype != 'none':
+        if filetype == 'initialoutput':
             self.save_server_output(response, filetype)
 
-        return float(reward)
+        return float(reward), response
 
     def reset(self, **kwargs):
         return dict(x=self.dataset.linegraph.x.numpy(), edge_index=self.dataset.linegraph.edge_index.numpy().astype(np.int32)), dict(info="info")
@@ -107,10 +114,14 @@ class MatsimGraphEnv(gym.Env):
         create_chargers_xml_gymnasium(self.dataset.charger_xml_path, self.charger_list, actions, self.dataset.edge_mapping)
         charger_cost = self.dataset.parse_charger_network_get_charger_cost()
         charger_cost_reward = charger_cost / self.dataset.max_charger_cost
-        avg_charge_reward = self.send_reward_request()
+        avg_charge_reward, server_response = self.send_reward_request()
         # self.state = self.dataset.graph.edge_attr
         _reward = 100*(avg_charge_reward - charger_cost_reward.item())
         self.reward = _reward
+        if _reward > self.best_reward:
+            self.best_reward = _reward
+            self.save_server_output(server_response, "bestoutput")
+            
         return dict(x=self.dataset.linegraph.x.numpy(), edge_index=self.dataset.linegraph.edge_index.numpy().astype(np.int32)), _reward, self.done, self.done, dict(graph_env_inst=self)
 
     def render(self):

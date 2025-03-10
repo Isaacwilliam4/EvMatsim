@@ -213,16 +213,12 @@ public class RewardServer {
                     os.write(zipContent);
                     initialResponse.set(false);
                 }
-                else if (isBestReward){
-                    response.put("filetype", "bestoutput");
+                else {
+                    response.put("filetype", "output");
                     exchange.getResponseHeaders().set("X-Response-Message", response.toString());
                     exchange.sendResponseHeaders(200, zipContent.length);
                     OutputStream os = exchange.getResponseBody();
                     os.write(zipContent);
-                }
-                else{
-                    exchange.getResponseHeaders().set("X-Response-Message", response.toString());
-                    exchange.sendResponseHeaders(200, -1);
                 }
                 exchange.close();
                 FileUtils.deleteDirectory(configPath.getParent().toFile());
