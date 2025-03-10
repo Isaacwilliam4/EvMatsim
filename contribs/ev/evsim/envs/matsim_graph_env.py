@@ -41,7 +41,7 @@ class MatsimGraphEnv(gym.Env):
         
         # self.num_edges: int = self.dataset.linegraph.edge_attr.size(0)
         # self.edge_space: int = self.dataset.linegraph.edge_attr.size(1)
-        self.reward: int = 0
+        self.reward: float = 0
         self.best_reward = -np.inf
         self.num_charger_types: int = len(self.charger_list)
         # Define action and observation space
@@ -63,6 +63,7 @@ class MatsimGraphEnv(gym.Env):
         self.state = self.observation_space
         self.done: bool = False
         self.lock_file = Path(self.save_dir, "lockfile.lock")
+        self.best_output_response = None
 
     def save_server_output(self, response, filetype):
         zip_filename = Path(self.save_dir, f"{filetype}.zip") 
@@ -120,8 +121,8 @@ class MatsimGraphEnv(gym.Env):
         self.reward = _reward
         if _reward > self.best_reward:
             self.best_reward = _reward
-            self.save_server_output(server_response, "bestoutput")
-            
+            self.best_output_response = server_response
+
         return dict(x=self.dataset.linegraph.x.numpy(), edge_index=self.dataset.linegraph.edge_index.numpy().astype(np.int32)), _reward, self.done, self.done, dict(graph_env_inst=self)
 
     def render(self):

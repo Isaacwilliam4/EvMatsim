@@ -20,7 +20,7 @@ class TensorboardCallback(BaseCallback):
     def __init__(self, verbose=0, save_dir=None):
         super(TensorboardCallback, self).__init__(verbose)
         self.save_dir = save_dir
-        self.max_reward = -np.inf
+        self.best_reward = -np.inf
         self.best_env: MatsimGraphEnv = None
 
     def _on_step(self) -> bool:
@@ -30,13 +30,14 @@ class TensorboardCallback(BaseCallback):
             env_inst: MatsimGraphEnv = infos['graph_env_inst']
             reward = env_inst.reward
             avg_reward += reward
-            if reward > self.max_reward:
-                self.max_reward = reward
+            if reward > self.best_reward:
                 self.best_env = env_inst
+                self.best_reward = self.best_env.best_reward
                 self.best_env.save_charger_config_to_csv(Path(self.save_dir, 'best_chargers.csv'))
+                self.best_env.save_server_output(self.best_env.best_output_response, 'bestoutput')
 
         self.logger.record('Avg Reward', (avg_reward/(i+1)))
-        self.logger.record('Best Reward', self.max_reward)
+        self.logger.record('Best Reward', self.best_reward)
 
         return True
 
