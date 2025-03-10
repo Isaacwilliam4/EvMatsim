@@ -31,7 +31,6 @@ import org.matsim.contrib.ev.RewardServer.RewardHandler;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigReader;
 import org.matsim.core.config.ConfigUtils;
-import org.w3c.dom.NodeList;
 
 import java.nio.file.Files;
 
@@ -74,6 +73,7 @@ public class RewardServer {
         // Set up the HTTP server
         int port = 8000;
         HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
+        System.setProperty("matsim.preferLocalDtds", "true");
         server.createContext("/getReward", rewardServer.new RewardHandler());
         server.setExecutor(null); // creates a default executor
         System.out.println("Starting reward server...");
