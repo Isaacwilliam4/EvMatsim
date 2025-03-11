@@ -18,7 +18,7 @@ import json
 import zipfile
 from filelock import FileLock
 
-class MatsimGraphEnv(gym.Env):
+class MatsimGraphEnvGNN(gym.Env):
     def __init__(self, config_path, num_agents=100, save_dir=None):
         super().__init__()
         self.save_dir = save_dir

@@ -7,7 +7,8 @@ import argparse
 import os
 from datetime import datetime
 from pathlib import Path
-from evsim.envs.matsim_graph_env import MatsimGraphEnv
+from evsim.envs.matsim_graph_env_gnn import MatsimGraphEnvGNN
+from evsim.envs.matsim_graph_env_mlp import MatsimGraphEnvMlp
 import numpy as np
 import torch
 
@@ -21,13 +22,13 @@ class TensorboardCallback(BaseCallback):
         super(TensorboardCallback, self).__init__(verbose)
         self.save_dir = save_dir
         self.best_reward = -np.inf
-        self.best_env: MatsimGraphEnv = None
+        self.best_env: MatsimGraphEnvGNN | MatsimGraphEnvMlp = None
 
     def _on_step(self) -> bool:
         avg_reward = 0
 
         for i, infos in enumerate(self.locals['infos']):
-            env_inst: MatsimGraphEnv = infos['graph_env_inst']
+            env_inst: MatsimGraphEnvGNN | MatsimGraphEnvMlp = infos['graph_env_inst']
             reward = env_inst.reward
             avg_reward += reward
             if reward > self.best_reward:
@@ -51,7 +52,17 @@ def main(args: argparse.Namespace):
             f.write(f"{key}:{val}\n")
 
     def make_env():
-        return gym.make("MatsimGraphEnv-v0", config_path=args.matsim_config, num_agents=args.num_agents, save_dir=save_dir)
+        if args.policy_type == 'MlpPolicy':
+            return gym.make("MatsimGraphEnvMlp-v0", 
+                            config_path=args.matsim_config,
+                            num_agents=args.num_agents,
+                            save_dir=save_dir)
+        elif args.policy_type == 'GNNPolicy':
+            return gym.make("MatsimGraphEnvGNN-v0", 
+                config_path=args.matsim_config,
+                num_agents=args.num_agents,
+                save_dir=save_dir)
+
 
     env = SubprocVecEnv([make_env for _ in range(args.num_envs)])
     # n_steps: refers to the number of steps for each environment to collect data before
@@ -81,7 +92,7 @@ def main(args: argparse.Namespace):
                     learning_rate=args.learning_rate,
                     policy_kwargs=policy_kwargs)
     else:
-        model = PPO("GNNPolicy", 
+        model = PPO(args.policy_type, 
                     env, 
                     n_steps=args.num_steps, 
                     verbose=1, 
@@ -120,6 +131,7 @@ if __name__ == "__main__":
                         and wish to keep training')
     parser.add_argument('--save_frequency', type=int, default=10000, help='how often to save the model weights in total timesteps')
     parser.add_argument('--clip_range', default=0.2, type=float, help='the clip range for the PPO algorithm')
+    parser.add_argument('--policy_type', default='MlpPolicy',choices=['MlpPolicy', 'GNNPolicy'] ,type=str, help='The policy type to use for the ppo algorithm')
     
     parser.print_help()
     args = parser.parse_args()
