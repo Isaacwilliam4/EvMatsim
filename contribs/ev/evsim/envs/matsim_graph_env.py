@@ -148,9 +148,9 @@ class MatsimGraphEnv(gym.Env):
         for idx,row in enumerate(charger_config):
             if not row[0]:
                 if row[1]:
-                    static_chargers.append(int(self.dataset.edge_mapping.inverse[idx]))
-                elif row[2]:
                     dynamic_chargers.append(int(self.dataset.edge_mapping.inverse[idx]))
+                elif row[2]:
+                    static_chargers.append(int(self.dataset.edge_mapping.inverse[idx]))
 
         df = pd.DataFrame({'iteration':[0],'reward':[self.reward], 'static_chargers':[static_chargers], 'dynamic_chargers':[dynamic_chargers]})
         df.to_csv(csv_path, index=False)
