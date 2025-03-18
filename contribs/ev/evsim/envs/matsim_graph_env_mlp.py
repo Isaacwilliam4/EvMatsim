@@ -18,6 +18,7 @@ import json
 import zipfile
 from filelock import FileLock
 
+
 class MatsimGraphEnvMlp(gym.Env):
     def __init__(self, config_path, num_agents=100, save_dir=None):
         super().__init__()
@@ -31,14 +32,18 @@ class MatsimGraphEnvMlp(gym.Env):
         ########### Initialize the dataset with your custom variables ###########
         self.config_path: Path = Path(config_path)
         self.charger_list: List[Charger] = [NoneCharger, DynamicCharger, StaticCharger]
-        self.dataset = MatsimXMLDataset(self.config_path, 
-                                        self.time_string, 
-                                        self.charger_list, 
-                                        num_agents=self.num_agents, 
-                                        initial_soc=0.5)
-        self.num_links_reward_scale = -100 #: this times the percentage of links that are chargers is added to your reward
+        self.dataset = MatsimXMLDataset(
+            self.config_path,
+            self.time_string,
+            self.charger_list,
+            num_agents=self.num_agents,
+            initial_soc=0.5,
+        )
+        self.num_links_reward_scale = (
+            -100
+        )  #: this times the percentage of links that are chargers is added to your reward
         ########### Initialize the dataset with your custom variables ###########
-        
+
         # self.num_edges: int = self.dataset.linegraph.edge_attr.size(0)
         # self.edge_space: int = self.dataset.linegraph.edge_attr.size(1)
         self.reward: float = 0
@@ -46,17 +51,28 @@ class MatsimGraphEnvMlp(gym.Env):
         self.num_charger_types: int = len(self.charger_list)
         # Define action and observation space
         # Example: Discrete action space with 3 actions
-        
-        self.action_space: spaces.MultiDiscrete = spaces.MultiDiscrete([self.num_charger_types] * self.dataset.linegraph.num_nodes)
-        self.x = spaces.Box(low=0, high=1, shape=self.dataset.linegraph.x.shape, dtype=np.float32)
+
+        self.action_space: spaces.MultiDiscrete = spaces.MultiDiscrete(
+            [self.num_charger_types] * self.dataset.linegraph.num_nodes
+        )
+        self.x = spaces.Box(
+            low=0, high=1, shape=self.dataset.linegraph.x.shape, dtype=np.float32
+        )
         self.edge_index = self.dataset.linegraph.edge_index.to(torch.int32)
         edge_index_np = self.edge_index.numpy()
         max_edge_index = np.max(edge_index_np) + 1
-        #We store the edge index in the low space of the box to work with stable-baselines3
-        self.edge_index_space = spaces.Box(low=edge_index_np, high=np.full(edge_index_np.shape, max_edge_index), shape=self.edge_index.shape, dtype=np.int32)
+        # We store the edge index in the low space of the box to work with stable-baselines3
+        self.edge_index_space = spaces.Box(
+            low=edge_index_np,
+            high=np.full(edge_index_np.shape, max_edge_index),
+            shape=self.edge_index.shape,
+            dtype=np.int32,
+        )
 
-        self.observation_space = spaces.Box(low=0, high=1.0, shape=self.dataset.linegraph.x.shape, dtype=np.float32)
-        
+        self.observation_space = spaces.Box(
+            low=0, high=1.0, shape=self.dataset.linegraph.x.shape, dtype=np.float32
+        )
+
         # Initialize environment-specific variables
         self.state = self.observation_space
         self.done: bool = False
@@ -64,7 +80,7 @@ class MatsimGraphEnvMlp(gym.Env):
         self.best_output_response = None
 
     def save_server_output(self, response, filetype):
-        zip_filename = Path(self.save_dir, f"{filetype}.zip") 
+        zip_filename = Path(self.save_dir, f"{filetype}.zip")
         extract_folder = Path(self.save_dir, filetype)
 
         # Use a lock to prevent simultaneous access
@@ -83,23 +99,24 @@ class MatsimGraphEnvMlp(gym.Env):
 
             print(f"Extracted files to: {extract_folder}")
 
-
     def send_reward_request(self):
         url = "http://localhost:8000/getReward"
         files = {
-            'config': open(self.dataset.config_path, 'rb'),
-            'network': open(self.dataset.network_xml_path, 'rb'),
-            'plans': open(self.dataset.plan_xml_path, 'rb'),
-            'vehicles': open(self.dataset.vehicle_xml_path, 'rb'),
-            'chargers': open(self.dataset.charger_xml_path, 'rb')
+            "config": open(self.dataset.config_path, "rb"),
+            "network": open(self.dataset.network_xml_path, "rb"),
+            "plans": open(self.dataset.plan_xml_path, "rb"),
+            "vehicles": open(self.dataset.vehicle_xml_path, "rb"),
+            "chargers": open(self.dataset.charger_xml_path, "rb"),
         }
-        response = requests.post(url, params={'folder_name':self.time_string}, files=files)
-        #idx:0=reward, idx:1=output if any
-        json_response = json.loads(response.headers['X-response-message'])
-        reward = json_response['reward']
-        filetype = json_response['filetype']
+        response = requests.post(
+            url, params={"folder_name": self.time_string}, files=files
+        )
+        # idx:0=reward, idx:1=output if any
+        json_response = json.loads(response.headers["X-response-message"])
+        reward = json_response["reward"]
+        filetype = json_response["filetype"]
 
-        if filetype == 'initialoutput':
+        if filetype == "initialoutput":
             self.save_server_output(response, filetype)
 
         return float(reward), response
@@ -110,18 +127,29 @@ class MatsimGraphEnvMlp(gym.Env):
     def step(self, actions):
         """Take an action and return the next state, reward, done, and info."""
 
-        create_chargers_xml_gymnasium(self.dataset.charger_xml_path, self.charger_list, actions, self.dataset.edge_mapping)
+        create_chargers_xml_gymnasium(
+            self.dataset.charger_xml_path,
+            self.charger_list,
+            actions,
+            self.dataset.edge_mapping,
+        )
         charger_cost = self.dataset.parse_charger_network_get_charger_cost()
         charger_cost_reward = charger_cost / self.dataset.max_charger_cost
         avg_charge_reward, server_response = self.send_reward_request()
         # self.state = self.dataset.graph.edge_attr
-        _reward = 100*(avg_charge_reward - charger_cost_reward.item())
+        _reward = 100 * (avg_charge_reward - charger_cost_reward.item())
         self.reward = _reward
         if _reward > self.best_reward:
             self.best_reward = _reward
             self.best_output_response = server_response
 
-        return self.dataset.linegraph.x.numpy(), _reward, self.done, self.done, dict(graph_env_inst=self)
+        return (
+            self.dataset.linegraph.x.numpy(),
+            _reward,
+            self.done,
+            self.done,
+            dict(graph_env_inst=self),
+        )
 
     def render(self):
         """Optional: Render the environment."""
@@ -143,19 +171,28 @@ class MatsimGraphEnvMlp(gym.Env):
         dynamic_chargers = []
         charger_config = self.dataset.graph.edge_attr[:, 3:]
 
-        for idx,row in enumerate(charger_config):
+        for idx, row in enumerate(charger_config):
             if not row[0]:
                 if row[1]:
                     dynamic_chargers.append(int(self.dataset.edge_mapping.inverse[idx]))
                 elif row[2]:
                     static_chargers.append(int(self.dataset.edge_mapping.inverse[idx]))
 
-        df = pd.DataFrame({'iteration':[0],'reward':[self.reward], 'static_chargers':[static_chargers], 'dynamic_chargers':[dynamic_chargers]})
+        df = pd.DataFrame(
+            {
+                "iteration": [0],
+                "reward": [self.reward],
+                "static_chargers": [static_chargers],
+                "dynamic_chargers": [dynamic_chargers],
+            }
+        )
         df.to_csv(csv_path, index=False)
 
 
 if __name__ == "__main__":
-    env = MatsimGraphEnv(config_path="/home/isaacp/EvMatsim/contribs/ev/script_scenarios/utahevscenario/utahevconfig.xml")
+    env = MatsimGraphEnv(
+        config_path="/home/isaacp/EvMatsim/contribs/ev/script_scenarios/utahevscenario/utahevconfig.xml"
+    )
     sample = env.action_space.sample()
-    env.save_charger_config_to_csv(Path(Path(__file__).parent, 'test_save_charger.csv'))
+    env.save_charger_config_to_csv(Path(Path(__file__).parent, "test_save_charger.csv"))
     env.close()

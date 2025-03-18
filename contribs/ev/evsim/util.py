@@ -4,6 +4,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import os
 
+
 def get_link_ids(network_file):
     # Parse the network XML file
     tree = ET.parse(network_file)
@@ -17,8 +18,8 @@ def get_link_ids(network_file):
         link_id = link.get("id")
         link_ids.append(link_id)
 
-
     return np.array(link_ids).astype(int)
+
 
 def setup_config(config_xml_path, output_dir, num_iterations=0):
     """Sets the number of matsim iterations that need to run,
@@ -34,52 +35,59 @@ def setup_config(config_xml_path, output_dir, num_iterations=0):
     tree = ET.parse(config_xml_path)
     root = tree.getroot()
 
-    network_file,\
-    plans_file,\
-    vehicles_file,\
-    chargers_file,\
-    counts_file = None, None, None, None, None
+    network_file, plans_file, vehicles_file, chargers_file, counts_file = (
+        None,
+        None,
+        None,
+        None,
+        None,
+    )
 
     # Find the 'controler' module
     for module in root.findall(".//module"):
         for param in module.findall("param"):
-            if param.get('name') == 'lastIteration':
-                param.set('value', str(num_iterations))
-            if param.get('name') == 'outputDirectory':
-                param.set('value', output_dir)
-            if param.get('name') == 'inputNetworkFile':
-                network_file = param.get('value')
-            if param.get('name') == 'inputPlansFile':
-                plans_file = param.get('value')
-            if param.get('name') == 'vehiclesFile':
-                vehicles_file = param.get('value')
-            if param.get('name') == 'chargersFile':
-                chargers_file = param.get('value')
-            
+            if param.get("name") == "lastIteration":
+                param.set("value", str(num_iterations))
+            if param.get("name") == "outputDirectory":
+                param.set("value", output_dir)
+            if param.get("name") == "inputNetworkFile":
+                network_file = param.get("value")
+            if param.get("name") == "inputPlansFile":
+                plans_file = param.get("value")
+            if param.get("name") == "vehiclesFile":
+                vehicles_file = param.get("value")
+            if param.get("name") == "chargersFile":
+                chargers_file = param.get("value")
+
         # Manually write the header to the output file
     with open(config_xml_path, "wb") as f:
         # Write the XML declaration and DOCTYPE
         f.write(b'<?xml version="1.0" ?>\n')
-        f.write(b'<!DOCTYPE config SYSTEM "http://www.matsim.org/files/dtd/config_v2.dtd">\n')
+        f.write(
+            b'<!DOCTYPE config SYSTEM "http://www.matsim.org/files/dtd/config_v2.dtd">\n'
+        )
 
         # Write the tree structure
         tree.write(f)
 
     return network_file, plans_file, vehicles_file, chargers_file
 
+
 def get_str(num):
     if isinstance(num, str):
-        return num.replace(',', '').replace('.0', '')
-    return str(int(num)).replace(',', '').replace('.0', '')
+        return num.replace(",", "").replace(".0", "")
+    return str(int(num)).replace(",", "").replace(".0", "")
+
 
 def monte_carlo_algorithm(num_chargers, link_ids) -> list:
     return np.random.choice(link_ids, num_chargers).tolist()
-    
+
+
 def e_greedy(num_chargers, Q, epsilon) -> list:
-    links = Q['link_id'].values
-    rewards = Q['average_reward'].values
+    links = Q["link_id"].values
+    rewards = Q["average_reward"].values
     vals = zip(links, rewards)
-    vals = sorted(vals, key = lambda x : x[1])
+    vals = sorted(vals, key=lambda x: x[1])
     chargers = []
 
     for _ in range(num_chargers):
@@ -93,9 +101,11 @@ def e_greedy(num_chargers, Q, epsilon) -> list:
 
     return chargers
 
+
 def save_xml(tree, output_file):
     # Save the XML to a file
     tree.write(output_file, encoding="UTF-8", xml_declaration=True)
+
 
 def update_Q(Q: pd.DataFrame, chosen_links, score):
     # Set 'link_id' as the index for faster lookups
@@ -121,6 +131,7 @@ def update_Q(Q: pd.DataFrame, chosen_links, score):
 
     return Q
 
+
 def save_Q(Q: pd.DataFrame, q_path):
     Q.to_csv(q_path, index=False)
 
@@ -128,23 +139,44 @@ def save_Q(Q: pd.DataFrame, q_path):
 def load_Q(q_path):
     return pd.read_csv(q_path)
 
-def save_csv_and_plot(chosen_links, average_score, iter, algorithm_results, results_path, time_string, Q, q_path):
+
+def save_csv_and_plot(
+    chosen_links,
+    average_score,
+    iter,
+    algorithm_results,
+    results_path,
+    time_string,
+    Q,
+    q_path,
+):
     # Update Q values
     Q = update_Q(Q, chosen_links, average_score)
     save_Q(Q, q_path)
 
-    row = pd.DataFrame({"iteration": [iter], "avg_score": [average_score], "selected_links": [chosen_links]})
+    row = pd.DataFrame(
+        {
+            "iteration": [iter],
+            "avg_score": [average_score],
+            "selected_links": [chosen_links],
+        }
+    )
     algorithm_results = pd.concat([algorithm_results, row], ignore_index=True)
 
     # Save results every iteration
-    algorithm_results.to_csv(os.path.join(results_path, f"{time_string}_results.csv"), index=False)
+    algorithm_results.to_csv(
+        os.path.join(results_path, f"{time_string}_results.csv"), index=False
+    )
 
-    plt.plot(algorithm_results["iteration"].values, algorithm_results["avg_score"].values)
+    plt.plot(
+        algorithm_results["iteration"].values, algorithm_results["avg_score"].values
+    )
     plt.xlabel("Iteration")
     plt.ylabel("AvgScore")
     plt.savefig(os.path.join(results_path, f"{time_string}_results.png"))
 
     return algorithm_results, Q
+
 
 def extract_paths_from_config(config_xml_path):
     # Parse the XML file
@@ -153,21 +185,27 @@ def extract_paths_from_config(config_xml_path):
 
     # Find the 'controler' module
     for module in root.findall(".//module"):
-        if module.get('name') == 'controler':
+        if module.get("name") == "controler":
             # Find the 'outputDirectory' parameter
             for param in module.findall("param"):
-                if param.get('name') == 'outputDirectory':
-                    output_dir = param.get('value')
-                if param.get('name') == 'inputNetworkFile':
-                    network_file = param.get('value')
-                if param.get('name') == 'plansFilePath':
-                    plans_file = param.get('value')
-                if param.get('name') == 'vehiclesFilePath':
-                    vehicles_file = param.get('value')
-                if param.get('name') == 'inputChargersFile':
-                    chargers_file = param.get('value')
-                if param.get('name') == 'qValuesFile':
-                    q_values_file = param.get('value')
-        
-    return output_dir, network_file, plans_file, vehicles_file, chargers_file, q_values_file
+                if param.get("name") == "outputDirectory":
+                    output_dir = param.get("value")
+                if param.get("name") == "inputNetworkFile":
+                    network_file = param.get("value")
+                if param.get("name") == "plansFilePath":
+                    plans_file = param.get("value")
+                if param.get("name") == "vehiclesFilePath":
+                    vehicles_file = param.get("value")
+                if param.get("name") == "inputChargersFile":
+                    chargers_file = param.get("value")
+                if param.get("name") == "qValuesFile":
+                    q_values_file = param.get("value")
 
+    return (
+        output_dir,
+        network_file,
+        plans_file,
+        vehicles_file,
+        chargers_file,
+        q_values_file,
+    )
