@@ -38,9 +38,7 @@ if __name__ == "__main__":
 
     # Define positional arguments
     parser.add_argument("input", type=str, help="Input OSM file")
-    parser.add_argument(
-        "output", type=str, help="Output path of cleaned OSM file"
-    )
+    parser.add_argument("output", type=str, help="Output path of cleaned OSM file")
 
     args = parser.parse_args()
 

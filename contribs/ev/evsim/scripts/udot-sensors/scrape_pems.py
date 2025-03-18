@@ -8,19 +8,20 @@ from tqdm import tqdm
 import json
 from sensors import sensors, sensors_subset
 
+
 def get_pems_timeseries_report(
-        phpsessid: str,
-        sensor_id: str,
-        start_time: datetime,
-        end_time: datetime,
-        data_type: str = "xls",
-        query_for: str = "flow",
-        query_for_two: str | None = None,
-        verbose: bool = False
-        ):
+    phpsessid: str,
+    sensor_id: str,
+    start_time: datetime,
+    end_time: datetime,
+    data_type: str = "xls",
+    query_for: str = "flow",
+    query_for_two: str | None = None,
+    verbose: bool = False,
+):
     """
     Using the Performance Measurement System (PeMS), this function will
-    pull data about the flow of traffic at a given station. 
+    pull data about the flow of traffic at a given station.
 
     @Input
     phpsessid: session ID for logging into PeMS. Can be found by inspecting header of request to PeMS.
@@ -33,9 +34,11 @@ def get_pems_timeseries_report(
     """
 
     # Get unix timestamps of start and end time
-    start_time_unix, end_time_unix = int(start_time.timestamp()), int(end_time.timestamp())
+    start_time_unix, end_time_unix = int(start_time.timestamp()), int(
+        end_time.timestamp()
+    )
 
-    ref_loc = f"https://udot.iteris-pems.com/?report_form=1&dnode=VDS&content=loops&export=&station_id={sensor_id}&s_time_id={start_time_unix}&e_time_id={end_time_unix}&tod=all&tod_from=0&tod_to=0&dow_0=on&dow_1=on&dow_2=on&dow_3=on&dow_4=on&dow_5=on&dow_6=on&holidays=on&q={query_for}&q2={query_for_two if query_for_two else ""}&gn=hour&agg=on&html.x=66&html.y=5"
+    ref_loc = f"https://udot.iteris-pems.com/?report_form=1&dnode=VDS&content=loops&export=&station_id={sensor_id}&s_time_id={start_time_unix}&e_time_id={end_time_unix}&tod=all&tod_from=0&tod_to=0&dow_0=on&dow_1=on&dow_2=on&dow_3=on&dow_4=on&dow_5=on&dow_6=on&holidays=on&q={query_for}&q2={query_for_two if query_for_two else ''}&gn=hour&agg=on&html.x=66&html.y=5"
     cookie = f"PHPSESSID={phpsessid}"
 
     # Prepare query parameters
@@ -82,22 +85,22 @@ def get_pems_timeseries_report(
         "Priority": "u=0, i",
         "Pragma": "no-cache",
         "Cache-Control": "no-cache",
-        "TE": "trailers"
+        "TE": "trailers",
     }
-    
+
     base_url = "https://udot.iteris-pems.com/"
     url_query = urlencode(params)
     full_url = f"{base_url}?{url_query}"
 
     if verbose:
         print(f"Request URL: {full_url}")
-    
+
     # Request to PeMS made here
     req = Request(full_url, headers=headers)
 
     if data_type == "text":
         with urlopen(req) as res:
-            decoded = res.read().decode('utf-8')
+            decoded = res.read().decode("utf-8")
             if verbose:
                 print(decoded)
         return decoded
@@ -111,43 +114,39 @@ def get_pems_timeseries_report(
 
     else:
         print("ERROR: The requested data type must be 'xls' (excel) or 'text'")
-        return pd.DataFrame() # Give an empty dataframe
+        return pd.DataFrame()  # Give an empty dataframe
 
 
 def average_flow_per_hour(
-        phpsessid: str,
-        sensor_id: str,
-        start_time: datetime,
-        end_time: datetime,
-        verbose: bool = False):
+    phpsessid: str,
+    sensor_id: str,
+    start_time: datetime,
+    end_time: datetime,
+    verbose: bool = False,
+):
     """
-    use the get_pems_timeseries_report to grab sensor data and then 
-    produce an average at each hour. After grabbing the data computes 
-    the average flow at each hour and spits out a dataframe which 
+    use the get_pems_timeseries_report to grab sensor data and then
+    produce an average at each hour. After grabbing the data computes
+    the average flow at each hour and spits out a dataframe which
     contains the sensor and its associated flow values at each hour.
     """
 
     # Get a years worth of censor data using scraper
-    data = get_pems_timeseries_report(
-                               phpsessid,
-                               sensor_id,
-                               start_time, 
-                               end_time
-                               )
+    data = get_pems_timeseries_report(phpsessid, sensor_id, start_time, end_time)
 
     # Convert date portion of dataframe to hour
-    data['Hour'] = data['Hour'].dt.hour
+    data["Hour"] = data["Hour"].dt.hour
 
     if verbose:
         print(data)
 
     # merge rows on hour taking average of other columns
-    averages = data.groupby(['Hour']).mean()
+    averages = data.groupby(["Hour"]).mean()
 
     if verbose:
         print(averages)
 
-    average_hours = averages['Flow (Veh/Hour)'].tolist()
+    average_hours = averages["Flow (Veh/Hour)"].tolist()
 
     if verbose:
         print(average_hours)
@@ -156,11 +155,8 @@ def average_flow_per_hour(
 
 
 def get_all_sensor_averages(
-        user_id: str,
-        start_date: datetime, 
-        end_date: datetime,
-        is_test: bool = False 
-        ):
+    user_id: str, start_date: datetime, end_date: datetime, is_test: bool = False
+):
     """
     finds average flow for all sensors in the sensors.py file
     sticks them all in a dataframe, and then dumps that dataframe to
@@ -168,35 +164,32 @@ def get_all_sensor_averages(
     """
     flows_per_sensor = {}
 
-
     if is_test:
         print("USING TEST SENSOR SUBSET")
         for sensor in sensors_subset:
             flows_per_sensor[sensor] = average_flow_per_hour(
-                    user_id, 
-                    str(sensor), 
-                    start_date, 
-                    end_date
-                    )
+                user_id, str(sensor), start_date, end_date
+            )
     else:
         for sensor in tqdm(sensors):
             flows_per_sensor[sensor] = average_flow_per_hour(
-                    user_id,
-                    str(sensor),
-                    start_date,
-                    end_date
-                    )
+                user_id, str(sensor), start_date, end_date
+            )
 
     print(flows_per_sensor)
 
     return flows_per_sensor
 
 
-
 if __name__ == "__main__":
-    all_sensors = get_all_sensor_averages("723e2cb1406c352f5d818d14fb56dff8", datetime(2024, 1, 1), datetime(2025, 1, 1), is_test=False)
+    all_sensors = get_all_sensor_averages(
+        "723e2cb1406c352f5d818d14fb56dff8",
+        datetime(2024, 1, 1),
+        datetime(2025, 1, 1),
+        is_test=False,
+    )
 
-    with open('sensor_flows.json', 'w+') as file:
+    with open("sensor_flows.json", "w+") as file:
         json.dump(all_sensors, file)
 
     print("All flows computed!")

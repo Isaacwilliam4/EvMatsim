@@ -42,9 +42,7 @@ def create_sensor_osm(flows_path: str, locations_path: str):
 
     # Convert to pretty-printed XML
     xml_string = ET.tostring(osm_root, encoding="utf-8")
-    pretty_xml = xml.dom.minidom.parseString(xml_string).toprettyxml(
-        indent="  "
-    )
+    pretty_xml = xml.dom.minidom.parseString(xml_string).toprettyxml(indent="  ")
 
     # Save to .osm file
     with open("sensor_flow_map.osm", "w", encoding="utf-8") as f:
