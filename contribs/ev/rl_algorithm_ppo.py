@@ -32,7 +32,9 @@ class TensorboardCallback(BaseCallback):
         avg_reward = 0
 
         for i, infos in enumerate(self.locals["infos"]):
-            env_inst: MatsimGraphEnvGNN | MatsimGraphEnvMlp = infos["graph_env_inst"]
+            env_inst: MatsimGraphEnvGNN | MatsimGraphEnvMlp = infos[
+                "graph_env_inst"
+            ]
             reward = env_inst.reward
             avg_reward += reward
             if reward > self.best_reward:
@@ -52,7 +54,9 @@ class TensorboardCallback(BaseCallback):
 
 
 def main(args: argparse.Namespace):
-    save_dir = f"{args.results_dir}/{datetime.now().strftime('%Y%m%d_%H%M%S_%f')}/"
+    save_dir = (
+        f"{args.results_dir}/{datetime.now().strftime('%Y%m%d_%H%M%S_%f')}/"
+    )
     os.makedirs(save_dir)
 
     with open(Path(save_dir, "args.txt"), "w") as f:

@@ -169,7 +169,8 @@ def save_csv_and_plot(
     )
 
     plt.plot(
-        algorithm_results["iteration"].values, algorithm_results["avg_score"].values
+        algorithm_results["iteration"].values,
+        algorithm_results["avg_score"].values,
     )
     plt.xlabel("Iteration")
     plt.ylabel("AvgScore")

@@ -5,7 +5,15 @@ import argparse
 from ..util import get_str
 
 
-def main(station_data_folder, station_path, outputpath, year, scale_factor, name, desc):
+def main(
+    station_data_folder,
+    station_path,
+    outputpath,
+    year,
+    scale_factor,
+    name,
+    desc,
+):
 
     counts = ET.Element(
         "counts",
@@ -60,7 +68,10 @@ if __name__ == "__main__":
         "outputpath", type=str, help="Path to save the generated XML file."
     )
     parser.add_argument(
-        "--year", type=int, default=2024, help="Year for the counts (default: 2024)."
+        "--year",
+        type=int,
+        default=2024,
+        help="Year for the counts (default: 2024).",
     )
     parser.add_argument(
         "--scale_factor",

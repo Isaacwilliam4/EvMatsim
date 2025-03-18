@@ -21,9 +21,12 @@ def main(args):
     results_path = scenario_path / f"{time_string}_results"
     output_path = os.path.join(results_path / "output")
 
-    network_file_name, plans_file_name, vehicles_file_name, chargers_file_name = (
-        setup_config(args.config_path, output_path, args.num_matsim_iters - 1)
-    )
+    (
+        network_file_name,
+        plans_file_name,
+        vehicles_file_name,
+        chargers_file_name,
+    ) = setup_config(args.config_path, output_path, args.num_matsim_iters - 1)
 
     network_path = os.path.join(scenario_path, network_file_name)
     plans_path = os.path.join(scenario_path, plans_file_name)
@@ -67,7 +70,9 @@ def main(args):
         Q = pd.DataFrame(
             {
                 "link_id": link_ids,
-                "average_reward": np.full(link_ids.shape, args.initial_q_values),
+                "average_reward": np.full(
+                    link_ids.shape, args.initial_q_values
+                ),
                 "count": np.zeros_like(link_ids, dtype=int),
             }
         )
@@ -80,7 +85,9 @@ def main(args):
         create_chargers_xml(chosen_links, chargers_path, args.percent_dynamic)
 
         os.system(f'mvn -e exec:java -Dexec.args="{args.config_path}"')
-        scores = pd.read_csv(os.path.join(output_path, "scorestats.csv"), sep=";")
+        scores = pd.read_csv(
+            os.path.join(output_path, "scorestats.csv"), sep=";"
+        )
 
         average_score = scores["avg_executed"].iloc[-1]
 
@@ -147,7 +154,10 @@ if __name__ == "__main__":
         type=float,
     )
     argparser.add_argument(
-        "--epsilon", help="Epsilon value for egreedy policy", default=0.05, type=float
+        "--epsilon",
+        help="Epsilon value for egreedy policy",
+        default=0.05,
+        type=float,
     )
     argparser.add_argument(
         "--initial_q_values",
@@ -168,7 +178,10 @@ if __name__ == "__main__":
         help="Number of iterations for the matsim simulator",
     )
     argparser.add_argument(
-        "--num_chargers", default=10, type=int, help="Number of chargers on the network"
+        "--num_chargers",
+        default=10,
+        type=int,
+        help="Number of chargers on the network",
     )
     argparser.add_argument(
         "--initial_soc",

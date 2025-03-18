@@ -31,7 +31,11 @@ class MatsimGraphEnvGNN(gym.Env):
 
         ########### Initialize the dataset with your custom variables ###########
         self.config_path: Path = Path(config_path)
-        self.charger_list: List[Charger] = [NoneCharger, DynamicCharger, StaticCharger]
+        self.charger_list: List[Charger] = [
+            NoneCharger,
+            DynamicCharger,
+            StaticCharger,
+        ]
         self.dataset = MatsimXMLDataset(
             self.config_path,
             self.time_string,
@@ -56,7 +60,10 @@ class MatsimGraphEnvGNN(gym.Env):
             [self.num_charger_types] * self.dataset.linegraph.num_nodes
         )
         self.x = spaces.Box(
-            low=0, high=1, shape=self.dataset.linegraph.x.shape, dtype=np.float32
+            low=0,
+            high=1,
+            shape=self.dataset.linegraph.x.shape,
+            dtype=np.float32,
         )
         self.edge_index = self.dataset.linegraph.edge_index.to(torch.int32)
         edge_index_np = self.edge_index.numpy()
@@ -124,7 +131,9 @@ class MatsimGraphEnvGNN(gym.Env):
     def reset(self, **kwargs):
         return dict(
             x=self.dataset.linegraph.x.numpy(),
-            edge_index=self.dataset.linegraph.edge_index.numpy().astype(np.int32),
+            edge_index=self.dataset.linegraph.edge_index.numpy().astype(
+                np.int32
+            ),
         ), dict(info="info")
 
     def step(self, actions):
@@ -149,7 +158,9 @@ class MatsimGraphEnvGNN(gym.Env):
         return (
             dict(
                 x=self.dataset.linegraph.x.numpy(),
-                edge_index=self.dataset.linegraph.edge_index.numpy().astype(np.int32),
+                edge_index=self.dataset.linegraph.edge_index.numpy().astype(
+                    np.int32
+                ),
             ),
             _reward,
             self.done,
@@ -180,9 +191,13 @@ class MatsimGraphEnvGNN(gym.Env):
         for idx, row in enumerate(charger_config):
             if not row[0]:
                 if row[1]:
-                    dynamic_chargers.append(int(self.dataset.edge_mapping.inverse[idx]))
+                    dynamic_chargers.append(
+                        int(self.dataset.edge_mapping.inverse[idx])
+                    )
                 elif row[2]:
-                    static_chargers.append(int(self.dataset.edge_mapping.inverse[idx]))
+                    static_chargers.append(
+                        int(self.dataset.edge_mapping.inverse[idx])
+                    )
 
         df = pd.DataFrame(
             {
@@ -200,5 +215,7 @@ if __name__ == "__main__":
         config_path="/home/isaacp/EvMatsim/contribs/ev/script_scenarios/utahevscenario/utahevconfig.xml"
     )
     sample = env.action_space.sample()
-    env.save_charger_config_to_csv(Path(Path(__file__).parent, "test_save_charger.csv"))
+    env.save_charger_config_to_csv(
+        Path(Path(__file__).parent, "test_save_charger.csv")
+    )
     env.close()

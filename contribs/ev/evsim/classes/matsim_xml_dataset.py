@@ -33,9 +33,12 @@ class MatsimXMLDataset(Dataset):
 
         self.config_path = Path(tmp_dir / config_path.name)
 
-        network_file_name, plans_file_name, vehicles_file_name, chargers_file_name = (
-            setup_config(self.config_path, str(output_path))
-        )
+        (
+            network_file_name,
+            plans_file_name,
+            vehicles_file_name,
+            chargers_file_name,
+        ) = setup_config(self.config_path, str(output_path))
 
         self.charger_xml_path = Path(tmp_dir / chargers_file_name)
         self.network_xml_path = Path(tmp_dir / network_file_name)
@@ -90,8 +93,13 @@ class MatsimXMLDataset(Dataset):
 
     def _min_max_normalize(self, tensor, reverse=False):
         if reverse:
-            return tensor * (self.max_mins[1] - self.max_mins[0]) + self.max_mins[0]
-        return (tensor - self.max_mins[0]) / (self.max_mins[1] - self.max_mins[0])
+            return (
+                tensor * (self.max_mins[1] - self.max_mins[0])
+                + self.max_mins[0]
+            )
+        return (tensor - self.max_mins[0]) / (
+            self.max_mins[1] - self.max_mins[0]
+        )
 
     def create_edge_attr_mapping(self):
         self.edge_attr_mapping = {"length": 0, "freespeed": 1, "capacity": 2}
@@ -140,7 +148,8 @@ class MatsimXMLDataset(Dataset):
                         """
                         link_len_km = float(link.get(key)) * 0.001
                         self.max_charger_cost += max(
-                            StaticCharger.price, DynamicCharger.price * link_len_km
+                            StaticCharger.price,
+                            DynamicCharger.price * link_len_km,
                         )
                     curr_link_attr[value] = float(link.get(key))
 
@@ -173,7 +182,9 @@ class MatsimXMLDataset(Dataset):
             elif charger_type == DynamicCharger.type:
                 link_idx = self.edge_mapping[link_id]
                 link_len_km = (
-                    self.graph.edge_attr[link_idx][self.edge_attr_mapping["length"]]
+                    self.graph.edge_attr[link_idx][
+                        self.edge_attr_mapping["length"]
+                    ]
                     * 0.001
                 )
                 cost += DynamicCharger.price * link_len_km
