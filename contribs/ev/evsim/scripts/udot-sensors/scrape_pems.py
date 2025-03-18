@@ -132,7 +132,9 @@ def average_flow_per_hour(
     """
 
     # Get a years worth of censor data using scraper
-    data = get_pems_timeseries_report(phpsessid, sensor_id, start_time, end_time)
+    data = get_pems_timeseries_report(
+        phpsessid, sensor_id, start_time, end_time
+    )
 
     # Convert date portion of dataframe to hour
     data["Hour"] = data["Hour"].dt.hour
@@ -155,7 +157,10 @@ def average_flow_per_hour(
 
 
 def get_all_sensor_averages(
-    user_id: str, start_date: datetime, end_date: datetime, is_test: bool = False
+    user_id: str,
+    start_date: datetime,
+    end_date: datetime,
+    is_test: bool = False,
 ):
     """
     finds average flow for all sensors in the sensors.py file

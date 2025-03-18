@@ -42,7 +42,9 @@ def create_vehicle_definitions(ids, initial_soc=1):
     vehicle_type = ET.SubElement(root, "vehicleType", id="EV_65.0kWh")
 
     # Add capacity
-    ET.SubElement(vehicle_type, "capacity", seats="0", standingRoomInPersons="0")
+    ET.SubElement(
+        vehicle_type, "capacity", seats="0", standingRoomInPersons="0"
+    )
 
     # Add length and width
     ET.SubElement(vehicle_type, "length", meter="7.5")
@@ -150,7 +152,9 @@ def create_population_and_plans_xml_counts(
             start_time = (i + 1) % 24
             end_time = (start_time + 8) % 24
             start_time_str = (
-                f"0{start_time}:00:00" if start_time < 10 else f"{start_time}:00:00"
+                f"0{start_time}:00:00"
+                if start_time < 10
+                else f"{start_time}:00:00"
             )
             end_time_str = (
                 f"0{end_time}:00:00" if end_time < 10 else f"{end_time}:00:00"
@@ -212,7 +216,9 @@ if __name__ == "__main__":
 
     # Define positional arguments
     parser.add_argument("network", type=str, help="Input matsim xml network")
-    parser.add_argument("plans_output", type=str, help="Output path of plans network")
+    parser.add_argument(
+        "plans_output", type=str, help="Output path of plans network"
+    )
     parser.add_argument(
         "vehicles_output", type=str, help="Vehicle file used to create vehicles"
     )

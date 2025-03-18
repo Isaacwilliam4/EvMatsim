@@ -93,8 +93,13 @@ class MatsimXMLDataset(Dataset):
 
     def _min_max_normalize(self, tensor, reverse=False):
         if reverse:
-            return tensor * (self.max_mins[1] - self.max_mins[0]) + self.max_mins[0]
-        return (tensor - self.max_mins[0]) / (self.max_mins[1] - self.max_mins[0])
+            return (
+                tensor * (self.max_mins[1] - self.max_mins[0])
+                + self.max_mins[0]
+            )
+        return (tensor - self.max_mins[0]) / (
+            self.max_mins[1] - self.max_mins[0]
+        )
 
     def create_edge_attr_mapping(self):
         self.edge_attr_mapping = {"length": 0, "freespeed": 1, "capacity": 2}
@@ -177,7 +182,9 @@ class MatsimXMLDataset(Dataset):
             elif charger_type == DynamicCharger.type:
                 link_idx = self.edge_mapping[link_id]
                 link_len_km = (
-                    self.graph.edge_attr[link_idx][self.edge_attr_mapping["length"]]
+                    self.graph.edge_attr[link_idx][
+                        self.edge_attr_mapping["length"]
+                    ]
                     * 0.001
                 )
                 cost += DynamicCharger.price * link_len_km
