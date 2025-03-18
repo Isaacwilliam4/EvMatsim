@@ -2,18 +2,18 @@ import gymnasium as gym
 from gymnasium import spaces
 import numpy as np
 from evsim.classes.matsim_xml_dataset import MatsimXMLDataset
-from evsim.util import *
 import shutil
 from datetime import datetime
 from pathlib import Path
 import torch
 import requests
-from evsim.scripts.create_chargers import *
-from evsim.classes.chargers import *
+from evsim.scripts.create_chargers import create_chargers_xml_gymnasium
+from evsim.classes.chargers import Charger, StaticCharger, NoneCharger, DynamicCharger
 from typing import List
 import json
 import zipfile
 from filelock import FileLock
+import pandas as pd
 
 
 class MatsimGraphEnvGNN(gym.Env):

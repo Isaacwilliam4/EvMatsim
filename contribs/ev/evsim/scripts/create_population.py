@@ -3,7 +3,9 @@ import random
 import os
 import argparse
 import pandas as pd
-from evsim.util import *
+import numpy as np
+
+from evsim.util import save_xml, get_str
 
 
 def get_node_coords(network_file):

@@ -4,7 +4,7 @@ import os
 import numpy as np
 from gymnasium import spaces
 from bidict import bidict
-from evsim.classes.chargers import *
+from evsim.classes.chargers import Charger
 from pathlib import Path
 
 

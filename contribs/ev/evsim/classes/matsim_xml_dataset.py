@@ -4,11 +4,11 @@ import xml.etree.ElementTree as ET
 from torch_geometric.data import Data
 import torch
 from pathlib import Path
-from evsim.util import *
+from evsim.util import setup_config
 import shutil
 from bidict import bidict
-from evsim.classes.chargers import *
-from evsim.scripts.create_population import *
+from evsim.classes.chargers import Charger, StaticCharger, DynamicCharger
+from evsim.scripts.create_population import create_population_and_plans_xml_counts
 
 
 class MatsimXMLDataset(Dataset):
