@@ -19,10 +19,11 @@ def get_sensor_lat_long(sensor, user_id):
               and looking at your request header for the "Cookie" parameter.
     """
 
-    base_url = (
-        lambda sensor_id: f"https://udot.iteris-pems.com/?pagenum_all=1&station_id={sensor_id}&dnode=VDS"
-    )
-    cookie = lambda phpsessid: f"PHPSESSID={phpsessid}"
+    def base_url(sensor_id):
+        return f"https://udot.iteris-pems.com/?pagenum_all=1&station_id={sensor_id}&dnode=VDS"
+
+    def cookie(phpsessid):
+        return f"PHPSESSID={phpsessid}"
 
     headers = {
         "Host": "udot.iteris-pems.com",
