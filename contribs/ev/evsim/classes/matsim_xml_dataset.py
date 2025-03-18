@@ -9,8 +9,6 @@ import shutil
 from bidict import bidict
 from evsim.classes.chargers import *
 from evsim.scripts.create_population import *
-import pandas
-import os
 
 
 class MatsimXMLDataset(Dataset):

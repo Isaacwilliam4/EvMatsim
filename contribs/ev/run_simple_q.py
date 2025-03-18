@@ -1,9 +1,7 @@
 import pandas as pd
-import xml.etree.ElementTree as ET
 import os
 import argparse
 import shutil
-import matplotlib.pyplot as plt
 from evsim.util import *
 from evsim.scripts.create_population import *
 from evsim.scripts.create_chargers import *

@@ -1,7 +1,7 @@
 from urllib.request import urlopen, Request
 import requests
 from urllib.parse import urlencode
-from datetime import datetime, date, timedelta
+from datetime import datetime
 import pandas as pd
 import io
 from tqdm import tqdm

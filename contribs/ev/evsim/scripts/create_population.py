@@ -4,7 +4,6 @@ import os
 import argparse
 import pandas as pd
 from evsim.util import *
-from collections import Counter
 
 
 def get_node_coords(network_file):

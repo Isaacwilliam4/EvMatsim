@@ -1,9 +1,7 @@
 import gymnasium as gym
 from gymnasium import spaces
 import numpy as np
-from torch_geometric.data import Data
 from evsim.classes.matsim_xml_dataset import MatsimXMLDataset
-from torch_geometric.data import Dataset
 from evsim.util import *
 import shutil
 from datetime import datetime
@@ -13,7 +11,6 @@ import requests
 from evsim.scripts.create_chargers import *
 from evsim.classes.chargers import *
 from typing import List
-import os
 import json
 import zipfile
 from filelock import FileLock
