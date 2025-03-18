@@ -14,12 +14,24 @@ def main(
     name,
     desc,
 ):
+    """
+    Generate an XML counts file from station data.
 
+    Args:
+        station_data_folder (str): Path to the folder containing station data.
+        station_path (str): Path to the CSV file with station information.
+        outputpath (str): Path to save the generated XML file.
+        year (int): Year for the counts.
+        scale_factor (int): Scale factor for counts.
+        name (str): Name for the counts.
+        desc (str): Description for the counts.
+    """
     counts = ET.Element(
         "counts",
         {
             "xmlns:xsi": "http://www.w3.org/2001/XMLSchema-instance",
-            "xsi:noNamespaceSchemaLocation": "http://matsim.org/files/dtd/counts_v1.xsd",
+            "xsi:noNamespaceSchemaLocation": "http://matsim.org/files/dtd/"
+            "counts_v1.xsd",
             "name": name,
             "desc": desc,
             "year": get_str(year),
@@ -51,6 +63,10 @@ def main(
 
 
 if __name__ == "__main__":
+    """
+    Parse command-line arguments and execute the main function to generate
+    an XML counts file from UDOT flow data.
+    """
     parser = argparse.ArgumentParser(
         description="Process UDOT flow data and generate XML counts."
     )

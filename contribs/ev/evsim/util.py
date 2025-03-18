@@ -6,44 +6,38 @@ import os
 
 
 def get_link_ids(network_file):
-    # Parse the network XML file
+    """
+    Extracts link IDs from a MATSim network XML file.
+
+    Args:
+        network_file (str): Path to the network XML file.
+
+    Returns:
+        np.ndarray: Array of link IDs as integers.
+    """
     tree = ET.parse(network_file)
     root = tree.getroot()
-
-    # Create a dictionary to store node coordinates by ID
-    link_ids = []
-
-    # Find all node elements
-    for link in root.findall(".//link"):
-        link_id = link.get("id")
-        link_ids.append(link_id)
-
-    return np.array(link_ids).astype(int)
+    link_ids = [int(link.get("id")) for link in root.findall(".//link")]
+    return np.array(link_ids)
 
 
 def setup_config(config_xml_path, output_dir, num_iterations=0):
-    """Sets the number of matsim iterations that need to run,
-    sets the output directory file to write the matsim results to,
-    and returns the paths to the network, plans, vehicles, and charger xml files.
+    """
+    Configures MATSim XML file with iterations and output directory.
 
     Args:
-        config_xml_path (str): path to the config xml file
-        num_iterations (int): the number of matsim iterations to run
-        output_dir (str): the directory to write the matsim results to
+        config_xml_path (str): Path to the config XML file.
+        output_dir (str): Directory for MATSim results.
+        num_iterations (int): Number of MATSim iterations to run.
+
+    Returns:
+        tuple: Paths to network, plans, vehicles, and charger XML files.
     """
-    # Parse the XML file
     tree = ET.parse(config_xml_path)
     root = tree.getroot()
 
-    network_file, plans_file, vehicles_file, chargers_file, counts_file = (
-        None,
-        None,
-        None,
-        None,
-        None,
-    )
+    network_file, plans_file, vehicles_file, chargers_file = None, None, None, None
 
-    # Find the 'controler' module
     for module in root.findall(".//module"):
         for param in module.findall("param"):
             if param.get("name") == "lastIteration":
@@ -59,56 +53,96 @@ def setup_config(config_xml_path, output_dir, num_iterations=0):
             if param.get("name") == "chargersFile":
                 chargers_file = param.get("value")
 
-        # Manually write the header to the output file
     with open(config_xml_path, "wb") as f:
-        # Write the XML declaration and DOCTYPE
         f.write(b'<?xml version="1.0" ?>\n')
         f.write(
             b'<!DOCTYPE config SYSTEM "http://www.matsim.org/files/dtd/config_v2.dtd">\n'
         )
-
-        # Write the tree structure
         tree.write(f)
 
     return network_file, plans_file, vehicles_file, chargers_file
 
 
 def get_str(num):
+    """
+    Converts a number to a string, removing commas and ".0".
+
+    Args:
+        num (int or str): Input number or string.
+
+    Returns:
+        str: Processed string representation of the number.
+    """
     if isinstance(num, str):
         return num.replace(",", "").replace(".0", "")
     return str(int(num)).replace(",", "").replace(".0", "")
 
 
 def monte_carlo_algorithm(num_chargers, link_ids) -> list:
+    """
+    Selects random links for chargers using Monte Carlo.
+
+    Args:
+        num_chargers (int): Number of chargers to place.
+        link_ids (list): List of link IDs.
+
+    Returns:
+        list: Selected link IDs.
+    """
     return np.random.choice(link_ids, num_chargers).tolist()
 
 
 def e_greedy(num_chargers, Q, epsilon) -> list:
+    """
+    Selects links using an epsilon-greedy algorithm.
+
+    Args:
+        num_chargers (int): Number of chargers to place.
+        Q (pd.DataFrame): DataFrame with link rewards.
+        epsilon (float): Exploration probability.
+
+    Returns:
+        list: Selected link IDs.
+    """
     links = Q["link_id"].values
     rewards = Q["average_reward"].values
-    vals = zip(links, rewards)
-    vals = sorted(vals, key=lambda x: x[1])
+    vals = sorted(zip(links, rewards), key=lambda x: x[1])
     chargers = []
 
     for _ in range(num_chargers):
         if np.random.random() > epsilon:
             chosen_val = vals.pop()
-            chargers.append(chosen_val[0])
         else:
             chosen_val = vals[np.random.randint(0, len(vals))]
-            chargers.append(chosen_val[0])
             vals.remove(chosen_val)
+        chargers.append(chosen_val[0])
 
     return chargers
 
 
 def save_xml(tree, output_file):
-    # Save the XML to a file
+    """
+    Saves an XML tree to a file.
+
+    Args:
+        tree (ET.ElementTree): XML tree to save.
+        output_file (str): Path to the output file.
+    """
     tree.write(output_file, encoding="UTF-8", xml_declaration=True)
 
 
 def update_Q(Q: pd.DataFrame, chosen_links, score):
-    # Set 'link_id' as the index for faster lookups
+    """
+    Updates Q-values for selected links based on a score.
+
+    Args:
+        Q (pd.DataFrame): DataFrame with Q-values.
+        chosen_links (list): Selected link IDs.
+        score (float): Reward score.
+
+    Returns:
+        pd.DataFrame: Updated Q-values DataFrame.
+    """
     Q = Q.set_index("link_id")
 
     for link in chosen_links:
@@ -120,23 +154,35 @@ def update_Q(Q: pd.DataFrame, chosen_links, score):
             new_score = ((avg_score * count) + score) / (count + 1)
             count += 1
 
-            # Update the row with new values
             Q.loc[link, "average_reward"] = new_score
             Q.loc[link, "count"] = count
         else:
-            print(f"\n\n\n Link {link} not found in Q DataFrame \n\n\n")
+            print(f"Link {link} not found in Q DataFrame")
 
-    # Reset the index if you need to work with the 'link_id' as a column again
-    Q = Q.reset_index()
-
-    return Q
+    return Q.reset_index()
 
 
 def save_Q(Q: pd.DataFrame, q_path):
+    """
+    Saves Q-values DataFrame to a CSV file.
+
+    Args:
+        Q (pd.DataFrame): DataFrame with Q-values.
+        q_path (str): Path to the output CSV file.
+    """
     Q.to_csv(q_path, index=False)
 
 
 def load_Q(q_path):
+    """
+    Loads Q-values DataFrame from a CSV file.
+
+    Args:
+        q_path (str): Path to the input CSV file.
+
+    Returns:
+        pd.DataFrame: Loaded Q-values DataFrame.
+    """
     return pd.read_csv(q_path)
 
 
@@ -150,7 +196,22 @@ def save_csv_and_plot(
     Q,
     q_path,
 ):
-    # Update Q values
+    """
+    Saves results to CSV, updates Q-values, and plots scores.
+
+    Args:
+        chosen_links (list): Selected link IDs.
+        average_score (float): Average reward score.
+        iter (int): Current iteration.
+        algorithm_results (pd.DataFrame): Results DataFrame.
+        results_path (str): Path to save results.
+        time_string (str): Timestamp string.
+        Q (pd.DataFrame): Q-values DataFrame.
+        q_path (str): Path to save Q-values.
+
+    Returns:
+        tuple: Updated algorithm results and Q-values.
+    """
     Q = update_Q(Q, chosen_links, average_score)
     save_Q(Q, q_path)
 
@@ -163,7 +224,6 @@ def save_csv_and_plot(
     )
     algorithm_results = pd.concat([algorithm_results, row], ignore_index=True)
 
-    # Save results every iteration
     algorithm_results.to_csv(
         os.path.join(results_path, f"{time_string}_results.csv"), index=False
     )
@@ -180,14 +240,23 @@ def save_csv_and_plot(
 
 
 def extract_paths_from_config(config_xml_path):
-    # Parse the XML file
+    """
+    Extracts file paths from a MATSim config XML file.
+
+    Args:
+        config_xml_path (str): Path to the config XML file.
+
+    Returns:
+        tuple: Paths to output, network, plans, vehicles, chargers, and Q-values.
+    """
     tree = ET.parse(config_xml_path)
     root = tree.getroot()
 
-    # Find the 'controler' module
+    output_dir, network_file, plans_file, vehicles_file = None, None, None, None
+    chargers_file, q_values_file = None, None
+
     for module in root.findall(".//module"):
         if module.get("name") == "controler":
-            # Find the 'outputDirectory' parameter
             for param in module.findall("param"):
                 if param.get("name") == "outputDirectory":
                     output_dir = param.get("value")

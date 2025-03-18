@@ -12,10 +12,13 @@ from evsim.scripts.create_population import *
 import pandas
 import os
 
-# TODO create class for matsim link to handle the link attrbutes
-
 
 class MatsimXMLDataset(Dataset):
+    """
+    A dataset class for parsing MATSim XML files and creating a graph 
+    representation using PyTorch Geometric.
+    """
+
     def __init__(
         self,
         config_path: Path,
@@ -24,6 +27,17 @@ class MatsimXMLDataset(Dataset):
         num_agents: int = 10000,
         initial_soc: float = 0.5,
     ):
+        """
+        Initializes the MatsimXMLDataset.
+
+        Args:
+            config_path (Path): Path to the MATSim configuration file.
+            time_string (str): Unique identifier for temporary directories.
+            charger_list (list[Charger]): List of charger types.
+            num_agents (int): Number of agents to create. Default is 10000.
+            initial_soc (float): Initial state of charge for agents. Default 
+                is 0.5.
+        """
         super().__init__(transform=None)
 
         tmp_dir = Path("/tmp/" + time_string)
@@ -86,12 +100,38 @@ class MatsimXMLDataset(Dataset):
         self.state = self.graph.edge_attr
 
     def len(self):
+        """
+        Returns the length of the dataset.
+
+        Returns:
+            int: Length of the dataset.
+        """
         return len(self.data_list)
 
     def get(self, idx):
+        """
+        Retrieves the data object at the specified index.
+
+        Args:
+            idx (int): Index of the data object.
+
+        Returns:
+            Data: The data object at the specified index.
+        """
         return self.data_list[idx]
 
     def _min_max_normalize(self, tensor, reverse=False):
+        """
+        Normalizes or denormalizes a tensor using min-max scaling.
+
+        Args:
+            tensor (Tensor): The tensor to normalize or denormalize.
+            reverse (bool): Whether to reverse the normalization. Default 
+                is False.
+
+        Returns:
+            Tensor: The normalized or denormalized tensor.
+        """
         if reverse:
             return (
                 tensor * (self.max_mins[1] - self.max_mins[0])
@@ -102,6 +142,9 @@ class MatsimXMLDataset(Dataset):
         )
 
     def create_edge_attr_mapping(self):
+        """
+        Creates a mapping of edge attributes to their indices.
+        """
         self.edge_attr_mapping = {"length": 0, "freespeed": 1, "capacity": 2}
         edge_attr_idx = len(self.edge_attr_mapping)
         for charger in self.charger_list:
@@ -109,9 +152,8 @@ class MatsimXMLDataset(Dataset):
             edge_attr_idx += 1
 
     def parse_matsim_network(self):
-        """Parse the matsim network provided via the self.network_xml_path and creates a
-        torch_geometric.data.Data object with the network information. Then assigns the
-        Data object to self.graph.
+        """
+        Parses the MATSim network XML file and creates a graph representation.
         """
         tree = ET.parse(self.network_xml_path)
         root = tree.getroot()
@@ -143,8 +185,9 @@ class MatsimXMLDataset(Dataset):
                 if key in link.attrib:
                     if key == "length":
                         """
-                        add the cost of either the static charger or the dynamic charger times the length of the link
-                        which we conver to km from m
+                        Add the cost of either the static charger or the 
+                        dynamic charger times the length of the link, 
+                        converted to km from m.
                         """
                         link_len_km = float(link.get(key)) * 0.001
                         self.max_charger_cost += max(
@@ -162,11 +205,18 @@ class MatsimXMLDataset(Dataset):
         self.linegraph = self.linegraph_transform(self.graph)
 
     def parse_charger_network_get_charger_cost(self):
+        """
+        Parses the charger network XML file and calculates the total charger 
+        cost.
+
+        Returns:
+            float: Total cost of chargers in the network.
+        """
         cost = 0
         tree = ET.parse(self.charger_xml_path)
         root = tree.getroot()
 
-        # reset the values of the charger placements TODO: make this dynamic to edge attributes
+        # Reset the values of the charger placements
         self.graph.edge_attr[:, 3:] = torch.zeros(
             self.graph.edge_attr.shape[0], self.graph.edge_attr[:, 3:].shape[1]
         )
@@ -193,7 +243,7 @@ class MatsimXMLDataset(Dataset):
                 self.edge_attr_mapping[charger_type]
             ] = 1
 
-        # update the rest of the links to have no charger
+        # Update the rest of the links to have no charger
         tree = ET.parse(self.network_xml_path)
         root = tree.getroot()
         for link in root.findall(".//link"):
@@ -216,4 +266,10 @@ class MatsimXMLDataset(Dataset):
         return cost
 
     def get_graph(self):
+        """
+        Returns the graph representation of the MATSim network.
+
+        Returns:
+            Data: The graph representation.
+        """
         return self.graph

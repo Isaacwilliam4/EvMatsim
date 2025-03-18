@@ -2,6 +2,10 @@ from abc import ABC
 
 
 class Charger(ABC):
+    """
+    Abstract base class for chargers. Defines common attributes for all
+    charger types.
+    """
     type: str
     plug_power: float
     plug_count: int
@@ -9,6 +13,10 @@ class Charger(ABC):
 
 
 class NoneCharger(Charger):
+    """
+    Represents a charger with no functionality. Used as a placeholder or
+    default option.
+    """
     type: str = "none"
     plug_power: float = 0
     plug_count: int = 0
@@ -16,17 +24,22 @@ class NoneCharger(Charger):
 
 
 class DynamicCharger(Charger):
+    """
+    Represents a dynamic charger with high plug count and power. Includes
+    cost per km based on external research.
+    """
     type: str = "dynamic"
     plug_power: float = 70
     plug_count: int = 9999
-
-    # cost in USD per km, pulled from https://www.nature.com/articles/s41467-024-49157-5
-    price: float = 2_600_000
+    price: float = 2_600_000  # Cost in USD per km
 
 
 class StaticCharger(Charger):
+    """
+    Represents a static charger with fixed plug count and power. Includes
+    cost per charger based on external research.
+    """
     type: str = "default"
     plug_power: float = 150
     plug_count: int = 5
-    # cost in USD per charger, pulled from https://www.nature.com/articles/s41467-024-49157-5
-    price: float = 120_000
+    price: float = 120_000  # Cost in USD per charger

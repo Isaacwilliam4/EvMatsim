@@ -1,4 +1,3 @@
-import subprocess
 import pandas as pd
 import xml.etree.ElementTree as ET
 import os
@@ -130,21 +129,23 @@ if __name__ == "__main__":
     argparser.add_argument(
         "--counts_path",
         default=None,
-        help="path to the counts file with 24 data points in the 'Flow (Veh/Hour)' column\
-                           correlating to the number of vehicles each hour that should go out",
+        help="path to the counts file with 24 data points in the \
+            'Flow (Veh/Hour)' column correlating to the number of vehicles \
+                each hour that should go out",
     )
     argparser.add_argument(
         "--num_agents",
         type=int,
-        help="Number of agents on the network, if none it will use the existing plans.xml file\
-                           note: if a counts.xml file is provided in the config, then that will override the num_agents parameter",
+        help="Number of agents on the network, if none it will use the \
+            existing plans.xml file note: if a counts.xml file is provided \
+            in the config, then that will override the num_agents parameter",
     )
     argparser.add_argument(
         "--pop_multiplier",
         default=1,
         type=float,
-        help="How much to multiply the population by based on the counts file, if \
-                           no counts.xml file is provided, this is ignored",
+        help="How much to multiply the population by based on the counts \
+              file, if no counts.xml file is provided, this is ignored",
     )
     argparser.add_argument(
         "--percent_dynamic",

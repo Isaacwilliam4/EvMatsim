@@ -4,6 +4,13 @@ from tqdm import tqdm
 
 
 def clean_osm_data(input_file, output_file):
+    """
+    Cleans an OSM graph by processing maxspeed and lanes attributes.
+
+    Args:
+        input_file (str): Path to the input OSM XML file.
+        output_file (str): Path to save the cleaned OSM XML file.
+    """
     # Load the OSM graph from the input file
     G = ox.graph_from_xml(input_file, simplify=False)
 
@@ -30,6 +37,13 @@ def clean_osm_data(input_file, output_file):
 
 
 def main(input_file, output_file):
+    """
+    Main function to clean OSM data.
+
+    Args:
+        input_file (str): Path to the input OSM XML file.
+        output_file (str): Path to save the cleaned OSM XML file.
+    """
     clean_osm_data(input_file, output_file)
 
 

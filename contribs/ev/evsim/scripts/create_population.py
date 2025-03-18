@@ -8,49 +8,55 @@ from collections import Counter
 
 
 def get_node_coords(network_file):
-    # Parse the network XML file
+    """
+    Parse the network XML file and extract node coordinates.
+
+    Args:
+        network_file (str): Path to the MATSim network XML file.
+
+    Returns:
+        dict: A dictionary mapping node IDs to their (x, y) coordinates.
+    """
     tree = ET.parse(network_file)
     root = tree.getroot()
-
-    # Create a dictionary to store node coordinates by ID
     node_coords = {}
 
-    # Find all node elements
     for node in root.findall(".//node"):
         node_id = node.get("id")
         x = float(node.get("x"))
         y = float(node.get("y"))
-
-        # Store node coordinates in the dictionary
         node_coords[node_id] = (x, y)
 
     return node_coords
 
 
 def create_vehicle_definitions(ids, initial_soc=1):
-    # Create the root element with namespaces
+    """
+    Create vehicle definitions XML with specified initial states of charge.
+
+    Args:
+        ids (list): List of vehicle IDs.
+        initial_soc (float): Initial state of charge for vehicles.
+
+    Returns:
+        xml.etree.ElementTree.ElementTree: XML tree of vehicle definitions.
+    """
     root = ET.Element(
         "vehicleDefinitions",
         attrib={
             "xmlns": "http://www.matsim.org/files/dtd",
             "xmlns:xsi": "http://www.w3.org/2001/XMLSchema-instance",
-            "xsi:schemaLocation": "http://www.matsim.org/files/dtd http://www.matsim.org/files/dtd/vehicleDefinitions_v2.0.xsd",
+            "xsi:schemaLocation": "http://www.matsim.org/files/dtd "
+                                  "http://www.matsim.org/files/dtd/"
+                                  "vehicleDefinitions_v2.0.xsd",
         },
     )
 
-    # Create the vehicle type
     vehicle_type = ET.SubElement(root, "vehicleType", id="EV_65.0kWh")
-
-    # Add capacity
-    ET.SubElement(
-        vehicle_type, "capacity", seats="0", standingRoomInPersons="0"
-    )
-
-    # Add length and width
+    ET.SubElement(vehicle_type, "capacity", seats="0", standingRoomInPersons="0")
     ET.SubElement(vehicle_type, "length", meter="7.5")
     ET.SubElement(vehicle_type, "width", meter="1.0")
 
-    # Add engine information with attributes
     engine_info = ET.SubElement(vehicle_type, "engineInformation")
     attributes = ET.SubElement(engine_info, "attributes")
 
@@ -73,22 +79,14 @@ def create_vehicle_definitions(ids, initial_soc=1):
         **{"class": "java.lang.Double"},
     ).text = "65.0"
 
-    # Add cost information (empty for now)
     ET.SubElement(vehicle_type, "costInformation")
-
-    # Add passengerCarEquivalents and networkMode
     ET.SubElement(vehicle_type, "passengerCarEquivalents", pce="1.0")
     ET.SubElement(vehicle_type, "networkMode", networkMode="car")
     ET.SubElement(vehicle_type, "flowEfficiencyFactor", factor="1.0")
 
-    # Create vehicles with varying initial states of charge (SoC)
     for id in ids:
         vehicle = ET.SubElement(root, "vehicle", id=str(id), type="EV_65.0kWh")
         attributes = ET.SubElement(vehicle, "attributes")
-
-        # # Set initial SoC based on the vehicle ID
-        # soc = round(random.uniform(0.2, 0.8), 2)
-
         ET.SubElement(
             attributes,
             "attribute",
@@ -108,17 +106,23 @@ def create_population_and_plans_xml_counts(
     population_multiplier=1,
     initial_soc=1,
 ):
+    """
+    Generate population and plans XML files based on network and counts data.
 
+    Args:
+        network_xml_path (str): Path to the MATSim network XML file.
+        plans_output (str): Path to save the generated plans XML file.
+        vehicles_output (str): Path to save the generated vehicles XML file.
+        num_agents (int): Number of agents to generate.
+        counts_path (str): Path to counts file for population distribution.
+        population_multiplier (float): Multiplier for population size.
+        initial_soc (float): Initial state of charge for vehicles.
+    """
     node_coords = get_node_coords(os.path.abspath(network_xml_path))
     plans_output = os.path.abspath(plans_output)
     vehicles_output = os.path.abspath(vehicles_output)
 
-    # Create the root element for the plans
-    plans = ET.Element(
-        "plans", attrib={"xml:lang": "de-CH"}
-    )  # Root element with lang attribute
-
-    # List of node IDs to randomly select for activities
+    plans = ET.Element("plans", attrib={"xml:lang": "de-CH"})
     node_ids = list(node_coords.keys())
     person_ids = []
     person_count = 1
@@ -128,14 +132,11 @@ def create_population_and_plans_xml_counts(
         counts_df = pd.read_csv(counts_path, sep="\t")
         counts = counts_df["Flow (Veh/Hour)"].values
     else:
-        # if no counts file given, generate bimodal distribution with num_agent samples
         dist1 = np.random.normal(8, 2.5, num_agents // 2)
         dist2 = np.random.normal(17, 2.5, num_agents - len(dist1))
         dist = np.concatenate([dist1, dist2])
         dist = np.clip(dist, 0, 24)
-
-        # Use np.histogram to calculate the bin counts
-        bins = np.arange(0, 24)  # Include 24 as the upper bound
+        bins = np.arange(0, 24)
         counts, _ = np.histogram(dist, bins)
 
     for i, count in enumerate(counts):
@@ -159,7 +160,7 @@ def create_population_and_plans_xml_counts(
             end_time_str = (
                 f"0{end_time}:00:00" if end_time < 10 else f"{end_time}:00:00"
             )
-            home_activity = ET.SubElement(
+            ET.SubElement(
                 plan,
                 "act",
                 type="h",
@@ -167,8 +168,8 @@ def create_population_and_plans_xml_counts(
                 y=str(origin_node[1]),
                 end_time=start_time_str,
             )
-            leg_to_work = ET.SubElement(plan, "leg", mode="car")
-            work_activity = ET.SubElement(
+            ET.SubElement(plan, "leg", mode="car")
+            ET.SubElement(
                 plan,
                 "act",
                 type="h",
@@ -181,23 +182,22 @@ def create_population_and_plans_xml_counts(
     vehicle_tree = create_vehicle_definitions(person_ids, initial_soc)
     save_xml(vehicle_tree, vehicles_output)
 
-    # Convert the ElementTree to a string
     tree = ET.ElementTree(plans)
-
-    # Manually write the header to the output file
     with open(plans_output, "wb") as f:
-        # Write the XML declaration and DOCTYPE
         f.write(b'<?xml version="1.0" ?>\n')
         f.write(
             b'<!DOCTYPE plans SYSTEM "http://www.matsim.org/files/dtd/plans_v4.dtd">\n'
         )
-
-        # Write the tree structure
         tree.write(f)
 
 
 def main(args):
+    """
+    Main function to parse arguments and generate population and plans.
 
+    Args:
+        args (argparse.Namespace): Parsed command-line arguments.
+    """
     create_population_and_plans_xml_counts(
         args.network,
         args.plans_output,
@@ -214,7 +214,6 @@ if __name__ == "__main__":
         description="Generate population and plans XML files"
     )
 
-    # Define positional arguments
     parser.add_argument("network", type=str, help="Input matsim xml network")
     parser.add_argument(
         "plans_output", type=str, help="Output path of plans network"
@@ -231,8 +230,9 @@ if __name__ == "__main__":
     parser.add_argument(
         "--counts_path",
         type=str,
-        help="Counts file to use for creating population, if none \
-                        provided then a bimodal distribution with num_agents samples will be generated",
+        help="Counts file to use for creating population, if none "
+             "provided then a bimodal distribution with num_agents "
+             "samples will be generated",
         default=None,
     )
     parser.add_argument(
@@ -249,5 +249,4 @@ if __name__ == "__main__":
     )
 
     args = parser.parse_args()
-
     main(args)

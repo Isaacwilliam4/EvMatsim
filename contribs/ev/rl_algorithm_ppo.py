@@ -1,3 +1,55 @@
+"""
+This script implements a reinforcement learning (RL) training pipeline using 
+the Proximal Policy Optimization (PPO) algorithm from the Stable-Baselines3 
+library. The training is performed on custom Matsim-based environments, which 
+can either use a Multi-Layer Perceptron (MLP) or a Graph Neural Network (GNN) 
+as the policy architecture.
+
+The script supports parallelized environments, custom callbacks for 
+TensorBoard logging and checkpointing, and configurable hyperparameters for 
+training. It also allows resuming training from a previously saved model.
+
+Classes:
+    TensorboardCallback: A custom callback for logging additional metrics to 
+    TensorBoard, such as average and best rewards.
+
+Functions:
+    main(args): The main function that sets up the environment, initializes 
+    the PPO model, and starts the training process.
+
+Command-line Arguments:
+    matsim_config (str): Path to the MATSim configuration XML file.
+    --num_timesteps (int): Total number of timesteps to train. Default is 
+    1,000,000.
+    --num_envs (int): Number of environments to run in parallel. Default is 
+    100.
+    --num_agents (int): Number of vehicles to simulate in MATSim. Default is 
+    -1 (use existing plans and vehicles).
+    --mlp_dims (str): Dimensions of the MLP layers, specified as 
+    space-separated integers. Default is "256 128 64".
+    --results_dir (str): Directory to save TensorBoard logs and model 
+    checkpoints. Default is "ppo_results".
+    --num_steps (int): Number of steps each environment takes before updating 
+    the policy. Default is 1.
+    --batch_size (int): Number of samples PPO pulls from the replay buffer for 
+    updates. Default is 25.
+    --learning_rate (float): Learning rate for the optimizer. Default is 
+    0.00001.
+    --model_path (str): Path to a previously saved model to resume training. 
+    Default is None.
+    --save_frequency (int): Frequency (in timesteps) to save model weights. 
+    Default is 10,000.
+    --clip_range (float): Clip range for the PPO algorithm. Default is 0.2.
+    --policy_type (str): Type of policy to use ("MlpPolicy" or "GNNPolicy"). 
+    Default is "MlpPolicy".
+
+Usage:
+    Run the script from the command line, providing the required arguments. 
+    For example:
+        python rl_algorithm_ppo.py /path/to/matsim_config.xml --num_timesteps 
+        500000 --policy_type GNNPolicy
+"""
+
 import gymnasium as gym
 import evsim.envs
 from stable_baselines3 import PPO
@@ -19,16 +71,46 @@ import torch
 
 class TensorboardCallback(BaseCallback):
     """
-    Custom callback for plotting additional values in tensorboard.
+    A custom callback for reinforcement learning algorithms that integrates 
+    with TensorBoard and tracks the performance of the environment.
+
+    Attributes:
+        save_dir (str or None): Directory path to save the best-performing 
+        environment's data.
+        best_reward (float): The highest reward observed during training.
+        best_env (MatsimGraphEnvGNN | MatsimGraphEnvMlp): The environment 
+        instance corresponding to the best reward.
+
+    Methods:
+        _on_step() -> bool:
+            Executes at each step of the training process. Calculates average 
+            reward, updates the best reward and environment instance if a new 
+            best reward is observed, and logs metrics to TensorBoard.
     """
 
     def __init__(self, verbose=0, save_dir=None):
+        """
+        Initializes the TensorboardCallback.
+
+        Args:
+            verbose (int): Verbosity level.
+            save_dir (str or None): Directory to save the best-performing 
+            environment's data.
+        """
         super(TensorboardCallback, self).__init__(verbose)
         self.save_dir = save_dir
         self.best_reward = -np.inf
         self.best_env: MatsimGraphEnvGNN | MatsimGraphEnvMlp = None
 
     def _on_step(self) -> bool:
+        """
+        Executes at each step of the training process. Logs average and best 
+        rewards to TensorBoard and saves the best-performing environment's 
+        data.
+
+        Returns:
+            bool: True to continue training.
+        """
         avg_reward = 0
 
         for i, infos in enumerate(self.locals["infos"]):
@@ -54,6 +136,13 @@ class TensorboardCallback(BaseCallback):
 
 
 def main(args: argparse.Namespace):
+    """
+    Main function to set up the environment, initialize the PPO model, and 
+    start the training process.
+
+    Args:
+        args (argparse.Namespace): Parsed command-line arguments.
+    """
     save_dir = (
         f"{args.results_dir}/{datetime.now().strftime('%Y%m%d_%H%M%S_%f')}/"
     )
@@ -64,6 +153,12 @@ def main(args: argparse.Namespace):
             f.write(f"{key}:{val}\n")
 
     def make_env():
+        """
+        Creates a new environment instance based on the policy type.
+
+        Returns:
+            gym.Env: A new environment instance.
+        """
         if args.policy_type == "MlpPolicy":
             return gym.make(
                 "MatsimGraphEnvMlp-v0",
@@ -80,13 +175,15 @@ def main(args: argparse.Namespace):
             )
 
     env = SubprocVecEnv([make_env for _ in range(args.num_envs)])
-    # n_steps: refers to the number of steps for each environment to collect data before
-    # a batch is processed
-    # batch_size: the amount of data that is sampled every n_steps from the replay buffer
-    # total samples = num_envs * iterations
+    """
+    n_steps: Number of steps for each environment to collect data before a 
+    batch is processed.
+    batch_size: Amount of data sampled every n_steps from the replay buffer. 
+    Total samples = num_envs * iterations.
 
-    # the save frequency only accounts for the number of times each env has run, so we divide it to get it to save every args.save_frequency
-    # timesteps
+    The save frequency only accounts for the number of times each env has run, 
+    so we divide it to save every args.save_frequency timesteps.
+    """
     args.save_frequency //= args.num_envs
 
     tensorboard_callback = TensorboardCallback(save_dir=save_dir)
@@ -134,14 +231,14 @@ if __name__ == "__main__":
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument(
-        "matsim_config", type=str, help="path to the matsim config.xml file"
+        "matsim_config", type=str, help="Path to the matsim config.xml file."
     )
     parser.add_argument(
         "--num_timesteps",
         type=int,
         default=1_000_000,
-        help="The total number of timesteps to train, \
-                        num_timesteps = n_steps * num_envs * iterations",
+        help="Total number of timesteps to train. \
+                        num_timesteps = n_steps * num_envs * iterations.",
     )
     parser.add_argument(
         "--num_envs",
@@ -153,68 +250,67 @@ if __name__ == "__main__":
         "--num_agents",
         type=int,
         default=-1,
-        help="The number of vehicles to simulate in the \
-                        matsim simulator, if num_agents<0, then the current plans.xml and vehicles.xml file will\
-                        be used and not updated",
+        help="Number of vehicles to simulate in the matsim simulator. If \
+                        num_agents < 0, the current plans.xml and vehicles.xml \
+                        files will be used and not updated.",
     )
     parser.add_argument(
         "--mlp_dims",
         default="256 128 64",
-        help="Dimensions of the multi layer perception given as ints separated\
-                        by spaces, can be any number of layers, the default has 3 layers",
+        help="Dimensions of the multi-layer perceptron given as space-separated \
+                        integers. Can be any number of layers. Default has 3 \
+                        layers.",
     )
     parser.add_argument(
         "--results_dir",
         type=str,
         default=Path(Path(__file__).parent, "ppo_results"),
-        help="where to save tensorboard logs and model checkpoints.",
+        help="Directory to save TensorBoard logs and model checkpoints.",
     )
     parser.add_argument(
         "--num_steps",
         type=int,
         default=1,
-        help="the number of steps each environment takes before \
-                        the policy and value function are updated",
+        help="Number of steps each environment takes before the policy and \
+                        value function are updated.",
     )
     parser.add_argument(
         "--batch_size",
         type=int,
         default=25,
-        help="the number of samples PPO should pull from the \
-                        replay buffer when updating the policy and value function",
+        help="Number of samples PPO should pull from the replay buffer when \
+                        updating the policy and value function.",
     )
     parser.add_argument(
         "--learning_rate",
         type=float,
         default=0.00001,
-        help="the learning rate for the optimizer, if \
-                        you are running into errors where your actor is outputing nans from the mlp network\
-                        then you probably need to  make this smaller",
+        help="Learning rate for the optimizer. If the actor outputs NaNs from \
+                        the MLP network, reduce this value.",
     )
     parser.add_argument(
         "--model_path",
         default=None,
-        help="path to the saved model.zip file if you saved your model previously\
-                        and wish to keep training",
+        help="Path to the saved model.zip file if you wish to resume training.",
     )
     parser.add_argument(
         "--save_frequency",
         type=int,
         default=10000,
-        help="how often to save the model weights in total timesteps",
+        help="How often to save the model weights in total timesteps.",
     )
     parser.add_argument(
         "--clip_range",
         default=0.2,
         type=float,
-        help="the clip range for the PPO algorithm",
+        help="Clip range for the PPO algorithm.",
     )
     parser.add_argument(
         "--policy_type",
         default="MlpPolicy",
         choices=["MlpPolicy", "GNNPolicy"],
         type=str,
-        help="The policy type to use for the ppo algorithm",
+        help="The policy type to use for the PPO algorithm.",
     )
 
     parser.print_help()
