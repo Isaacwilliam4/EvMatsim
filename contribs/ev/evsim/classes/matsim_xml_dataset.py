@@ -13,7 +13,7 @@ from evsim.scripts.create_population import *
 
 class MatsimXMLDataset(Dataset):
     """
-    A dataset class for parsing MATSim XML files and creating a graph 
+    A dataset class for parsing MATSim XML files and creating a graph
     representation using PyTorch Geometric.
     """
 
@@ -33,7 +33,7 @@ class MatsimXMLDataset(Dataset):
             time_string (str): Unique identifier for temporary directories.
             charger_list (list[Charger]): List of charger types.
             num_agents (int): Number of agents to create. Default is 10000.
-            initial_soc (float): Initial state of charge for agents. Default 
+            initial_soc (float): Initial state of charge for agents. Default
                 is 0.5.
         """
         super().__init__(transform=None)
@@ -124,20 +124,15 @@ class MatsimXMLDataset(Dataset):
 
         Args:
             tensor (Tensor): The tensor to normalize or denormalize.
-            reverse (bool): Whether to reverse the normalization. Default 
+            reverse (bool): Whether to reverse the normalization. Default
                 is False.
 
         Returns:
             Tensor: The normalized or denormalized tensor.
         """
         if reverse:
-            return (
-                tensor * (self.max_mins[1] - self.max_mins[0])
-                + self.max_mins[0]
-            )
-        return (tensor - self.max_mins[0]) / (
-            self.max_mins[1] - self.max_mins[0]
-        )
+            return tensor * (self.max_mins[1] - self.max_mins[0]) + self.max_mins[0]
+        return (tensor - self.max_mins[0]) / (self.max_mins[1] - self.max_mins[0])
 
     def create_edge_attr_mapping(self):
         """
@@ -204,7 +199,7 @@ class MatsimXMLDataset(Dataset):
 
     def parse_charger_network_get_charger_cost(self):
         """
-        Parses the charger network XML file and calculates the total charger 
+        Parses the charger network XML file and calculates the total charger
         cost.
 
         Returns:
@@ -230,9 +225,7 @@ class MatsimXMLDataset(Dataset):
             elif charger_type == DynamicCharger.type:
                 link_idx = self.edge_mapping[link_id]
                 link_len_km = (
-                    self.graph.edge_attr[link_idx][
-                        self.edge_attr_mapping["length"]
-                    ]
+                    self.graph.edge_attr[link_idx][self.edge_attr_mapping["length"]]
                     * 0.001
                 )
                 cost += DynamicCharger.price * link_len_km

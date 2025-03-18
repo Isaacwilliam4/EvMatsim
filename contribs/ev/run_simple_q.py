@@ -67,9 +67,7 @@ def main(args):
         Q = pd.DataFrame(
             {
                 "link_id": link_ids,
-                "average_reward": np.full(
-                    link_ids.shape, args.initial_q_values
-                ),
+                "average_reward": np.full(link_ids.shape, args.initial_q_values),
                 "count": np.zeros_like(link_ids, dtype=int),
             }
         )
@@ -82,9 +80,7 @@ def main(args):
         create_chargers_xml(chosen_links, chargers_path, args.percent_dynamic)
 
         os.system(f'mvn -e exec:java -Dexec.args="{args.config_path}"')
-        scores = pd.read_csv(
-            os.path.join(output_path, "scorestats.csv"), sep=";"
-        )
+        scores = pd.read_csv(os.path.join(output_path, "scorestats.csv"), sep=";")
 
         average_score = scores["avg_executed"].iloc[-1]
 

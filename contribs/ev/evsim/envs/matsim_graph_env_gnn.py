@@ -150,9 +150,7 @@ class MatsimGraphEnvGNN(gym.Env):
         """
         return dict(
             x=self.dataset.linegraph.x.numpy(),
-            edge_index=self.dataset.linegraph.edge_index.numpy().astype(
-                np.int32
-            ),
+            edge_index=self.dataset.linegraph.edge_index.numpy().astype(np.int32),
         ), dict(info="info")
 
     def step(self, actions):
@@ -183,9 +181,7 @@ class MatsimGraphEnvGNN(gym.Env):
         return (
             dict(
                 x=self.dataset.linegraph.x.numpy(),
-                edge_index=self.dataset.linegraph.edge_index.numpy().astype(
-                    np.int32
-                ),
+                edge_index=self.dataset.linegraph.edge_index.numpy().astype(np.int32),
             ),
             _reward,
             self.done,
@@ -223,13 +219,9 @@ class MatsimGraphEnvGNN(gym.Env):
         for idx, row in enumerate(charger_config):
             if not row[0]:
                 if row[1]:
-                    dynamic_chargers.append(
-                        int(self.dataset.edge_mapping.inverse[idx])
-                    )
+                    dynamic_chargers.append(int(self.dataset.edge_mapping.inverse[idx]))
                 elif row[2]:
-                    static_chargers.append(
-                        int(self.dataset.edge_mapping.inverse[idx])
-                    )
+                    static_chargers.append(int(self.dataset.edge_mapping.inverse[idx]))
 
         df = pd.DataFrame(
             {
@@ -248,7 +240,5 @@ if __name__ == "__main__":
         "utahevscenario/utahevconfig.xml"
     )
     sample = env.action_space.sample()
-    env.save_charger_config_to_csv(
-        Path(Path(__file__).parent, "test_save_charger.csv")
-    )
+    env.save_charger_config_to_csv(Path(Path(__file__).parent, "test_save_charger.csv"))
     env.close()

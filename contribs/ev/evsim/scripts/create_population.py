@@ -46,8 +46,8 @@ def create_vehicle_definitions(ids, initial_soc=1):
             "xmlns": "http://www.matsim.org/files/dtd",
             "xmlns:xsi": "http://www.w3.org/2001/XMLSchema-instance",
             "xsi:schemaLocation": "http://www.matsim.org/files/dtd "
-                                  "http://www.matsim.org/files/dtd/"
-                                  "vehicleDefinitions_v2.0.xsd",
+            "http://www.matsim.org/files/dtd/"
+            "vehicleDefinitions_v2.0.xsd",
         },
     )
 
@@ -152,9 +152,7 @@ def create_population_and_plans_xml_counts(
             start_time = (i + 1) % 24
             end_time = (start_time + 8) % 24
             start_time_str = (
-                f"0{start_time}:00:00"
-                if start_time < 10
-                else f"{start_time}:00:00"
+                f"0{start_time}:00:00" if start_time < 10 else f"{start_time}:00:00"
             )
             end_time_str = (
                 f"0{end_time}:00:00" if end_time < 10 else f"{end_time}:00:00"
@@ -214,9 +212,7 @@ if __name__ == "__main__":
     )
 
     parser.add_argument("network", type=str, help="Input matsim xml network")
-    parser.add_argument(
-        "plans_output", type=str, help="Output path of plans network"
-    )
+    parser.add_argument("plans_output", type=str, help="Output path of plans network")
     parser.add_argument(
         "vehicles_output", type=str, help="Vehicle file used to create vehicles"
     )
@@ -230,8 +226,8 @@ if __name__ == "__main__":
         "--counts_path",
         type=str,
         help="Counts file to use for creating population, if none "
-             "provided then a bimodal distribution with num_agents "
-             "samples will be generated",
+        "provided then a bimodal distribution with num_agents "
+        "samples will be generated",
         default=None,
     )
     parser.add_argument(

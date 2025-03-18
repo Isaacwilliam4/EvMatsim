@@ -1,52 +1,52 @@
 """
-This script implements a reinforcement learning (RL) training pipeline using 
-the Proximal Policy Optimization (PPO) algorithm from the Stable-Baselines3 
-library. The training is performed on custom Matsim-based environments, which 
-can either use a Multi-Layer Perceptron (MLP) or a Graph Neural Network (GNN) 
+This script implements a reinforcement learning (RL) training pipeline using
+the Proximal Policy Optimization (PPO) algorithm from the Stable-Baselines3
+library. The training is performed on custom Matsim-based environments, which
+can either use a Multi-Layer Perceptron (MLP) or a Graph Neural Network (GNN)
 as the policy architecture.
 
-The script supports parallelized environments, custom callbacks for 
-TensorBoard logging and checkpointing, and configurable hyperparameters for 
+The script supports parallelized environments, custom callbacks for
+TensorBoard logging and checkpointing, and configurable hyperparameters for
 training. It also allows resuming training from a previously saved model.
 
 Classes:
-    TensorboardCallback: A custom callback for logging additional metrics to 
+    TensorboardCallback: A custom callback for logging additional metrics to
     TensorBoard, such as average and best rewards.
 
 Functions:
-    main(args): The main function that sets up the environment, initializes 
+    main(args): The main function that sets up the environment, initializes
     the PPO model, and starts the training process.
 
 Command-line Arguments:
     matsim_config (str): Path to the MATSim configuration XML file.
-    --num_timesteps (int): Total number of timesteps to train. Default is 
+    --num_timesteps (int): Total number of timesteps to train. Default is
     1,000,000.
-    --num_envs (int): Number of environments to run in parallel. Default is 
+    --num_envs (int): Number of environments to run in parallel. Default is
     100.
-    --num_agents (int): Number of vehicles to simulate in MATSim. Default is 
+    --num_agents (int): Number of vehicles to simulate in MATSim. Default is
     -1 (use existing plans and vehicles).
-    --mlp_dims (str): Dimensions of the MLP layers, specified as 
+    --mlp_dims (str): Dimensions of the MLP layers, specified as
     space-separated integers. Default is "256 128 64".
-    --results_dir (str): Directory to save TensorBoard logs and model 
+    --results_dir (str): Directory to save TensorBoard logs and model
     checkpoints. Default is "ppo_results".
-    --num_steps (int): Number of steps each environment takes before updating 
+    --num_steps (int): Number of steps each environment takes before updating
     the policy. Default is 1.
-    --batch_size (int): Number of samples PPO pulls from the replay buffer for 
+    --batch_size (int): Number of samples PPO pulls from the replay buffer for
     updates. Default is 25.
-    --learning_rate (float): Learning rate for the optimizer. Default is 
+    --learning_rate (float): Learning rate for the optimizer. Default is
     0.00001.
-    --model_path (str): Path to a previously saved model to resume training. 
+    --model_path (str): Path to a previously saved model to resume training.
     Default is None.
-    --save_frequency (int): Frequency (in timesteps) to save model weights. 
+    --save_frequency (int): Frequency (in timesteps) to save model weights.
     Default is 10,000.
     --clip_range (float): Clip range for the PPO algorithm. Default is 0.2.
-    --policy_type (str): Type of policy to use ("MlpPolicy" or "GNNPolicy"). 
+    --policy_type (str): Type of policy to use ("MlpPolicy" or "GNNPolicy").
     Default is "MlpPolicy".
 
 Usage:
-    Run the script from the command line, providing the required arguments. 
+    Run the script from the command line, providing the required arguments.
     For example:
-        python rl_algorithm_ppo.py /path/to/matsim_config.xml --num_timesteps 
+        python rl_algorithm_ppo.py /path/to/matsim_config.xml --num_timesteps
         500000 --policy_type GNNPolicy
 """
 
@@ -70,20 +70,20 @@ import torch
 
 class TensorboardCallback(BaseCallback):
     """
-    A custom callback for reinforcement learning algorithms that integrates 
+    A custom callback for reinforcement learning algorithms that integrates
     with TensorBoard and tracks the performance of the environment.
 
     Attributes:
-        save_dir (str or None): Directory path to save the best-performing 
+        save_dir (str or None): Directory path to save the best-performing
         environment's data.
         best_reward (float): The highest reward observed during training.
-        best_env (MatsimGraphEnvGNN | MatsimGraphEnvMlp): The environment 
+        best_env (MatsimGraphEnvGNN | MatsimGraphEnvMlp): The environment
         instance corresponding to the best reward.
 
     Methods:
         _on_step() -> bool:
-            Executes at each step of the training process. Calculates average 
-            reward, updates the best reward and environment instance if a new 
+            Executes at each step of the training process. Calculates average
+            reward, updates the best reward and environment instance if a new
             best reward is observed, and logs metrics to TensorBoard.
     """
 
@@ -93,7 +93,7 @@ class TensorboardCallback(BaseCallback):
 
         Args:
             verbose (int): Verbosity level.
-            save_dir (str or None): Directory to save the best-performing 
+            save_dir (str or None): Directory to save the best-performing
             environment's data.
         """
         super(TensorboardCallback, self).__init__(verbose)
@@ -103,8 +103,8 @@ class TensorboardCallback(BaseCallback):
 
     def _on_step(self) -> bool:
         """
-        Executes at each step of the training process. Logs average and best 
-        rewards to TensorBoard and saves the best-performing environment's 
+        Executes at each step of the training process. Logs average and best
+        rewards to TensorBoard and saves the best-performing environment's
         data.
 
         Returns:
@@ -113,9 +113,7 @@ class TensorboardCallback(BaseCallback):
         avg_reward = 0
 
         for i, infos in enumerate(self.locals["infos"]):
-            env_inst: MatsimGraphEnvGNN | MatsimGraphEnvMlp = infos[
-                "graph_env_inst"
-            ]
+            env_inst: MatsimGraphEnvGNN | MatsimGraphEnvMlp = infos["graph_env_inst"]
             reward = env_inst.reward
             avg_reward += reward
             if reward > self.best_reward:
@@ -136,15 +134,13 @@ class TensorboardCallback(BaseCallback):
 
 def main(args: argparse.Namespace):
     """
-    Main function to set up the environment, initialize the PPO model, and 
+    Main function to set up the environment, initialize the PPO model, and
     start the training process.
 
     Args:
         args (argparse.Namespace): Parsed command-line arguments.
     """
-    save_dir = (
-        f"{args.results_dir}/{datetime.now().strftime('%Y%m%d_%H%M%S_%f')}/"
-    )
+    save_dir = f"{args.results_dir}/{datetime.now().strftime('%Y%m%d_%H%M%S_%f')}/"
     os.makedirs(save_dir)
 
     with open(Path(save_dir, "args.txt"), "w") as f:

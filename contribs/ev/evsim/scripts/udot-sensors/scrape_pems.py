@@ -34,8 +34,9 @@ def get_pems_timeseries_report(
     """
 
     # Get unix timestamps of start and end time
-    start_time_unix, end_time_unix = int(start_time.timestamp()), int(
-        end_time.timestamp()
+    start_time_unix, end_time_unix = (
+        int(start_time.timestamp()),
+        int(end_time.timestamp()),
     )
 
     ref_loc = f"https://udot.iteris-pems.com/?report_form=1&dnode=VDS&content=loops&export=&station_id={sensor_id}&s_time_id={start_time_unix}&e_time_id={end_time_unix}&tod=all&tod_from=0&tod_to=0&dow_0=on&dow_1=on&dow_2=on&dow_3=on&dow_4=on&dow_5=on&dow_6=on&holidays=on&q={query_for}&q2={query_for_two if query_for_two else ''}&gn=hour&agg=on&html.x=66&html.y=5"
@@ -132,9 +133,7 @@ def average_flow_per_hour(
     """
 
     # Get a years worth of censor data using scraper
-    data = get_pems_timeseries_report(
-        phpsessid, sensor_id, start_time, end_time
-    )
+    data = get_pems_timeseries_report(phpsessid, sensor_id, start_time, end_time)
 
     # Convert date portion of dataframe to hour
     data["Hour"] = data["Hour"].dt.hour

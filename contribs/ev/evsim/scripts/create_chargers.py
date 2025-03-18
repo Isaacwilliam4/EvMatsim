@@ -160,7 +160,7 @@ if __name__ == "__main__":
         "--percent_dynamic",
         type=float,
         help="Percentage of chargers that are dynamic vs static chargers. "
-             "1.0 = 100% dynamic, 0.0 = 100% static.",
+        "1.0 = 100% dynamic, 0.0 = 100% static.",
     )
 
     args = parser.parse_args()
