@@ -1,11 +1,11 @@
+import xml.etree.ElementTree as ET
+import torch
+import shutil
 from torch_geometric.data import Dataset
 from torch_geometric.transforms import LineGraph
-import xml.etree.ElementTree as ET
 from torch_geometric.data import Data
-import torch
 from pathlib import Path
 from evsim.util import setup_config
-import shutil
 from bidict import bidict
 from evsim.classes.chargers import Charger, StaticCharger, DynamicCharger
 from evsim.scripts.create_population import create_population_and_plans_xml_counts
@@ -83,19 +83,6 @@ class MatsimXMLDataset(Dataset):
         self.create_edge_attr_mapping()
         self.parse_matsim_network()
         self.parse_charger_network_get_charger_cost()
-
-        # preserve the mins and maxes for reward calculations later
-        self.max_mins = torch.stack(
-            [
-                torch.min(self.graph.edge_attr[:, :3], dim=0).values,
-                torch.max(self.graph.edge_attr[:, :3], dim=0).values,
-            ]
-        )
-
-        self.graph.edge_attr[:, :3] = self._min_max_normalize(
-            self.graph.edge_attr[:, :3]
-        )
-        self.state = self.graph.edge_attr
 
     def len(self):
         """
@@ -196,6 +183,17 @@ class MatsimXMLDataset(Dataset):
         self.graph.edge_index = torch.tensor(edge_index).t()
         self.graph.edge_attr = torch.stack(edge_attr)
         self.linegraph = self.linegraph_transform(self.graph)
+        self.max_mins = torch.stack(
+            [
+                torch.min(self.graph.edge_attr[:, :3], dim=0).values,
+                torch.max(self.graph.edge_attr[:, :3], dim=0).values,
+            ]
+        )
+
+        self.graph.edge_attr[:, :3] = self._min_max_normalize(
+            self.graph.edge_attr[:, :3]
+        )
+        self.state = self.graph.edge_attr
 
     def parse_charger_network_get_charger_cost(self):
         """
@@ -224,10 +222,11 @@ class MatsimXMLDataset(Dataset):
                 cost += StaticCharger.price
             elif charger_type == DynamicCharger.type:
                 link_idx = self.edge_mapping[link_id]
-                link_len_km = (
-                    self.graph.edge_attr[link_idx][self.edge_attr_mapping["length"]]
-                    * 0.001
+                link_attr = self.graph.edge_attr[link_idx]
+                link_attr_denormalized = self._min_max_normalize(
+                    link_attr[:3], reverse=True
                 )
+                link_len_km = link_attr_denormalized[self.edge_attr_mapping["length"]] * 0.001
                 cost += DynamicCharger.price * link_len_km
 
             self.graph.edge_attr[self.edge_mapping[link_id]][

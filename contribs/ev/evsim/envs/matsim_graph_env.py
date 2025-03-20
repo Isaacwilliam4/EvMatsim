@@ -1,25 +1,24 @@
-from abc import abstractmethod
 import gymnasium as gym
-from gymnasium import spaces
 import numpy as np
-from evsim.classes.matsim_xml_dataset import MatsimXMLDataset
 import shutil
-from datetime import datetime
-from pathlib import Path
 import torch
 import requests
-from evsim.classes.chargers import Charger, StaticCharger, NoneCharger, DynamicCharger
-from typing import List
 import json
 import zipfile
-from filelock import FileLock
 import pandas as pd
+from abc import abstractmethod
+from gymnasium import spaces
+from evsim.classes.matsim_xml_dataset import MatsimXMLDataset
+from datetime import datetime
+from pathlib import Path
+from evsim.classes.chargers import Charger, StaticCharger, NoneCharger, DynamicCharger
+from typing import List
+from filelock import FileLock
 
 
 class MatsimGraphEnv(gym.Env):
     """
-    A custom Gymnasium environment for Matsim graph-based simulations
-    with GNNs. It supports multi-agent actions and observations.
+    A custom Gymnasium environment for Matsim graph-based simulations.
     """
 
     def __init__(self, config_path, num_agents=100, save_dir=None):
@@ -77,12 +76,6 @@ class MatsimGraphEnv(gym.Env):
             shape=self.edge_index.shape,
             dtype=np.int32,
         )
-        self.observation_space: spaces.Dict = spaces.Dict(
-            spaces=dict(x=self.x, edge_index=self.edge_index_space)
-        )
-
-        # Initialize environment-specific variables
-        self.state = self.observation_space
         self.done: bool = False
         self.lock_file = Path(self.save_dir, "lockfile.lock")
         self.best_output_response = None
@@ -148,14 +141,6 @@ class MatsimGraphEnv(gym.Env):
     @abstractmethod
     def step(self, actions):
         pass
-
-    def render(self):
-        """
-        Render the environment state.
-
-        This method is optional and can be customized.
-        """
-        print(f"State: {self.state}")
 
     def close(self):
         """

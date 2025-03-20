@@ -51,6 +51,10 @@ Usage:
 """
 
 import gymnasium as gym
+import argparse
+import os
+import numpy as np
+import torch
 from stable_baselines3 import PPO
 from stable_baselines3.common.vec_env import SubprocVecEnv
 from stable_baselines3.common.callbacks import (
@@ -58,14 +62,10 @@ from stable_baselines3.common.callbacks import (
     CheckpointCallback,
     CallbackList,
 )
-import argparse
-import os
 from datetime import datetime
 from pathlib import Path
 from evsim.envs.matsim_graph_env_gnn import MatsimGraphEnvGNN
 from evsim.envs.matsim_graph_env_mlp import MatsimGraphEnvMlp
-import numpy as np
-import torch
 
 
 class TensorboardCallback(BaseCallback):
