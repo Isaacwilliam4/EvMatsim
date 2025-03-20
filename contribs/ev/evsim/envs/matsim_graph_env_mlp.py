@@ -9,7 +9,7 @@ class MatsimGraphEnvMlp(MatsimGraphEnv):
     """
 
     def __init__(self, config_path, num_agents=100, save_dir=None):
-        super.__init__(config_path, num_agents, save_dir)
+        super().__init__(config_path, num_agents, save_dir)
 
         self.observation_space = spaces.Box(
             low=0,
