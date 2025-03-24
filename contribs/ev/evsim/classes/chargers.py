@@ -45,5 +45,5 @@ class StaticCharger(Charger):
 
     type: str = "default"
     plug_power: float = 150
-    plug_count: int = 5
+    plug_count: int = 1
     price: float = 120_000  # Cost in USD per charger
