@@ -38,9 +38,11 @@ import org.matsim.contrib.ev.discharging.LTHDriveEnergyConsumption;
 import org.matsim.contrib.ev.fleet.ElectricFleet;
 import org.matsim.contrib.ev.fleet.ElectricFleetSpecification;
 import org.matsim.contrib.ev.fleet.ElectricFleetUtils;
+import org.matsim.contrib.ev.infrastructure.LTHConsumptionModelReader;
 import org.matsim.contrib.ev.routing.EvNetworkRoutingProvider;
 import org.matsim.contrib.ev.scoring.EvScoringFunctionFactory;
 import org.matsim.core.config.Config;
+import org.matsim.core.config.ConfigGroup;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.controler.AbstractModule;
 import org.matsim.core.controler.Controler;
@@ -56,6 +58,8 @@ public class RunEvExampleWithEvScoringWithLTHConsumption {
 	private static final Logger log = LogManager.getLogger(RunEvExampleWithEvScoringWithLTHConsumption.class);
 
 	public static void main(String[] args) throws IOException {
+		System.setProperty("matsim.preferLocalDtds", "true");
+
 		if (args.length > 0) {
 			log.info("Starting simulation run with the following arguments:");
 			log.info("args=" + Arrays.toString( args ) );
@@ -80,13 +84,13 @@ public class RunEvExampleWithEvScoringWithLTHConsumption {
 		Controler controler = new Controler(scenario);
 
 
-
 		controler.addOverridingModule( new AbstractModule(){
 			@Override public void install(){
+				bind(DriveEnergyConsumption.Factory.class).toInstance(ev -> new LTHConsumptionModelReader().readURL( ConfigGroup.getInputFileURL( config.getContext(), "MidCarMap.csv" ) ).create(ev) );
 				bind(ElectricFleet.class).toProvider(new Provider<>() {
 					@Inject private ElectricFleetSpecification fleetSpecification;
-					// @Inject private DriveEnergyConsumption.Factory driveConsumptionFactory;
-					@Inject private LTHDriveEnergyConsumption.Factory driveConsumptionFactory;
+					@Inject private DriveEnergyConsumption.Factory driveConsumptionFactory;
+					// @Inject private LTHDriveEnergyConsumption.Factory driveConsumptionFactory;
 					@Inject private AuxEnergyConsumption.Factory auxConsumptionFactory;
 					@Inject private ChargingPower.Factory chargingPowerFactory;
 	

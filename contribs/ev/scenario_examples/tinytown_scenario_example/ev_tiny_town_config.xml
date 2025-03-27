@@ -25,7 +25,7 @@
 
     <module name="network">
         
-        <param name="inputNetworkFile" value="tiny_town_network.xml" />
+        <param name="inputNetworkFile" value="tiny_town_network_slopes.xml" />
     </module>
 
     <module name="plans">

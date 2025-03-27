@@ -53,6 +53,7 @@ import java.util.Arrays;
  * The consumption maps are based on Domingues, Gabriel. / Modeling, Optimization and Analysis of Electromobility Systems. Lund : Department of Biomedical Engineering, Lund university, 2018. 169 p., PhD thesis
  */
 public class RunEvExampleWithOwnConsumptionModel{
+	
 	static final String DEFAULT_CONFIG_FILE = "test/input/org/matsim/contrib/ev/example/RunEvExample/config.xml";
 	private static final Logger log = LogManager.getLogger( RunEvExampleWithOwnConsumptionModel.class );
 
@@ -75,6 +76,8 @@ public class RunEvExampleWithOwnConsumptionModel{
 	}
 
 	public void run( String[] args ) {
+		System.setProperty("matsim.preferLocalDtds", "true");
+
 		Config config = ConfigUtils.loadConfig(args, new EvConfigGroup());
 		config.controller().setOverwriteFileSetting(OutputDirectoryHierarchy.OverwriteFileSetting.deleteDirectoryIfExists);
 
