@@ -58,7 +58,7 @@ public class RewardServer {
     private final String javaHome = System.getProperty("java.home");
     private final String javaBin = javaHome + File.separator + "bin" + File.separator + "java";
     private final String classpath = System.getProperty("java.class.path");
-    private final String className = "org.matsim.contrib.ev.example.RunEvExampleWithEvScoring";
+    private final String className = "org.matsim.contrib.ev.example.RunEvExampleWithEvScoringWithLTHConsumption";
     private AtomicDouble bestReward = new AtomicDouble(Double.NEGATIVE_INFINITY);
     private AtomicBoolean initialResponse = new AtomicBoolean(true);
 

@@ -3,7 +3,10 @@ import argparse
 import numpy as np
 import os
 
-DOCTYPE_DECLARATION = '<!DOCTYPE network SYSTEM "http://www.matsim.org/files/dtd/network_v2.dtd">\n'
+DOCTYPE_DECLARATION = (
+    '<!DOCTYPE network SYSTEM "http://www.matsim.org/files/dtd/network_v2.dtd">\n'
+)
+
 
 def add_slopes_to_links(xml_file, output_file):
     """
@@ -41,9 +44,12 @@ def add_slopes_to_links(xml_file, output_file):
     print(f"Updated network file saved to {output_file}")
     os.remove(temp_file)
 
+
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Update MATSim network XML by adding slopes to links.")
-    
+    parser = argparse.ArgumentParser(
+        description="Update MATSim network XML by adding slopes to links."
+    )
+
     parser.add_argument("xml_file", help="Path to the input network XML file")
     parser.add_argument("output_file", help="Path to save the updated network XML file")
 

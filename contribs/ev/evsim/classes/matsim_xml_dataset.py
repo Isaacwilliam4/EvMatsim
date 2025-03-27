@@ -5,7 +5,7 @@ from torch_geometric.data import Dataset
 from torch_geometric.transforms import LineGraph
 from torch_geometric.data import Data
 from pathlib import Path
-from evsim.util import setup_config
+from evsim.scripts.util import setup_config
 from bidict import bidict
 from evsim.classes.chargers import Charger, StaticCharger, DynamicCharger
 from evsim.scripts.create_population import create_population_and_plans_xml_counts
@@ -56,6 +56,8 @@ class MatsimXMLDataset(Dataset):
         self.network_xml_path = Path(tmp_dir / network_file_name)
         self.plan_xml_path = Path(tmp_dir / plans_file_name)
         self.vehicle_xml_path = Path(tmp_dir / vehicles_file_name)
+        self.consumption_map_path = Path(tmp_dir / "consumption_map.csv")
+
 
         self.node_mapping: bidict[str, int] = (
             bidict()
@@ -226,7 +228,9 @@ class MatsimXMLDataset(Dataset):
                 link_attr_denormalized = self._min_max_normalize(
                     link_attr[:3], reverse=True
                 )
-                link_len_km = link_attr_denormalized[self.edge_attr_mapping["length"]] * 0.001
+                link_len_km = (
+                    link_attr_denormalized[self.edge_attr_mapping["length"]] * 0.001
+                )
                 cost += DynamicCharger.price * link_len_km
 
             self.graph.edge_attr[self.edge_mapping[link_id]][

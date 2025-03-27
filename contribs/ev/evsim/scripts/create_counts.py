@@ -2,7 +2,7 @@ import xml.etree.ElementTree as ET
 import pandas as pd
 import os
 import argparse
-from ..util import get_str
+from .util import get_str
 
 
 def main(

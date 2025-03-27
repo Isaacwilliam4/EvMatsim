@@ -5,7 +5,7 @@ import argparse
 import pandas as pd
 import numpy as np
 
-from evsim.util import save_xml, get_str
+from evsim.scripts.util import save_xml, get_str
 
 
 def get_node_coords(network_file):
