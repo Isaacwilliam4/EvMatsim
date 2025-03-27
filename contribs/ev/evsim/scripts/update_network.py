@@ -1,6 +1,7 @@
 import xml.etree.ElementTree as ET
 import argparse
 import numpy as np
+import os
 
 DOCTYPE_DECLARATION = '<!DOCTYPE network SYSTEM "http://www.matsim.org/files/dtd/network_v2.dtd">\n'
 
@@ -38,6 +39,7 @@ def add_slopes_to_links(xml_file, output_file):
         f.writelines(xml_content[1:])  # Skip the original XML declaration
 
     print(f"Updated network file saved to {output_file}")
+    os.remove(temp_file)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Update MATSim network XML by adding slopes to links.")
