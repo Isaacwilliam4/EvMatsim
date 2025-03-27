@@ -36,7 +36,7 @@ public final class DischargingModule extends AbstractModule {
 		// bind(DriveEnergyConsumption.Factory.class).toInstance(ev -> new OhdeSlaskiDriveEnergyConsumption());
 		// bind(DriveEnergyConsumption.Factory.class).toInstance(ev -> new LTHConsumptionModelReader().readURL( ConfigGroup.getInputFileURL( config.getContext(), "MidCarMap.csv" ) ) );
 		bind(TemperatureService.class).toInstance(linkId -> 15);// XXX fixed temperature 15 oC
-		bind(AuxEnergyConsumption.Factory.class).to(OhdeSlaskiAuxEnergyConsumption.Factory.class).in(Singleton.class);
+		// bind(AuxEnergyConsumption.Factory.class).to(OhdeSlaskiAuxEnergyConsumption.Factory.class).in(Singleton.class);
 
 		installQSimModule(new AbstractQSimModule() {
 			@Override

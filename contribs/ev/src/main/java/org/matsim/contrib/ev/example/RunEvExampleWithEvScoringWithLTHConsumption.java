@@ -86,6 +86,8 @@ public class RunEvExampleWithEvScoringWithLTHConsumption {
 
 		controler.addOverridingModule( new AbstractModule(){
 			@Override public void install(){
+				bind( AuxEnergyConsumption.Factory.class ).toInstance(
+							electricVehicle -> ( beginTime, duration, linkId ) -> 0 ); //a dummy factory, as aux consumption is part of the drive consumption in the model
 				bind(DriveEnergyConsumption.Factory.class).toInstance(ev -> new LTHConsumptionModelReader().readURL( ConfigGroup.getInputFileURL( config.getContext(), "MidCarMap.csv" ) ).create(ev) );
 				bind(ElectricFleet.class).toProvider(new Provider<>() {
 					@Inject private ElectricFleetSpecification fleetSpecification;

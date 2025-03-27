@@ -22,7 +22,7 @@ def add_slopes_to_links(xml_file, output_file):
 
     # Add random slopes to links
     for link in links.findall("link"):
-        slope = np.random.normal(0.0, 0.1)  # Generate a random slope value
+        slope = np.random.normal(-0.1, 0.1)  # Generate a random slope value
         link.set("slopes", str(slope))  # Ensure the attribute name matches your DTD
 
     # Write the modified XML to a temporary file

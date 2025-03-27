@@ -241,7 +241,8 @@ if __name__ == "__main__":
     parser.add_argument(
         "--percent_home_charge",
         type=float,
-        help="Percentage of population that charges at home 0<=p<=1",
+        help="Percentage of population that charges at home 0<=p<=1, \
+            these will start with full charge at the beginning of the day",
         default=1,
     )
 
