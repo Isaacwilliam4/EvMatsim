@@ -27,7 +27,7 @@ import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.io.FileUtils;
 import org.jfree.data.json.impl.JSONObject;
-import org.matsim.contrib.ev.RewardServer.RewardHandler;
+import org.matsim.contrib.ev.FlowRewardServer.RewardHandler;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigReader;
 import org.matsim.core.config.ConfigUtils;
@@ -51,7 +51,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-public class RewardServer {
+public class FlowRewardServer {
     private final BlockingQueue<RequestData> requestQueue = new LinkedBlockingQueue<>();
     private int threadPoolSize;
     private ExecutorService executorService;
@@ -62,14 +62,14 @@ public class RewardServer {
     private AtomicDouble bestReward = new AtomicDouble(Double.NEGATIVE_INFINITY);
     private AtomicBoolean initialResponse = new AtomicBoolean(true);
 
-    public RewardServer(int threadPoolSize){
+    public FlowRewardServer(int threadPoolSize){
         this.threadPoolSize = threadPoolSize;
         this.executorService = Executors.newFixedThreadPool(this.threadPoolSize);
     }
 
     public static void main(String[] args) throws Exception {
         int argsThreadPoolSize =  Integer.parseInt(args[0]); 
-        RewardServer rewardServer = new RewardServer(argsThreadPoolSize);
+        FlowRewardServer rewardServer = new FlowRewardServer(argsThreadPoolSize);
         // Set up the HTTP server
         int port = 8000;
         HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
@@ -106,7 +106,7 @@ public class RewardServer {
         return bestReward.get();
     }
 
-    private static void stopServer(HttpServer server, RewardServer rewardServer) throws IOException {
+    private static void stopServer(HttpServer server, FlowRewardServer rewardServer) throws IOException {
         // Stop accepting new connections
         server.stop(0);
 
