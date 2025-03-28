@@ -50,6 +50,7 @@ class MatsimXMLDataset(Dataset):
             plans_file_name,
             vehicles_file_name,
             chargers_file_name,
+            counts_file_name
         ) = setup_config(self.config_path, str(output_path))
 
         self.charger_xml_path = Path(tmp_dir / chargers_file_name)
