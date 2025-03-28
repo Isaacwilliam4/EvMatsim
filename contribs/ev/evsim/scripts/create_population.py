@@ -7,17 +7,7 @@ import numpy as np
 
 from evsim.scripts.util import save_xml, get_str
 
-
 def get_node_coords(network_file):
-    """
-    Parse the network XML file and extract node coordinates.
-
-    Args:
-        network_file (str): Path to the MATSim network XML file.
-
-    Returns:
-        dict: A dictionary mapping node IDs to their (x, y) coordinates.
-    """
     tree = ET.parse(network_file)
     root = tree.getroot()
     node_coords = {}
@@ -30,18 +20,21 @@ def get_node_coords(network_file):
 
     return node_coords
 
+def parse_counts_xml(counts_file):
+    tree = ET.parse(counts_file)
+    root = tree.getroot()
+    counts = []
 
-def create_vehicle_definitions(ids, initial_soc=1):
-    """
-    Create vehicle definitions XML with specified initial states of charge.
+    for count_station in root.findall(".//count"):
+        volume = sum(
+            int(volume_elem.get("val"))
+            for volume_elem in count_station.findall(".//volume")
+        )
+        counts.append(volume)
 
-    Args:
-        ids (list): List of vehicle IDs.
-        initial_soc (float): Initial state of charge for vehicles.
+    return counts
 
-    Returns:
-        xml.etree.ElementTree.ElementTree: XML tree of vehicle definitions.
-    """
+def create_vehicle_definitions(ids, initial_soc):
     root = ET.Element(
         "vehicleDefinitions",
         attrib={
@@ -97,7 +90,6 @@ def create_vehicle_definitions(ids, initial_soc=1):
 
     return ET.ElementTree(root)
 
-
 def create_population_and_plans_xml_counts(
     network_xml_path,
     plans_output,
@@ -107,18 +99,6 @@ def create_population_and_plans_xml_counts(
     population_multiplier=1,
     initial_soc=1,
 ):
-    """
-    Generate population and plans XML files based on network and counts data.
-
-    Args:
-        network_xml_path (str): Path to the MATSim network XML file.
-        plans_output (str): Path to save the generated plans XML file.
-        vehicles_output (str): Path to save the generated vehicles XML file.
-        num_agents (int): Number of agents to generate.
-        counts_path (str): Path to counts file for population distribution.
-        population_multiplier (float): Multiplier for population size.
-        initial_soc (float): Initial state of charge for vehicles.
-    """
     node_coords = get_node_coords(os.path.abspath(network_xml_path))
     plans_output = os.path.abspath(plans_output)
     vehicles_output = os.path.abspath(vehicles_output)
@@ -130,8 +110,7 @@ def create_population_and_plans_xml_counts(
 
     if counts_path:
         counts_path = os.path.abspath(counts_path)
-        counts_df = pd.read_csv(counts_path, sep="\t")
-        counts = counts_df["Flow (Veh/Hour)"].values
+        counts = parse_counts_xml(counts_path)
     else:
         dist1 = np.random.normal(8, 2.5, num_agents // 2)
         dist2 = np.random.normal(17, 2.5, num_agents - len(dist1))
@@ -190,6 +169,7 @@ def create_population_and_plans_xml_counts(
         tree.write(f)
 
 
+
 def main(args):
     """
     Main function to parse arguments and generate population and plans.
@@ -219,7 +199,7 @@ if __name__ == "__main__":
         "vehicles_output", type=str, help="Vehicle file used to create vehicles"
     )
     parser.add_argument(
-        "num_agents",
+        "--num_agents",
         type=int,
         help="The number of agents to generate",
         default=100,
