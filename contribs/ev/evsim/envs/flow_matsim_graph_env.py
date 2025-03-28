@@ -8,7 +8,7 @@ import zipfile
 import pandas as pd
 from abc import abstractmethod
 from gymnasium import spaces
-from evsim.classes.matsim_xml_dataset import MatsimXMLDataset
+from evsim.classes.matsim_xml_dataset_flow import FlowMatsimXMLDataset
 from datetime import datetime
 from pathlib import Path
 from evsim.classes.chargers import Charger, StaticCharger, NoneCharger, DynamicCharger
@@ -45,7 +45,7 @@ class FlowMatsimGraphEnv(gym.Env):
             DynamicCharger,
             StaticCharger,
         ]
-        self.dataset = MatsimXMLDataset(
+        self.dataset = FlowMatsimXMLDataset(
             self.config_path,
             self.time_string,
             self.charger_list,
@@ -122,6 +122,7 @@ class FlowMatsimGraphEnv(gym.Env):
             "vehicles": open(self.dataset.vehicle_xml_path, "rb"),
             "chargers": open(self.dataset.charger_xml_path, "rb"),
             "consumption_map": open(self.dataset.consumption_map_path, "rb"),
+            "counts": open(self.dataset.counts_xml_path, "rb"),
         }
         response = requests.post(
             url, params={"folder_name": self.time_string}, files=files

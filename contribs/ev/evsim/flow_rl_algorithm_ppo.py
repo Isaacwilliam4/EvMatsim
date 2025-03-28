@@ -64,9 +64,7 @@ from stable_baselines3.common.callbacks import (
 )
 from datetime import datetime
 from pathlib import Path
-from evsim.envs.matsim_graph_env_gnn import MatsimGraphEnvGNN
-from evsim.envs.matsim_graph_env_mlp import MatsimGraphEnvMlp
-
+from evsim.envs.flow_matsim_graph_env import FlowMatsimGraphEnv
 
 class TensorboardCallback(BaseCallback):
     """
@@ -77,7 +75,7 @@ class TensorboardCallback(BaseCallback):
         save_dir (str or None): Directory path to save the best-performing
         environment's data.
         best_reward (float): The highest reward observed during training.
-        best_env (MatsimGraphEnvGNN | MatsimGraphEnvMlp): The environment
+        best_env (FlowMatsimGraphEnv): The environment
         instance corresponding to the best reward.
 
     Methods:
@@ -99,7 +97,7 @@ class TensorboardCallback(BaseCallback):
         super(TensorboardCallback, self).__init__(verbose)
         self.save_dir = save_dir
         self.best_reward = -np.inf
-        self.best_env: MatsimGraphEnvGNN | MatsimGraphEnvMlp = None
+        self.best_env: FlowMatsimGraphEnv = None
 
     def _on_step(self) -> bool:
         """
@@ -113,7 +111,7 @@ class TensorboardCallback(BaseCallback):
         avg_reward = 0
 
         for i, infos in enumerate(self.locals["infos"]):
-            env_inst: MatsimGraphEnvGNN | MatsimGraphEnvMlp = infos["graph_env_inst"]
+            env_inst: FlowMatsimGraphEnv = infos["graph_env_inst"]
             reward = env_inst.reward
             avg_reward += reward
             if reward > self.best_reward:
@@ -156,14 +154,14 @@ def main(args: argparse.Namespace):
         """
         if args.policy_type == "MlpPolicy":
             return gym.make(
-                "MatsimGraphEnvMlp-v0",
+                "FlowMatsimGraphEnvMlp-v0",
                 config_path=args.matsim_config,
                 num_agents=args.num_agents,
                 save_dir=save_dir,
             )
         elif args.policy_type == "GNNPolicy":
             return gym.make(
-                "MatsimGraphEnvGNN-v0",
+                "FlowMatsimGraphEnvMlp-v0",
                 config_path=args.matsim_config,
                 num_agents=args.num_agents,
                 save_dir=save_dir,
@@ -222,7 +220,7 @@ def main(args: argparse.Namespace):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="Train a PPO model on the MatsimGraphEnv.",
+        description="Train a PPO model on the FlowMatsimGraphEnv.",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument(

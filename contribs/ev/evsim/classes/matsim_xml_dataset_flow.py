@@ -50,12 +50,14 @@ class FlowMatsimXMLDataset(Dataset):
             plans_file_name,
             vehicles_file_name,
             chargers_file_name,
+            counts_file_name
         ) = setup_config(self.config_path, str(output_path))
 
         self.charger_xml_path = Path(tmp_dir / chargers_file_name)
         self.network_xml_path = Path(tmp_dir / network_file_name)
         self.plan_xml_path = Path(tmp_dir / plans_file_name)
         self.vehicle_xml_path = Path(tmp_dir / vehicles_file_name)
+        self.counts_xml_path = Path(tmp_dir / counts_file_name)
         self.consumption_map_path = Path(tmp_dir / "consumption_map.csv")
 
 
@@ -196,6 +198,14 @@ class FlowMatsimXMLDataset(Dataset):
             self.graph.edge_attr[:, :3]
         )
         self.state = self.graph.edge_attr
+
+        node_pos = torch.tensor(node_pos)
+
+        self.max_x = torch.max(node_pos[:,0], dim=0).values
+        self.min_x = torch.min(node_pos[:,0], dim=0).values  
+        self.max_y = torch.max(node_pos[:,1], dim=0).values
+        self.min_y = torch.min(node_pos[:,1], dim=0).values
+
 
     def parse_charger_network_get_charger_cost(self):
         """

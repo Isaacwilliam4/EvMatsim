@@ -36,7 +36,7 @@ def setup_config(config_xml_path, output_dir, num_iterations=0):
     tree = ET.parse(config_xml_path)
     root = tree.getroot()
 
-    network_file, plans_file, vehicles_file, chargers_file = None, None, None, None
+    network_file, plans_file, vehicles_file, chargers_file, counts_file = None, None, None, None, None
 
     for module in root.findall(".//module"):
         for param in module.findall("param"):
@@ -52,6 +52,8 @@ def setup_config(config_xml_path, output_dir, num_iterations=0):
                 vehicles_file = param.get("value")
             if param.get("name") == "chargersFile":
                 chargers_file = param.get("value")
+            if param.get("name") == "inputCountsFile":
+                counts_file = param.get("value")
 
     with open(config_xml_path, "wb") as f:
         f.write(b'<?xml version="1.0" ?>\n')
@@ -60,7 +62,7 @@ def setup_config(config_xml_path, output_dir, num_iterations=0):
         )
         tree.write(f)
 
-    return network_file, plans_file, vehicles_file, chargers_file
+    return network_file, plans_file, vehicles_file, chargers_file, counts_file
 
 
 def get_str(num):
