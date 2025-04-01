@@ -111,11 +111,16 @@ class TensorboardCallback(BaseCallback):
             bool: True to continue training.
         """
         avg_reward = 0
+        avg_cost = 0
+        avg_charger_efficiency = 0
 
         for i, infos in enumerate(self.locals["infos"]):
             env_inst: MatsimGraphEnvGNN | MatsimGraphEnvMlp = infos["graph_env_inst"]
             reward = env_inst.reward
             avg_reward += reward
+            avg_cost += env_inst.dataset.charger_cost.item()
+            avg_charger_efficiency += env_inst._charger_efficiency
+
             if reward > self.best_reward:
                 self.best_env = env_inst
                 self.best_reward = self.best_env.best_reward
@@ -128,6 +133,8 @@ class TensorboardCallback(BaseCallback):
 
         self.logger.record("Avg Reward", (avg_reward / (i + 1)))
         self.logger.record("Best Reward", self.best_reward)
+        self.logger.record("Avg Charger Cost", (avg_cost / (i + 1)))
+        self.logger.record("Avg Charger Efficiency", (avg_charger_efficiency / (i + 1)))
 
         return True
 

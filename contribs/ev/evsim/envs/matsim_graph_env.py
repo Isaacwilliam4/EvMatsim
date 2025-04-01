@@ -79,6 +79,7 @@ class MatsimGraphEnv(gym.Env):
         self.done: bool = False
         self.lock_file = Path(self.save_dir, "lockfile.lock")
         self.best_output_response = None
+        self._charger_efficiency = 0
 
     def save_server_output(self, response, filetype):
         """
@@ -173,6 +174,7 @@ class MatsimGraphEnv(gym.Env):
             {
                 "iteration": [0],
                 "reward": [self.reward],
+                "cost": [self.dataset.charger_cost],
                 "static_chargers": [static_chargers],
                 "dynamic_chargers": [dynamic_chargers],
             }

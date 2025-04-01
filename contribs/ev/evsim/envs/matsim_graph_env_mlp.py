@@ -48,6 +48,7 @@ class MatsimGraphEnvMlp(MatsimGraphEnv):
         charger_cost = self.dataset.parse_charger_network_get_charger_cost()
         charger_cost_reward = charger_cost / self.dataset.max_charger_cost
         avg_charge_reward, server_response = self.send_reward_request()
+        self._charger_efficiency = avg_charge_reward
         _reward = 100 * (avg_charge_reward - charger_cost_reward.item())
         self.reward = _reward
         if _reward > self.best_reward:

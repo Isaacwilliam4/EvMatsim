@@ -58,6 +58,7 @@ class MatsimXMLDataset(Dataset):
         self.plan_xml_path = Path(tmp_dir / plans_file_name)
         self.vehicle_xml_path = Path(tmp_dir / vehicles_file_name)
         self.consumption_map_path = Path(tmp_dir / "consumption_map.csv")
+        self.charger_cost = 0
 
 
         self.node_mapping: bidict[str, int] = (
@@ -258,6 +259,7 @@ class MatsimXMLDataset(Dataset):
                     self.edge_attr_mapping["none"]
                 ] = 1
 
+        self.charger_cost = cost
         return cost
 
     def get_graph(self):
