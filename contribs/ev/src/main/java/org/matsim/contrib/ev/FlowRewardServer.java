@@ -54,7 +54,7 @@ public class FlowRewardServer {
     private final String javaHome = System.getProperty("java.home");
     private final String javaBin = javaHome + File.separator + "bin" + File.separator + "java";
     private final String classpath = System.getProperty("java.class.path");
-    private final String className = "org.matsim.contrib.ev.example.RunEvExampleWithEvScoringWithLTHConsumption";
+    private final String className = "org.matsim.run.RunMatsim";
     private AtomicDouble bestReward = new AtomicDouble(Double.NEGATIVE_INFINITY);
     private AtomicBoolean initialResponse = new AtomicBoolean(true);
 
@@ -180,7 +180,7 @@ public class FlowRewardServer {
                 double reward = 0;
 
                 if (totRecords > 1){
-                    reward = -Math.log(totDistributionDiff);
+                    reward = 100*-Math.log(totDistributionDiff);
                     response.put("reward", Double.toString(reward));
                     if (reward > getBestReward()){
                         setBestReward(reward);

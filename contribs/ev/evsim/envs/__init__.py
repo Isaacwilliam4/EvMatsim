@@ -12,5 +12,5 @@ register(
 
 register(
     id="FlowMatsimGraphEnvMlp-v0", 
-    entry_point="evsim.envs.flow_matsim_graph_env:FlowMatsimGraphEnv",
+    entry_point="evsim.envs.flow_matsim_graph_mlp:FlowMatsimGraphEnvMlp",
 )

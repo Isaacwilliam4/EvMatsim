@@ -119,9 +119,7 @@ class FlowMatsimGraphEnv(gym.Env):
             "config": open(self.dataset.config_path, "rb"),
             "network": open(self.dataset.network_xml_path, "rb"),
             "plans": open(self.dataset.plan_xml_path, "rb"),
-            "vehicles": open(self.dataset.vehicle_xml_path, "rb"),
-            "chargers": open(self.dataset.charger_xml_path, "rb"),
-            "consumption_map": open(self.dataset.consumption_map_path, "rb"),
+            # "vehicles": open(self.dataset.vehicle_xml_path, "rb"),
             "counts": open(self.dataset.counts_xml_path, "rb"),
         }
         response = requests.post(
