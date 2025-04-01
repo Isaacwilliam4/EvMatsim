@@ -152,20 +152,13 @@ def main(args: argparse.Namespace):
         Returns:
             gym.Env: A new environment instance.
         """
-        if args.policy_type == "MlpPolicy":
-            return gym.make(
-                "FlowMatsimGraphEnvMlp-v0",
-                config_path=args.matsim_config,
-                num_agents=args.num_agents,
-                save_dir=save_dir,
-            )
-        elif args.policy_type == "GNNPolicy":
-            return gym.make(
-                "FlowMatsimGraphEnvMlp-v0",
-                config_path=args.matsim_config,
-                num_agents=args.num_agents,
-                save_dir=save_dir,
-            )
+
+        return gym.make(
+            "FlowMatsimGraphEnvMlp-v0",
+            config_path=args.matsim_config,
+            num_agents=args.num_agents,
+            save_dir=save_dir,
+        )
 
     env = SubprocVecEnv([make_env for _ in range(args.num_envs)])
     """

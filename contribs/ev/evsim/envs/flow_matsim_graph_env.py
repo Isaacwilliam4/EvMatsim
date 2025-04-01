@@ -58,8 +58,11 @@ class FlowMatsimGraphEnv(gym.Env):
         self.num_charger_types: int = len(self.charger_list)
 
         # Define action and observation space
-        self.action_space: spaces.MultiDiscrete = spaces.MultiDiscrete(
-            [self.num_charger_types] * self.dataset.linegraph.num_nodes
+        self.action_space: spaces.Box = spaces.Box(
+            low=0,
+            high=1,
+            shape=(self.dataset.linegraph.num_nodes, 24),
+            dtype=np.float32,
         )
         self.x = spaces.Box(
             low=0,
