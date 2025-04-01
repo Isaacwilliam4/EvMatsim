@@ -174,7 +174,7 @@ class MatsimGraphEnv(gym.Env):
             {
                 "iteration": [0],
                 "reward": [self.reward],
-                "cost": [self.dataset.charger_cost],
+                "cost": [self.dataset.charger_cost.item()],
                 "static_chargers": [static_chargers],
                 "dynamic_chargers": [dynamic_chargers],
             }
