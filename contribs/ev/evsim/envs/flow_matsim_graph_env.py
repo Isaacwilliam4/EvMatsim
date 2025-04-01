@@ -150,30 +150,3 @@ class FlowMatsimGraphEnv(gym.Env):
         """
         shutil.rmtree(self.dataset.config_path.parent)
 
-    def save_charger_config_to_csv(self, csv_path):
-        """
-        Save the current charger configuration to a CSV file.
-
-        Args:
-            csv_path (str): Path to save the CSV file.
-        """
-        static_chargers = []
-        dynamic_chargers = []
-        charger_config = self.dataset.graph.edge_attr[:, 3:]
-
-        for idx, row in enumerate(charger_config):
-            if not row[0]:
-                if row[1]:
-                    dynamic_chargers.append(int(self.dataset.edge_mapping.inverse[idx]))
-                elif row[2]:
-                    static_chargers.append(int(self.dataset.edge_mapping.inverse[idx]))
-
-        df = pd.DataFrame(
-            {
-                "iteration": [0],
-                "reward": [self.reward],
-                "static_chargers": [static_chargers],
-                "dynamic_chargers": [dynamic_chargers],
-            }
-        )
-        df.to_csv(csv_path, index=False)

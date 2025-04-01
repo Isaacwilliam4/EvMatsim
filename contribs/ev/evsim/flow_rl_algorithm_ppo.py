@@ -301,7 +301,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--policy_type",
         default="MlpPolicy",
-        choices=["MlpPolicy", "GNNPolicy"],
+        choices=["MlpPolicy", "GNNPolicy", "FlowMlpPolicy"],
         type=str,
         help="The policy type to use for the PPO algorithm.",
     )
