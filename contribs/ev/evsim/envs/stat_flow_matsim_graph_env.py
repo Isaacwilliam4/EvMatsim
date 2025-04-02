@@ -16,7 +16,7 @@ from typing import List
 from filelock import FileLock
 
 
-class FlowMatsimGraphEnv(gym.Env):
+class StatFlowMatsimGraphEnv(gym.Env):
     """
     A custom Gymnasium environment for Matsim graph-based simulations.
     """

@@ -158,6 +158,7 @@ def main(args: argparse.Namespace):
             config_path=args.matsim_config,
             num_agents=args.num_agents,
             save_dir=save_dir,
+            max_extracted=args.max_extracted
         )
 
     env = SubprocVecEnv([make_env for _ in range(args.num_envs)])
@@ -178,7 +179,7 @@ def main(args: argparse.Namespace):
     )
     callback = CallbackList([tensorboard_callback, checkpoint_callback])
 
-    policy_kwargs = dict(net_arch=args.mlp_dims)
+    policy_kwargs = dict(max_extracted=args.max_extracted)
 
     if args.model_path:
         model = PPO.load(
@@ -297,6 +298,12 @@ if __name__ == "__main__":
         choices=["MlpPolicy", "GNNPolicy", "FlowMlpPolicy"],
         type=str,
         help="The policy type to use for the PPO algorithm.",
+    )
+    parser.add_argument(
+        "--max_extracted",
+        default=50,
+        type=int,
+        help="The maximum number of nodes to consider for origin destination calculation",
     )
 
     parser.print_help()
