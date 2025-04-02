@@ -8,7 +8,7 @@ import zipfile
 import pandas as pd
 from abc import abstractmethod
 from gymnasium import spaces
-from evsim.classes.matsim_xml_dataset_flow import FlowMatsimXMLDataset
+from evsim.classes.matsim_xml_dataset_stat_flow import StatFlowMatsimXMLDataset
 from datetime import datetime
 from pathlib import Path
 from evsim.classes.chargers import Charger, StaticCharger, NoneCharger, DynamicCharger
@@ -45,7 +45,7 @@ class StatFlowMatsimGraphEnv(gym.Env):
             DynamicCharger,
             StaticCharger,
         ]
-        self.dataset = FlowMatsimXMLDataset(
+        self.dataset = StatFlowMatsimXMLDataset(
             self.config_path,
             self.time_string,
             self.charger_list,
@@ -58,26 +58,11 @@ class StatFlowMatsimGraphEnv(gym.Env):
         self.best_reward = -np.inf
         self.num_charger_types: int = len(self.charger_list)
 
-        self.actions : spaces.Box = spaces.Box(
+        self.action_space : spaces.Box = spaces.Box(
             low=0,
-            high=np.inf,
-            shape=(24*self.max_extracted,),
-            dtype=np.int32,
-        )
-
-        self.link_ids : spaces.Box = spaces.Box(
-            low=0,
-            high=np.inf,
-            shape=(self.max_extracted,),
-            dtype=np.int32,
-        )
-
-        # Define action and observation space
-        self.action_space: spaces.Dict = spaces.Dict(
-            spaces={
-                "actions": self.actions,
-                "link_ids": self.link_ids,
-            }
+            high=1,
+            shape=(3, max(self.dataset.graph.x.shape[0], self.dataset.linegraph.x.shape[0])),
+            dtype=np.float32,
         )
         self.x = spaces.Box(
             low=0,
@@ -94,12 +79,18 @@ class StatFlowMatsimGraphEnv(gym.Env):
             shape=self.edge_index.shape,
             dtype=np.int32,
         )
+        self.edge_attr_space = spaces.Box(
+            low=0,
+            high=1,
+            shape=self.dataset.graph.edge_attr.shape,
+            dtype=np.int32,
+        )
         self.done: bool = False
         self.lock_file = Path(self.save_dir, "lockfile.lock")
         self.best_output_response = None
 
         self.observation_space: spaces.Dict = spaces.Dict(
-            spaces=dict(x=self.x, edge_index=self.edge_index_space)
+            spaces=dict(x=self.x, edge_index=self.edge_index_space, edge_attr=self.edge_attr_space)
         )
 
     def save_server_output(self, response, filetype):
@@ -167,6 +158,7 @@ class StatFlowMatsimGraphEnv(gym.Env):
         return dict(
             x=self.dataset.graph.x.numpy(),
             edge_index=self.dataset.graph.edge_index.numpy().astype(np.int32),
+            edge_attr=self.dataset.graph.edge_attr.numpy().astype(np.int32),
         ), dict(info="info")
 
 
@@ -188,7 +180,11 @@ class StatFlowMatsimGraphEnv(gym.Env):
             self.best_output_response = server_response
 
         return (
-            self.dataset.linegraph.x.numpy(),
+            dict(
+            x=self.dataset.graph.x.numpy(),
+            edge_index=self.dataset.graph.edge_index.numpy().astype(np.int32),
+            edge_attr=self.dataset.graph.edge_attr.numpy().astype(np.int32),
+            ),
             self.reward,
             self.done,
             self.done,
