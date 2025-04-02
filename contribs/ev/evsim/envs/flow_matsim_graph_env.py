@@ -21,7 +21,7 @@ class FlowMatsimGraphEnv(gym.Env):
     A custom Gymnasium environment for Matsim graph-based simulations.
     """
 
-    def __init__(self, config_path, num_agents=100, save_dir=None):
+    def __init__(self, config_path, num_agents=100, save_dir=None, max_extracted:int=100):
         """
         Initialize the environment.
 
@@ -52,6 +52,7 @@ class FlowMatsimGraphEnv(gym.Env):
             num_agents=self.num_agents,
             initial_soc=0.5,
         )
+        self.max_extracted = max_extracted
         self.num_links_reward_scale = -100
         self.reward: float = 0
         self.best_reward = -np.inf
@@ -61,16 +62,16 @@ class FlowMatsimGraphEnv(gym.Env):
         self.action_space: spaces.Box = spaces.Box(
             low=0,
             high=1,
-            shape=(self.dataset.linegraph.num_nodes, 24),
+            shape=(self.max_extracted**2, 24),
             dtype=np.float32,
         )
         self.x = spaces.Box(
             low=0,
             high=1,
-            shape=self.dataset.linegraph.x.shape,
+            shape=self.dataset.graph.x.shape,
             dtype=np.float32,
         )
-        self.edge_index = self.dataset.linegraph.edge_index.to(torch.int32)
+        self.edge_index = self.dataset.graph.edge_index.to(torch.int32)
         edge_index_np = self.edge_index.numpy()
         max_edge_index = np.max(edge_index_np) + 1
         self.edge_index_space = spaces.Box(

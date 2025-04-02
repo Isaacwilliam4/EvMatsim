@@ -12,11 +12,8 @@ class FlowMatsimGraphEnvMlp(FlowMatsimGraphEnv):
     def __init__(self, config_path, num_agents=100, save_dir=None):
         super().__init__(config_path, num_agents, save_dir)
 
-        self.observation_space = spaces.Box(
-            low=0,
-            high=1.0,
-            shape=self.dataset.linegraph.x.shape,
-            dtype=np.float32,
+        self.observation_space: spaces.Dict = spaces.Dict(
+            spaces=dict(x=self.x, edge_index=self.edge_index_space)
         )
 
     def reset(self, **kwargs):
@@ -27,7 +24,10 @@ class FlowMatsimGraphEnvMlp(FlowMatsimGraphEnv):
             np.ndarray: Initial state of the environment.
             dict: Additional information.
         """
-        return self.dataset.linegraph.x.numpy(), dict(info="info")
+        return dict(
+            x=self.dataset.graph.x.numpy(),
+            edge_index=self.dataset.graph.edge_index.numpy().astype(np.int32),
+        ), dict(info="info")
 
     def step(self, actions):
         """
