@@ -23,6 +23,12 @@
         <param name="coordinateSystem" value="Atlantis" />
     </module>
 
+    <module name="counts">
+        <param name="inputCountsFile" value="tiny_town_counts.xml" />
+        <param name="writeCountsInterval" value="1" />
+        <param name="averageCountsOverIterations" value="1" />
+    </module>
+
     <module name="network">
         
         <param name="inputNetworkFile" value="tiny_town_network_slopes.xml" />

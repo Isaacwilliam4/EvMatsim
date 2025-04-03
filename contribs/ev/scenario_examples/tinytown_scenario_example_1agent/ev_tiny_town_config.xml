@@ -15,7 +15,7 @@
 	</module>
 
 	<module name="vehicles">
-        <param name="vehiclesFile" value="tiny_town_evehicles.xml" />
+        <param name="vehiclesFile" value="tiny_town_evehicles1.xml" />
     </module>
 
     <module name="global">
@@ -25,11 +25,11 @@
 
     <module name="network">
         
-        <param name="inputNetworkFile" value="tiny_town_network_slopes.xml" />
+        <param name="inputNetworkFile" value="tiny_town_network.xml" />
     </module>
 
     <module name="plans">
-        <param name="inputPlansFile" value="tiny_town_plans.xml" />
+        <param name="inputPlansFile" value="tiny_town_plans1.xml" />
     </module>
 
     <module name="controller">

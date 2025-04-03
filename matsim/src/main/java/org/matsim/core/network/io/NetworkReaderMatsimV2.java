@@ -251,6 +251,15 @@ final class NetworkReaderMatsimV2 extends MatsimXmlParser {
 			}
 		}
 
+		if (atts.getValue("slopes") != null){
+			String[] strSlopes = StringUtils.explode(atts.getValue("slopes"), ',');
+			double[] slopes = new double[strSlopes.length];
+			for (int i = 0; i < strSlopes.length; i++) {
+				slopes[i] = Double.parseDouble(strSlopes[i]);
+			}
+			l.getAttributes().putAttribute("slopes", slopes);
+		}
+
 		currentAttributes = l.getAttributes();
 	}
 

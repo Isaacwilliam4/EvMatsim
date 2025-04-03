@@ -39,7 +39,8 @@
                oneway      CDATA #FIXED    "1"
                origid      CDATA #IMPLIED
                type        CDATA #IMPLIED
-               modes       CDATA "car">
+               modes       CDATA "car"
+               slopes      CDATA #IMPLIED>
 
 <!-- ============================================================ -->
 

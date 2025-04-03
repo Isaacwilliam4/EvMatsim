@@ -11,7 +11,7 @@ from evsim.classes.chargers import Charger, StaticCharger, DynamicCharger
 from evsim.scripts.create_population import create_population_and_plans_xml_counts
 
 
-class MatsimXMLDataset(Dataset):
+class StatFlowMatsimXMLDataset(Dataset):
     """
     A dataset class for parsing MATSim XML files and creating a graph
     representation using PyTorch Geometric.
@@ -53,12 +53,12 @@ class MatsimXMLDataset(Dataset):
             counts_file_name
         ) = setup_config(self.config_path, str(output_path))
 
-        self.charger_xml_path = Path(tmp_dir / chargers_file_name)
-        self.network_xml_path = Path(tmp_dir / network_file_name)
-        self.plan_xml_path = Path(tmp_dir / plans_file_name)
-        self.vehicle_xml_path = Path(tmp_dir / vehicles_file_name)
+        self.charger_xml_path = Path(tmp_dir / chargers_file_name) if chargers_file_name else None
+        self.network_xml_path = Path(tmp_dir / network_file_name) if network_file_name else None
+        self.plan_xml_path = Path(tmp_dir / plans_file_name) if plans_file_name else None
+        self.vehicle_xml_path = Path(tmp_dir / vehicles_file_name) if vehicles_file_name else None
+        self.counts_xml_path = Path(tmp_dir / counts_file_name) if counts_file_name else None
         self.consumption_map_path = Path(tmp_dir / "consumption_map.csv")
-        self.charger_cost = 0
 
 
         self.node_mapping: bidict[str, int] = (
@@ -86,7 +86,6 @@ class MatsimXMLDataset(Dataset):
             )
         self.create_edge_attr_mapping()
         self.parse_matsim_network()
-        self.parse_charger_network_get_charger_cost()
 
     def len(self):
         """
@@ -130,10 +129,6 @@ class MatsimXMLDataset(Dataset):
         Creates a mapping of edge attributes to their indices.
         """
         self.edge_attr_mapping = {"length": 0, "freespeed": 1, "capacity": 2}
-        edge_attr_idx = len(self.edge_attr_mapping)
-        for charger in self.charger_list:
-            self.edge_attr_mapping[charger.type] = edge_attr_idx
-            edge_attr_idx += 1
 
     def parse_matsim_network(self):
         """
@@ -167,17 +162,6 @@ class MatsimXMLDataset(Dataset):
 
             for key, value in self.edge_attr_mapping.items():
                 if key in link.attrib:
-                    if key == "length":
-                        """
-                        Add the cost of either the static charger or the 
-                        dynamic charger times the length of the link, 
-                        converted to km from m.
-                        """
-                        link_len_km = float(link.get(key)) * 0.001
-                        self.max_charger_cost += max(
-                            StaticCharger.price,
-                            DynamicCharger.price * link_len_km,
-                        )
                     curr_link_attr[value] = float(link.get(key))
 
             edge_attr.append(curr_link_attr)
@@ -186,81 +170,26 @@ class MatsimXMLDataset(Dataset):
         self.graph.pos = torch.tensor(node_pos)
         self.graph.edge_index = torch.tensor(edge_index).t()
         self.graph.edge_attr = torch.stack(edge_attr)
-        self.linegraph = self.linegraph_transform(self.graph)
+        self.linegraph: Data = self.linegraph_transform(self.graph)
         self.max_mins = torch.stack(
             [
-                torch.min(self.graph.edge_attr[:, :3], dim=0).values,
-                torch.max(self.graph.edge_attr[:, :3], dim=0).values,
+                torch.min(self.graph.edge_attr, dim=0).values,
+                torch.max(self.graph.edge_attr, dim=0).values,
             ]
         )
 
-        self.graph.edge_attr[:, :3] = self._min_max_normalize(
-            self.graph.edge_attr[:, :3]
+        self.graph.edge_attr = self._min_max_normalize(
+            self.graph.edge_attr
         )
         self.state = self.graph.edge_attr
 
-    def parse_charger_network_get_charger_cost(self):
-        """
-        Parses the charger network XML file and calculates the total charger
-        cost.
+        node_pos = torch.tensor(node_pos)
 
-        Returns:
-            float: Total cost of chargers in the network.
-        """
-        cost = 0
-        tree = ET.parse(self.charger_xml_path)
-        root = tree.getroot()
+        self.max_x = torch.max(node_pos[:,0], dim=0).values
+        self.min_x = torch.min(node_pos[:,0], dim=0).values  
+        self.max_y = torch.max(node_pos[:,1], dim=0).values
+        self.min_y = torch.min(node_pos[:,1], dim=0).values
 
-        # Reset the values of the charger placements
-        self.graph.edge_attr[:, 3:] = torch.zeros(
-            self.graph.edge_attr.shape[0], self.graph.edge_attr[:, 3:].shape[1]
-        )
-
-        for charger in root.findall(".//charger"):
-            link_id = charger.get("link")
-            charger_type = charger.get("type")
-            if charger_type is None:
-                charger_type = StaticCharger.type
-
-            if charger_type == StaticCharger.type:
-                cost += StaticCharger.price
-            elif charger_type == DynamicCharger.type:
-                link_idx = self.edge_mapping[link_id]
-                link_attr = self.graph.edge_attr[link_idx]
-                link_attr_denormalized = self._min_max_normalize(
-                    link_attr[:3], reverse=True
-                )
-                link_len_km = (
-                    link_attr_denormalized[self.edge_attr_mapping["length"]] * 0.001
-                )
-                cost += DynamicCharger.price * link_len_km
-
-            self.graph.edge_attr[self.edge_mapping[link_id]][
-                self.edge_attr_mapping[charger_type]
-            ] = 1
-
-        # Update the rest of the links to have no charger
-        tree = ET.parse(self.network_xml_path)
-        root = tree.getroot()
-        for link in root.findall(".//link"):
-            link_id = link.get("id")
-
-            if not (
-                self.graph.edge_attr[self.edge_mapping[link_id]][
-                    self.edge_attr_mapping["default"]
-                ]
-                == 1
-                or self.graph.edge_attr[self.edge_mapping[link_id]][
-                    self.edge_attr_mapping["dynamic"]
-                ]
-                == 1
-            ):
-                self.graph.edge_attr[self.edge_mapping[link_id]][
-                    self.edge_attr_mapping["none"]
-                ] = 1
-
-        self.charger_cost = cost
-        return cost
 
     def get_graph(self):
         """

@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<!DOCTYPE chargers SYSTEM "http://matsim.org/files/dtd/chargers_v1.dtd">
+<chargers>
+	<charger id="1" link="4225" plug_power="70" plug_count="9999" type="dynamic" />
+	<charger id="6" link="1027" plug_power="70" plug_count="9999" type="dynamic" />
+	<charger id="7" link="1028" plug_power="70" plug_count="9999" type="dynamic" />
+	<charger id="12" link="1032" plug_power="70" plug_count="9999" type="dynamic" />
+	<charger id="15" link="1035" plug_power="70" plug_count="9999" type="dynamic" />
+	<charger id="16" link="1036" plug_power="70" plug_count="9999" type="dynamic" />
+	<charger id="18" link="1038" plug_power="70" plug_count="9999" type="dynamic" />
+	<charger id="24" link="1043" plug_power="70" plug_count="9999" type="dynamic" />
+	<charger id="25" link="1044" plug_power="70" plug_count="9999" type="dynamic" />
+	<charger id="28" link="1047" plug_power="70" plug_count="9999" type="dynamic" />
+	<charger id="29" link="1048" plug_power="70" plug_count="9999" type="dynamic" />
+	<charger id="30" link="1049" plug_power="70" plug_count="9999" type="dynamic" />
+	<charger id="34" link="1052" plug_power="70" plug_count="9999" type="dynamic" />
+	<charger id="36" link="1054" plug_power="70" plug_count="9999" type="dynamic" />
+	<charger id="38" link="1056" plug_power="70" plug_count="9999" type="dynamic" />
+	<charger id="39" link="1057" plug_power="70" plug_count="9999" type="dynamic" />
+	<charger id="47" link="1064" plug_power="70" plug_count="9999" type="dynamic" />
+	<charger id="52" link="107" plug_power="70" plug_count="9999" type="dynamic" />
+	<charger id="54" link="1071" plug_power="70" plug_count="9999" type="dynamic" />
+	<charger id="57" link="1074" plug_power="70" plug_count="9999" type="dynamic" />
+	<charger id="59" link="1076" plug_power="70" plug_count="9999" type="dynamic" />
+	<charger id="65" link="1081" plug_power="70" plug_count="9999" type="dynamic" />
+	<charger id="66" link="1082" plug_power="70" plug_count="9999" type="dynamic" />
+	<charger id="71" link="1087" plug_power="70" plug_count="9999" type="dynamic" />
+	<charger id="73" link="1089" plug_power="70" plug_count="9999" type="dynamic" />
+	<charger id="80" link="1095" plug_power="70" plug_count="9999" type="dynamic" />
+	<charger id="81" link="1096" plug_power="70" plug_count="9999" type="dynamic" />
+	<charger id="82" link="1097" plug_power="70" plug_count="9999" type="dynamic" />
+	<charger id="84" link="1099" plug_power="70" plug_count="9999" type="dynamic" />
+	<charger id="94" link="1109" plug_power="70" plug_count="9999" type="dynamic" />
+	<charger id="101" link="1116" plug_power="70" plug_count="9999" type="dynamic" />
+	<charger id="102" link="1140" plug_power="70" plug_count="9999" type="dynamic" />
+	<charger id="111" link="1149" plug_power="70" plug_count="9999" type="dynamic" />
+	<charger id="112" link="1150" plug_power="70" plug_count="9999" type="dynamic" />
+	<charger id="115" link="1153" plug_power="70" plug_count="9999" type="dynamic" />
+	<charger id="119" link="1157" plug_power="70" plug_count="9999" type="dynamic" />
+	<charger id="120" link="1158" plug_power="70" plug_count="9999" type="dynamic" />
+	<charger id="121" link="1159" plug_power="70" plug_count="9999" type="dynamic" />
+	<charger id="124" link="1162" plug_power="70" plug_count="9999" type="dynamic" />
+	<charger id="126" link="117" plug_power="70" plug_count="9999" type="dynamic" />
+	<charger id="128" link="1171" plug_power="70" plug_count="9999" type="dynamic" />
+	<charger id="129" link="1174" plug_power="70" plug_count="9999" type="dynamic" />
+</chargers>

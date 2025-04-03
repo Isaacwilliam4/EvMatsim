@@ -4,3 +4,5 @@
 *__pycache__*
 *results*
 *pylint*
+!consumption_map.csv
+evsim/evsim.egg-info/

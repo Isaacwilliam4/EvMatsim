@@ -44,6 +44,8 @@ public class RunEvExample {
 	private static final Logger log = LogManager.getLogger(RunEvExample.class);
 
 	public static void main(String[] args) throws IOException {
+		System.setProperty("matsim.preferLocalDtds", "true");
+
 		if (args.length > 0) {
 			log.info("Starting simulation run with the following arguments:");
 			log.info("args=" + Arrays.toString( args ) );

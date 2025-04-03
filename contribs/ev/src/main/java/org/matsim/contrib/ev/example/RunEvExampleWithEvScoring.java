@@ -34,6 +34,7 @@ import org.matsim.contrib.ev.EvModule;
 import org.matsim.contrib.ev.charging.ChargingPower;
 import org.matsim.contrib.ev.discharging.AuxEnergyConsumption;
 import org.matsim.contrib.ev.discharging.DriveEnergyConsumption;
+import org.matsim.contrib.ev.discharging.LTHDriveEnergyConsumption;
 import org.matsim.contrib.ev.fleet.ElectricFleet;
 import org.matsim.contrib.ev.fleet.ElectricFleetSpecification;
 import org.matsim.contrib.ev.fleet.ElectricFleetUtils;
@@ -55,6 +56,8 @@ public class RunEvExampleWithEvScoring {
 	private static final Logger log = LogManager.getLogger(RunEvExampleWithEvScoring.class);
 
 	public static void main(String[] args) throws IOException {
+		System.setProperty("matsim.preferLocalDtds", "true");
+
 		if (args.length > 0) {
 			log.info("Starting simulation run with the following arguments:");
 			log.info("args=" + Arrays.toString( args ) );
@@ -82,6 +85,7 @@ public class RunEvExampleWithEvScoring {
 				bind(ElectricFleet.class).toProvider(new Provider<>() {
 					@Inject private ElectricFleetSpecification fleetSpecification;
 					@Inject private DriveEnergyConsumption.Factory driveConsumptionFactory;
+					// @Inject private LTHDriveEnergyConsumption.Factory driveConsumptionFactory;
 					@Inject private AuxEnergyConsumption.Factory auxConsumptionFactory;
 					@Inject private ChargingPower.Factory chargingPowerFactory;
 	
