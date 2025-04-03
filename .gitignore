@@ -25,3 +25,5 @@ matsim/src/main/java/Doxyfile
 *__pycache__*
 !scenario_examples/**
 
+# do not ignore sensor data
+!sensor_data.csv
