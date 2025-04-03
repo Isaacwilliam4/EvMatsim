@@ -29,7 +29,7 @@ def get_elevations_batch(locations):
     # Format locations for the API
     payload = {
         "locations": [
-            {"latitude": lat, "longitude": lon} for lat, lon in locations
+            {"longitude": lon, "latitude": lat} for lon, lat in locations
         ]
     }
     
