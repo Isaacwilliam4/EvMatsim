@@ -117,12 +117,6 @@ class TensorboardCallback(BaseCallback):
             if reward > self.best_reward:
                 self.best_env = env_inst
                 self.best_reward = self.best_env.best_reward
-                self.best_env.save_charger_config_to_csv(
-                    Path(self.save_dir, "best_chargers.csv")
-                )
-                self.best_env.save_server_output(
-                    self.best_env.best_output_response, "bestoutput"
-                )
 
         self.logger.record("Avg Reward", (avg_reward / (i + 1)))
         self.logger.record("Best Reward", self.best_reward)
