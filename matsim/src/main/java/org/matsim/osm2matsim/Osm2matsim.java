@@ -19,6 +19,8 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.*;
 import java.util.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 public class Osm2matsim {
     public static void main(String[] args) throws Exception {
@@ -30,6 +32,9 @@ public class Osm2matsim {
         String osmFilename = args[0];
         String networkFilename = args[1];
         String sensorFilename = args[2];
+        String outputFilePath = args[3];
+        
+        Path outputPath = Path.of(outputFilePath);
 
         System.out.println("Converting " + osmFilename + " to " + networkFilename);
         
@@ -58,9 +63,8 @@ public class Osm2matsim {
         
         // Map sensors to closest network links
         Map<String, String> sensorToLinkMap = mapSensorsToLinks(sensorCoords, network);
-
         // Generate MATSim sensor counts XML
-        writeCountsXML("sensor_counts.xml", sensorToLinkMap, sensorFlows);
+        writeCountsXML(outputPath, sensorToLinkMap, sensorFlows);
         System.out.println("Sensor counts written to sensor_counts.xml!");
     }
 
@@ -139,7 +143,17 @@ public class Osm2matsim {
 
 
 
-    private static void writeCountsXML(String filename, Map<String, String> sensorToLinkMap, Map<String, int[]> sensorFlows) throws Exception {
+    private static void writeCountsXML(Path outputFilePath, Map<String, String> sensorToLinkMap, Map<String, int[]> sensorFlows) throws Exception {
+        if (!outputFilePath.getParent().toFile().exists()) {
+            outputFilePath.getParent().toFile().mkdirs();
+        }
+
+        File file = new File(outputFilePath.toString());
+        if (file.exists()) {
+            file.delete();
+            file.createNewFile();
+        }
+        
         DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
         DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
         Document doc = dBuilder.newDocument();
@@ -170,20 +184,11 @@ public class Osm2matsim {
             }
         }
     
-        // Ensure output directory exists inside Docker container
-        File outputDir = new File("/osm2matsim/output");
-        if (!outputDir.exists()) {
-            outputDir.mkdirs(); // Create if missing
-        }
-    
-        // Write XML to file in mounted directory
-        String outputFilePath = "/osm2matsim/output/" + filename;
         javax.xml.transform.TransformerFactory transformerFactory = javax.xml.transform.TransformerFactory.newInstance();
         javax.xml.transform.Transformer transformer = transformerFactory.newTransformer();
         transformer.setOutputProperty(javax.xml.transform.OutputKeys.INDENT, "yes");
     
         javax.xml.transform.dom.DOMSource source = new javax.xml.transform.dom.DOMSource(doc);
-        java.io.File file = new java.io.File(outputFilePath);
         java.io.FileOutputStream fos = new java.io.FileOutputStream(file);
         javax.xml.transform.stream.StreamResult result = new javax.xml.transform.stream.StreamResult(fos);
     
