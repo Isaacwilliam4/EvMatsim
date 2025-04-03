@@ -7,7 +7,6 @@ from torch_geometric.data import Data
 from pathlib import Path
 from evsim.scripts.util import setup_config
 from bidict import bidict
-from evsim.classes.chargers import Charger, StaticCharger, DynamicCharger
 from evsim.scripts.create_population import create_population_and_plans_xml_counts
 
 
@@ -21,7 +20,6 @@ class StatFlowMatsimXMLDataset(Dataset):
         self,
         config_path: Path,
         time_string: str,
-        charger_list: list[Charger],
         num_agents: int = 10000,
         initial_soc: float = 0.5,
     ):
@@ -31,7 +29,6 @@ class StatFlowMatsimXMLDataset(Dataset):
         Args:
             config_path (Path): Path to the MATSim configuration file.
             time_string (str): Unique identifier for temporary directories.
-            charger_list (list[Charger]): List of charger types.
             num_agents (int): Number of agents to create. Default is 10000.
             initial_soc (float): Initial state of charge for agents. Default
                 is 0.5.
@@ -72,9 +69,6 @@ class StatFlowMatsimXMLDataset(Dataset):
             bidict()
         )  #: key: edge attribute name, value: index in edge attribute list
         self.graph: Data = Data()
-        self.charger_list = charger_list
-        self.num_charger_types = len(self.charger_list)
-        self.max_charger_cost = 0
         self.linegraph_transform = LineGraph()
         if num_agents:
             create_population_and_plans_xml_counts(

@@ -11,7 +11,6 @@ from gymnasium import spaces
 from evsim.classes.matsim_xml_dataset_stat_flow import StatFlowMatsimXMLDataset
 from datetime import datetime
 from pathlib import Path
-from evsim.classes.chargers import Charger, StaticCharger, NoneCharger, DynamicCharger
 from typing import List
 from filelock import FileLock
 
@@ -21,7 +20,7 @@ class StatFlowMatsimGraphEnv(gym.Env):
     A custom Gymnasium environment for Matsim graph-based simulations.
     """
 
-    def __init__(self, config_path, num_agents=100, save_dir=None, max_extracted:int=100):
+    def __init__(self, config_path, num_agents=100, save_dir=None):
         """
         Initialize the environment.
 
@@ -40,30 +39,45 @@ class StatFlowMatsimGraphEnv(gym.Env):
 
         # Initialize the dataset with custom variables
         self.config_path: Path = Path(config_path)
-        self.charger_list: List[Charger] = [
-            NoneCharger,
-            DynamicCharger,
-            StaticCharger,
-        ]
+
         self.dataset = StatFlowMatsimXMLDataset(
             self.config_path,
             self.time_string,
-            self.charger_list,
             num_agents=self.num_agents,
             initial_soc=0.5,
         )
-        self.max_extracted = max_extracted
         self.num_links_reward_scale = -100
         self.reward: float = 0
         self.best_reward = -np.inf
-        self.num_charger_types: int = len(self.charger_list)
 
-        self.action_space : spaces.Box = spaces.Box(
+        self.quantity_action_space : spaces.Box = spaces.Box(
             low=0,
             high=1,
-            shape=(3, max(self.dataset.graph.x.shape[0], self.dataset.linegraph.x.shape[0])),
+            shape= (24,),
             dtype=np.float32,
         )
+        self.node_probability_action_space : spaces.Box = spaces.Box(
+            low=0,
+            high=1,
+            shape= (24,),
+            dtype=np.float32,
+        )
+
+        self.edge_probability_action_space : spaces.Box = spaces.Box(
+            low=0,
+            high=1,
+            shape=(24,),
+            dtype=np.float32,
+        )
+
+        self.action_space : spaces.Dict = spaces.Dict(
+            spaces=dict(
+                quantity=self.quantity_action_space,
+                node_probability=self.node_probability_action_space,
+                edge_probability=self.edge_probability_action_space,
+            )
+        )
+        
         self.x = spaces.Box(
             low=0,
             high=np.inf,

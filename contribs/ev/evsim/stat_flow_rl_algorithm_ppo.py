@@ -157,8 +157,7 @@ def main(args: argparse.Namespace):
             "StatFlowMatsimGraphEnvMlp-v0",
             config_path=args.matsim_config,
             num_agents=args.num_agents,
-            save_dir=save_dir,
-            max_extracted=args.max_extracted
+            save_dir=save_dir
         )
 
     env = SubprocVecEnv([make_env for _ in range(args.num_envs)])
@@ -179,7 +178,6 @@ def main(args: argparse.Namespace):
     )
     callback = CallbackList([tensorboard_callback, checkpoint_callback])
 
-    policy_kwargs = dict(max_extracted=args.max_extracted)
 
     if args.model_path:
         model = PPO.load(
@@ -191,7 +189,6 @@ def main(args: argparse.Namespace):
             tensorboard_log=save_dir,
             batch_size=args.batch_size,
             learning_rate=args.learning_rate,
-            policy_kwargs=policy_kwargs,
         )
     else:
         model = PPO(
@@ -204,7 +201,6 @@ def main(args: argparse.Namespace):
             batch_size=args.batch_size,
             learning_rate=args.learning_rate,
             clip_range=args.clip_range,
-            policy_kwargs=policy_kwargs,
         )
 
     # total_timesteps = n_steps * num_envs * iterations
@@ -298,12 +294,6 @@ if __name__ == "__main__":
         choices=["MlpPolicy", "GNNPolicy", "FlowMlpPolicy", "StatFlowMlpPolicy"],
         type=str,
         help="The policy type to use for the PPO algorithm.",
-    )
-    parser.add_argument(
-        "--max_extracted",
-        default=50,
-        type=int,
-        help="The maximum number of nodes to consider for origin destination calculation",
     )
 
     parser.print_help()
