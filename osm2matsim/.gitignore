@@ -1,7 +1,0 @@
-.idea
-.settings
-.project
-
-*.class
-*.osm.pbf
-output/*.xml
