@@ -53,20 +53,20 @@ class StatFlowMatsimGraphEnv(gym.Env):
         self.quantity_action_space : spaces.Box = spaces.Box(
             low=0,
             high=1,
-            shape= (24,),
+            shape=(self.dataset.graph.x.shape[0], 24),
             dtype=np.float32,
         )
         self.node_probability_action_space : spaces.Box = spaces.Box(
             low=0,
             high=1,
-            shape= (24,),
+            shape=(self.dataset.graph.x.shape[0], 24),
             dtype=np.float32,
         )
 
         self.edge_probability_action_space : spaces.Box = spaces.Box(
             low=0,
             high=1,
-            shape=(24,),
+            shape=(self.dataset.graph.x.shape[0], 24),
             dtype=np.float32,
         )
 

@@ -136,7 +136,15 @@ def main(args: argparse.Namespace):
     save_dir = f"{args.results_dir}/{datetime.now().strftime('%Y%m%d_%H%M%S_%f')}/"
     os.makedirs(save_dir)
 
-    policy_kwargs = dict(net_arch=args.mlp_dims, features_extractor_class=dict(quantity=GNNNodeExtractor, node_probability=GNNNodeExtractor, edge_probability=GNNEdgeExtractor))
+    policy_kwargs = dict(net_arch=args.mlp_dims, 
+                         features_extractor_class=
+                         dict(
+                             quantity=GNNNodeExtractor, 
+                             node_probability=GNNNodeExtractor, 
+                             edge_probability=GNNEdgeExtractor
+                             )
+                        )
+    
 
     with open(Path(save_dir, "args.txt"), "w") as f:
         for key, val in args.__dict__.items():
@@ -290,7 +298,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--policy_type",
         default="MlpPolicy",
-        choices=["MlpPolicy", "GNNPolicy", "FlowMlpPolicy", "StatFlowMlpPolicy", "MultiInputPolicy"],
+        choices=["MlpPolicy", "GNNPolicy", "FlowMlpPolicy", "MultiInputPolicy"],
         type=str,
         help="The policy type to use for the PPO algorithm.",
     )
