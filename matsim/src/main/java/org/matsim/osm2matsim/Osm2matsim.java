@@ -60,18 +60,25 @@ public class Osm2matsim {
         Map<String, int[]> sensorFlows = new HashMap<>();
         
         readSensorData(sensorFilename, sensorCoords, sensorFlows);
+
+        String originalCoordsFile = "C:\\Users\\webec\\CODEPROJECTS\\ASPIRE\\EvMatsim\\matsim\\src\\main\\java\\org\\matsim\\osm2matsim\\original_coordinates.csv";
+
+        writeOriginalCoordinatesToCSV(originalCoordsFile, sensorCoords);
         
         // Map sensors to closest network links
         Map<String, String> sensorToLinkMap = mapSensorsToLinks(sensorCoords, network);
         // Generate MATSim sensor counts XML
         writeCountsXML(outputPath, sensorToLinkMap, sensorFlows);
         System.out.println("Sensor counts written to sensor_counts.xml!");
+
+        String sensorToNodeFile = "C:\\Users\\webec\\CODEPROJECTS\\ASPIRE\\EvMatsim\\matsim\\src\\main\\java\\org\\matsim\\osm2matsim\\sensor_to_node_mapping.csv";
+        mapSensorsToNodesAndWriteCSV(sensorToNodeFile, sensorCoords, network);
     }
 
     private static void readSensorData(String filename, Map<String, double[]> sensorCoords, Map<String, int[]> sensorFlows) throws IOException {
         BufferedReader br = new BufferedReader(new FileReader(filename));
         String line;
-        
+        System.out.println(sensorCoords);
         // Skip the first line (header row)
         br.readLine();
     
@@ -97,6 +104,88 @@ public class Osm2matsim {
         System.out.println("Loaded " + sensorCoords.size() + " sensors.");
     }
 
+
+    private static void writeOriginalCoordinatesToCSV(String outputCsvFile, Map<String, double[]> sensorCoords) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(outputCsvFile))) {
+            // Write the CSV header
+            System.out.println("Writing original coordinates to CSV...");
+            writer.write("SensorID,Latitude,Longitude");
+            writer.newLine();
+    
+            // Write each sensor's original coordinates
+            for (Map.Entry<String, double[]> entry : sensorCoords.entrySet()) {
+                String sensorId = entry.getKey();
+                double[] coords = entry.getValue(); // [latitude, longitude]
+    
+                // Validate coordinates
+                if (coords.length != 2) {
+                    System.err.println("Invalid coordinates for sensor ID: " + sensorId);
+                    continue;
+                }
+    
+                writer.write(sensorId + "," + coords[0] + "," + coords[1]);
+                writer.newLine();
+            }
+    
+            System.out.println("Original coordinates written to: " + outputCsvFile);
+        } catch (IOException e) {
+            System.err.println("Error writing original coordinates to CSV: " + e.getMessage());
+        }
+    }
+
+
+    private static void mapSensorsToNodesAndWriteCSV(String outputCsvFile, Map<String, double[]> sensorCoords, Network network) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(outputCsvFile))) {
+            // Write the CSV header
+            writer.write("SensorID,NodeID,Distance");
+            writer.newLine();
+    
+            System.out.println("Mapping sensors to network nodes...");
+    
+            for (Map.Entry<String, double[]> entry : sensorCoords.entrySet()) {
+                String sensorId = entry.getKey();
+                double[] coords = entry.getValue();
+    
+                // Sensor coordinates (latitude, longitude)
+                double sensorLat = coords[0];
+                double sensorLon = coords[1];
+    
+                double minDistance = Double.MAX_VALUE;
+                String closestNodeId = null;
+    
+                // Iterate through all nodes in the network
+                for (org.matsim.api.core.v01.network.Node node : network.getNodes().values()) {
+                    double nodeLat = node.getCoord().getY(); // Latitude
+                    double nodeLon = node.getCoord().getX(); // Longitude
+    
+                    // Calculate Euclidean distance
+                    double distance = CoordUtils.calcEuclideanDistance(
+                        new org.matsim.api.core.v01.Coord(sensorLon, sensorLat),
+                        new org.matsim.api.core.v01.Coord(nodeLon, nodeLat)
+                    );
+    
+                    // Find the closest node
+                    if (distance < minDistance) {
+                        minDistance = distance;
+                        closestNodeId = node.getId().toString();
+                    }
+                }
+
+                if (closestNodeId != null) {
+                    // Write the mapping to the CSV file
+                    writer.write(sensorId + "," + closestNodeId + "," + minDistance);
+                    writer.newLine();
+                    System.out.println("Sensor " + sensorId + " mapped to node " + closestNodeId + " (distance: " + minDistance + "m)");
+                } else {
+                    System.out.println("Warning: No node found for sensor " + sensorId);
+                }
+            }
+    
+            System.out.println("Sensor-to-node mapping written to: " + outputCsvFile);
+        } catch (IOException e) {
+            System.err.println("Error writing sensor-to-node mapping to CSV: " + e.getMessage());
+        }
+    }
 
     private static Map<String, String> mapSensorsToLinks(Map<String, double[]> sensorCoords, Network network) {
         Map<String, String> sensorToLink = new HashMap<>();
