@@ -43,26 +43,28 @@ Project too simple to justify this tools. We rely on `javac` and `java` with man
 
 ## New Features Added to `Osm2matsim.java`
 
-### 1. Writing Original and Transformed Coordinates to CSV
-- **Description**: The program now writes both the original sensor coordinates (latitude/longitude) and their transformed coordinates (x/y) into a CSV file. This allows for easy comparison of coordinate transformations.
-- **Usage**:
-  - The method `writeOriginalAndTransformedCoordinatesToCSV` was added.
-  - Example output file: `original_coordinates.csv`.
-
-### 2. Mapping Sensors to Network Nodes
+### 1. Mapping Sensors to Network Nodes
 - **Description**: Sensors are now mapped to the closest nodes in the MATSim network. This mapping is written to a CSV file for further analysis.
 - **Usage**:
   - The method `mapSensorsToNodesAndWriteCSV` was added.
   - Example output file: `sensor_to_node_mapping.csv`.
 
-### 3. Mapping Sensors to Network Links
-- **Description**: Sensors are mapped to the closest links in the MATSim network. This mapping is used to generate a `counts.xml` file for MATSim simulations.
+### 2. Writing Combined Coordinates to CSV
+- **Description**: The program now writes both the original sensor coordinates (latitude/longitude) and their transformed coordinates (x/y) into a single CSV file. This allows for easy comparison of coordinate transformations.
 - **Usage**:
-  - The method `mapSensorsToLinks` was updated to ensure unique mappings and handle edge cases.
-  - Example output file: `sensor_counts.xml`.
+  - The method `writeOriginalAndTransformedCoordinatesToCSV` was added.
+  - Example output file: `combined_coordinates.csv`.
 
-### 4. Writing Sensor Counts to XML
-- **Description**: The program generates a MATSim-compatible `counts.xml` file using sensor flow data and their mapped links.
+### 3. Checking Transformed Coordinates in the Network
+- **Description**: A new function, `CheckCoordinates`, was added to verify whether the transformed coordinates (`TransformedX` and `TransformedY`) from the `combined_coordinates.csv` file appear in the `utahevnetwork.xml` file.
 - **Usage**:
-  - The method `writeCountsXML` was added.
-  - Example output file: `sensor_counts.xml`.
+  - Run the `CheckCoordinates` program to compare the transformed coordinates against the network XML file.
+  - Example output: Prints whether each coordinate pair was found or not.
+
+### 4. Fetching Elevation Data
+- **Description**: The `ElevationFetcher` function retrieves elevation data for the original sensor coordinates. This data can be used to calculate slopes or enrich the network with elevation information.
+- **Usage**:
+  - The function fetches elevation data for each sensor and integrates it into the workflow.
+  - Example output: Elevation data is added to the sensor data structure or written to a CSV file.
+
+---
