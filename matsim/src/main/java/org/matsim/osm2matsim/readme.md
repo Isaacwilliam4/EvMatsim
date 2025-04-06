@@ -39,3 +39,30 @@ To avoid issues with different jdk versions.
 
 ### Why not maven or gradle? ###
 Project too simple to justify this tools. We rely on `javac` and `java` with manually set classpaths. 
+
+
+## New Features Added to `Osm2matsim.java`
+
+### 1. Writing Original and Transformed Coordinates to CSV
+- **Description**: The program now writes both the original sensor coordinates (latitude/longitude) and their transformed coordinates (x/y) into a CSV file. This allows for easy comparison of coordinate transformations.
+- **Usage**:
+  - The method `writeOriginalAndTransformedCoordinatesToCSV` was added.
+  - Example output file: `original_coordinates.csv`.
+
+### 2. Mapping Sensors to Network Nodes
+- **Description**: Sensors are now mapped to the closest nodes in the MATSim network. This mapping is written to a CSV file for further analysis.
+- **Usage**:
+  - The method `mapSensorsToNodesAndWriteCSV` was added.
+  - Example output file: `sensor_to_node_mapping.csv`.
+
+### 3. Mapping Sensors to Network Links
+- **Description**: Sensors are mapped to the closest links in the MATSim network. This mapping is used to generate a `counts.xml` file for MATSim simulations.
+- **Usage**:
+  - The method `mapSensorsToLinks` was updated to ensure unique mappings and handle edge cases.
+  - Example output file: `sensor_counts.xml`.
+
+### 4. Writing Sensor Counts to XML
+- **Description**: The program generates a MATSim-compatible `counts.xml` file using sensor flow data and their mapped links.
+- **Usage**:
+  - The method `writeCountsXML` was added.
+  - Example output file: `sensor_counts.xml`.
