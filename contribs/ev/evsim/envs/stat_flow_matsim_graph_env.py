@@ -186,6 +186,14 @@ class StatFlowMatsimGraphEnv(gym.Env):
         Returns:
             tuple: Next state, reward, done flags, and additional info.
         """
+        action_type, action_vals = actions
+        action_vals = torch.from_numpy(action_vals.reshape(-1, 24))
+        if action_type == "quantity":
+            self.dataset.graph.x[self.dataset.node_quantity_idx] = action_vals
+        elif action_type == "node_probability":
+            self.dataset.graph.x[self.dataset.node_stop_probability_idx] = action_vals
+        elif action_type == "edge_probability":
+            self.dataset.graph.edge_attr[self.dataset.edge_take_prob_idx] = action_vals
 
         flow_dist_reward, server_response = self.send_reward_request()
         self.reward = flow_dist_reward

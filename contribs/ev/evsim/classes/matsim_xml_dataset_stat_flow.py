@@ -35,6 +35,16 @@ class StatFlowMatsimXMLDataset(Dataset):
         """
         super().__init__(transform=None)
 
+        self.node_id_idx = 0
+        self.node_stop_probability_idx = slice(1, 25)
+        self.node_quantity_idx = slice(25, 49)
+
+        self.edge_length_idx = 0
+        self.edge_freespeed_idx = 1
+        self.edge_capacity_idx = 2
+        self.edge_take_prob_idx = slice(3, 27)
+
+
         tmp_dir = Path("/tmp/" + time_string)
         output_path = Path(tmp_dir / "output")
 
@@ -70,14 +80,6 @@ class StatFlowMatsimXMLDataset(Dataset):
         )  #: key: edge attribute name, value: index in edge attribute list
         self.graph: Data = Data()
         self.linegraph_transform = LineGraph()
-        if num_agents:
-            create_population_and_plans_xml_counts(
-                self.network_xml_path,
-                self.plan_xml_path,
-                self.vehicle_xml_path,
-                num_agents=num_agents,
-                initial_soc=initial_soc,
-            )
         self.create_edge_attr_mapping()
         self.parse_matsim_network()
 
@@ -114,9 +116,9 @@ class StatFlowMatsimXMLDataset(Dataset):
         Returns:
             Tensor: The normalized or denormalized tensor.
         """
-        if reverse:
-            return tensor * (self.max_mins[1] - self.max_mins[0]) + self.max_mins[0]
-        return (tensor - self.max_mins[0]) / (self.max_mins[1] - self.max_mins[0])
+        x_min = tensor.min(dim=0).values
+        x_max = tensor.max(dim=0).values
+        return (tensor - x_min) / (x_max - x_min)
 
     def create_edge_attr_mapping(self):
         """
@@ -160,29 +162,35 @@ class StatFlowMatsimXMLDataset(Dataset):
 
             edge_attr.append(curr_link_attr)
 
-        self.graph.x = torch.tensor(node_ids).view(-1, 1)
+        num_nodes = len(node_ids)
+        node_ids = torch.tensor(node_ids).view(-1, 1)
+        node_probs = torch.rand((num_nodes, 24), dtype=torch.float)
+        node_quantity = torch.softmax(torch.rand_like(node_probs, dtype=torch.float), dim=0)
+        """
+        self.graph.x.shape = (num_nodes, 49), 
+        [:,0] = node ids, 
+        [:,1-24] = node stop probabilities for every hour of the day, 
+        [:,25-49] = node quantities for every hour of the day
+        """
+        self.graph.x = torch.cat([node_ids, node_probs, node_quantity], dim=1)
+        edge_attr = torch.stack(edge_attr)
+        edge_take_probabilities = torch.rand((len(edge_attr[:,0]), 24), dtype=torch.float)
         self.graph.pos = torch.tensor(node_pos)
         self.graph.edge_index = torch.tensor(edge_index).t()
-        self.graph.edge_attr = torch.stack(edge_attr)
+        """ 
+        self.graph.edge_attr.shape = (num_edges, 27)
+        [:,0] = edge length,
+        [:,1] = edge freespeed,
+        [:,2] = edge capacity,
+        [:,3-27] = edge take probabilities for every hour of the day
+        """
+        self.graph.edge_attr = torch.cat((edge_attr, edge_take_probabilities), dim=1)
         self.linegraph: Data = self.linegraph_transform(self.graph)
-        self.max_mins = torch.stack(
-            [
-                torch.min(self.graph.edge_attr, dim=0).values,
-                torch.max(self.graph.edge_attr, dim=0).values,
-            ]
-        )
 
-        self.graph.edge_attr = self._min_max_normalize(
-            self.graph.edge_attr
+        self.graph.edge_attr[:,:3] = self._min_max_normalize(
+            self.graph.edge_attr[:,:3]
         )
         self.state = self.graph.edge_attr
-
-        node_pos = torch.tensor(node_pos)
-
-        self.max_x = torch.max(node_pos[:,0], dim=0).values
-        self.min_x = torch.min(node_pos[:,0], dim=0).values  
-        self.max_y = torch.max(node_pos[:,1], dim=0).values
-        self.min_y = torch.min(node_pos[:,1], dim=0).values
 
 
     def get_graph(self):
