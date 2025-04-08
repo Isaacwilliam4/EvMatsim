@@ -97,7 +97,7 @@ class StatFlowMatsimGraphEnv(gym.Env):
             low=0,
             high=1,
             shape=self.dataset.graph.edge_attr.shape,
-            dtype=np.int32,
+            dtype=np.float32,
         )
         self.done: bool = False
         self.lock_file = Path(self.save_dir, "lockfile.lock")
@@ -170,9 +170,9 @@ class StatFlowMatsimGraphEnv(gym.Env):
             dict: Additional information.
         """
         return dict(
-            x=self.dataset.graph.x.numpy(),
+            x=self.dataset.graph.x.numpy().astype(np.int32),
             edge_index=self.dataset.graph.edge_index.numpy().astype(np.int32),
-            edge_attr=self.dataset.graph.edge_attr.numpy().astype(np.int32),
+            edge_attr=self.dataset.graph.edge_attr.numpy().astype(np.float32),
         ), dict(info="info")
 
 
@@ -195,9 +195,9 @@ class StatFlowMatsimGraphEnv(gym.Env):
 
         return (
             dict(
-            x=self.dataset.graph.x.numpy(),
+            x=self.dataset.graph.x.numpy().astype(np.int32),
             edge_index=self.dataset.graph.edge_index.numpy().astype(np.int32),
-            edge_attr=self.dataset.graph.edge_attr.numpy().astype(np.int32),
+            edge_attr=self.dataset.graph.edge_attr.numpy().astype(np.float32),
             ),
             self.reward,
             self.done,
