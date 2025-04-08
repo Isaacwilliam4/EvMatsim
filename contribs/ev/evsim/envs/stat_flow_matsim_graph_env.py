@@ -66,7 +66,7 @@ class StatFlowMatsimGraphEnv(gym.Env):
         self.edge_probability_action_space : spaces.Box = spaces.Box(
             low=0,
             high=1,
-            shape=(self.dataset.graph.x.shape[0], 24),
+            shape=(self.dataset.linegraph.x.shape[0], 24),
             dtype=np.float32,
         )
 
@@ -189,11 +189,11 @@ class StatFlowMatsimGraphEnv(gym.Env):
         action_type, action_vals = actions
         action_vals = torch.from_numpy(action_vals.reshape(-1, 24))
         if action_type == "quantity":
-            self.dataset.graph.x[self.dataset.node_quantity_idx] = action_vals
+            self.dataset.graph.x[:,self.dataset.node_quantity_idx] = action_vals
         elif action_type == "node_probability":
-            self.dataset.graph.x[self.dataset.node_stop_probability_idx] = action_vals
+            self.dataset.graph.x[:,self.dataset.node_stop_probability_idx] = action_vals
         elif action_type == "edge_probability":
-            self.dataset.graph.edge_attr[self.dataset.edge_take_prob_idx] = action_vals
+            self.dataset.graph.edge_attr[:,self.dataset.edge_take_prob_idx] = action_vals
 
         flow_dist_reward, server_response = self.send_reward_request()
         self.reward = flow_dist_reward
