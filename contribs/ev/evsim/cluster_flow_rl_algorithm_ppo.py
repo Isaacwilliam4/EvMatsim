@@ -65,7 +65,7 @@ from stable_baselines3.common.callbacks import (
 from stable_baselines3.common.torch_layers import GNNNodeExtractor, GNNEdgeExtractor
 from datetime import datetime
 from pathlib import Path
-from contribs.ev.evsim.envs.cluster_flow_matsim_graph_env import ClusterFlowMatsimGraphEnv
+from evsim.envs.cluster_flow_matsim_graph_env import ClusterFlowMatsimGraphEnv
 class TensorboardCallback(BaseCallback):
     """
     A custom callback for reinforcement learning algorithms that integrates

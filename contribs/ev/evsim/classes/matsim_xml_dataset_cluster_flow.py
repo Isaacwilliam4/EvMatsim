@@ -1,10 +1,13 @@
 import xml.etree.ElementTree as ET
 import shutil
+import random
+import numpy as np
 from pathlib import Path
 from evsim.scripts.util import setup_config
 from bidict import bidict
 from sklearn.cluster import KMeans
-import numpy as np
+from evsim.scripts.util import save_xml, get_str
+import torch
 
 class ClusterFlowMatsimXMLDataset:
     """
@@ -16,6 +19,7 @@ class ClusterFlowMatsimXMLDataset:
         self,
         config_path: Path,
         time_string: str,
+        max_agents: int,
         num_clusters: int,
     ):
         """
@@ -28,8 +32,8 @@ class ClusterFlowMatsimXMLDataset:
             initial_soc (float): Initial state of charge for agents. Default
                 is 0.5.
         """
-        super().__init__(transform=None)
         # The grid with be split into grid_dim x grid_dim clusters
+        self.max_agents = max_agents
         self.num_clusters = num_clusters
         self.clusters = {}
         tmp_dir = Path("/tmp/" + time_string)
@@ -63,7 +67,10 @@ class ClusterFlowMatsimXMLDataset:
             bidict()
         )  #: key: edge attribute name, value: index in edge attribute list
         self.parse_matsim_network()
-        self.flow_tensor = np.random.rand((self.num_clusters, self.num_clusters, 24))
+        self.flow_tensor = torch.rand(24, self.num_clusters, self.num_clusters)
+        self.flow_tensor = self.flow_tensor.reshape(24, -1)
+        self.flow_tensor = torch.softmax(self.flow_tensor, dim=1)
+        self.flow_tensor = self.flow_tensor.reshape(24, self.num_clusters, self.num_clusters).numpy()
 
     def parse_matsim_network(self):
         """
@@ -71,17 +78,19 @@ class ClusterFlowMatsimXMLDataset:
         """
         tree = ET.parse(self.network_xml_path)
         root = tree.getroot()
-        node_coords = []
+        self.node_coords = {}
+        node_coords_list = []
 
         for idx, node in enumerate(root.findall(".//node")):
             node_id = node.get("id")
             self.node_mapping[node_id] = idx
             curr_x = float(node.get("x"))
             curr_y = float(node.get("y"))
-            node_coords.append([curr_x, curr_y])
+            node_coords_list.append([curr_x, curr_y])
+            self.node_coords[node_id] = (curr_x, curr_y)
         
         kmeans = KMeans(n_clusters=self.num_clusters)
-        kmeans.fit(np.array(node_coords))
+        kmeans.fit(np.array(node_coords_list))
 
         for idx, label in enumerate(kmeans.labels_):
             cluster_id = label
@@ -90,6 +99,71 @@ class ClusterFlowMatsimXMLDataset:
             self.clusters[cluster_id].append(idx)
 
         self.clusters = {k: v for k,v in sorted(self.clusters.items(), key=lambda x: x[0])}
+
+    def generate_plans_from_flow_tensor(self):
+        plans = ET.Element("plans", attrib={"xml:lang": "de-CH"})
+        node_ids = list(self.node_coords.keys())
+        person_ids = []
+        person_count = 1
+
+        for hour in range(len(self.flow_tensor)):
+            for cluster1 in range(len(self.flow_tensor[hour])):
+                for cluster2 in range(len(self.flow_tensor[hour:cluster1])):
+                    count = int(self.max_agents*self.flow_tensor[hour][cluster1][cluster2])
+                    for _ in range(count):
+                        origin_node_id = random.choice(
+                            self.clusters[cluster1]
+                        )
+                        dest_node_id = random.choice(
+                            self.clusters[cluster2]
+                        )
+                        origin_node = self.node_coords[origin_node_id]
+                        dest_node = self.node_coords[dest_node_id]
+                        person = ET.SubElement(plans, "person", id=str(person_count))
+                        person_ids.append(person_count)
+                        person_count += 1
+                        plan = ET.SubElement(person, "plan", selected="yes")
+                        start_time = hour
+                        end_time = (start_time + 8) % 24
+                        start_time_str = (
+                            f"0{start_time}:00:00" if start_time < 10 else f"{start_time}:00:00"
+                        )
+                        end_time_str = (
+                            f"0{end_time}:00:00" if end_time < 10 else f"{end_time}:00:00"
+                        )
+                        ET.SubElement(
+                            plan,
+                            "act",
+                            type="h",
+                            x=str(origin_node[0]),
+                            y=str(origin_node[1]),
+                            end_time=start_time_str,
+                        )
+                        ET.SubElement(plan, "leg", mode="car")
+                        ET.SubElement(
+                            plan,
+                            "act",
+                            type="h",
+                            x=str(dest_node[0]),
+                            y=str(dest_node[1]),
+                            start_time=start_time_str,
+                            end_time=end_time_str,
+                        )
+
+        vehicle_tree = create_vehicle_definitions(person_ids, initial_soc)
+        save_xml(vehicle_tree, vehicles_output)
+
+        tree = ET.ElementTree(plans)
+        with open(plans_output, "wb") as f:
+            f.write(b'<?xml version="1.0" ?>\n')
+            f.write(
+                b'<!DOCTYPE plans SYSTEM "http://www.matsim.org/files/dtd/plans_v4.dtd">\n'
+            )
+            tree.write(f)
+
+
+
+
 
     def save_clusters(self, filepath):
 

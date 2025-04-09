@@ -43,6 +43,7 @@ class ClusterFlowMatsimGraphEnv(gym.Env):
         self.dataset = ClusterFlowMatsimXMLDataset(
             self.config_path,
             self.time_string,
+            10000,
             50
         )
 
