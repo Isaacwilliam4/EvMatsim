@@ -8,7 +8,8 @@ from pathlib import Path
 from evsim.scripts.util import setup_config
 from bidict import bidict
 from evsim.scripts.create_population import create_population_and_plans_xml_counts
-
+from sklearn.cluster import KMeans
+import numpy as np
 
 class GridFlowMatsimXMLDataset(Dataset):
     """
@@ -35,7 +36,7 @@ class GridFlowMatsimXMLDataset(Dataset):
         """
         super().__init__(transform=None)
         # The grid with be split into grid_dim x grid_dim clusters
-        self.grid_dim = 6
+        self.num_clusters = 50
         self.cluster_bounds = {}
         self.clusters = {}
 
@@ -148,96 +149,34 @@ class GridFlowMatsimXMLDataset(Dataset):
         min_y = torch.inf
         max_y = -torch.inf
 
-        for i, node in enumerate(root.findall(".//node")):
-            curr_x = float(node.get("x"))
-            curr_y = float(node.get("y"))
-            if curr_x < min_x:
-                min_x = curr_x
-            if curr_x > max_x:
-                max_x = curr_x
-            if curr_y < min_y:
-                min_y = curr_y
-            if curr_y > max_y:
-                max_y = curr_y
+        node_coords = []
 
-        for i in range(self.grid_dim):
-            for j in range(self.grid_dim):
-                cluster_id = (self.grid_dim*i)+j
-                self.cluster_bounds[cluster_id] = \
-                    [
-                        min_x + (max_x - min_x) / self.grid_dim * i,
-                        min_x + (max_x - min_x) / self.grid_dim * (i + 1),
-                        min_y + (max_y - min_y) / self.grid_dim * j,
-                        min_y + (max_y - min_y) / self.grid_dim * (j + 1),
-                    ]
-                self.clusters[cluster_id] = []
-
-        for i, node in enumerate(root.findall(".//node")):
+        for idx, node in enumerate(root.findall(".//node")):
             node_id = node.get("id")
+            self.node_mapping[node_id] = idx
             curr_x = float(node.get("x"))
             curr_y = float(node.get("y"))
-            for cluster_id, bounds in self.cluster_bounds.items():
-                if (
-                    curr_x >= bounds[0]
-                    and curr_x <= bounds[1]
-                    and curr_y >= bounds[2]
-                    and curr_y <= bounds[3]
-                ):
-                    self.clusters[cluster_id].append(node_id)
-                    break
+            node_coords.append([curr_x, curr_y])
+        
+        kmeans = KMeans(n_clusters=self.num_clusters)
+        kmeans.fit(np.array(node_coords))
 
-            matsim_node_ids.append(node_id)
-            node_pos.append([float(node.get("x")), float(node.get("y"))])
-            self.node_mapping[node_id] = i
-            node_ids.append(i)
+        for idx, label in enumerate(kmeans.labels_):
+            cluster_id = label
+            if cluster_id not in self.clusters:
+                self.clusters[cluster_id] = []
+            self.clusters[cluster_id].append(idx)
 
-        tot_attr = len(self.edge_attr_mapping)
+        self.clusters = {k: v for k,v in sorted(self.clusters.items(), key=lambda x: x[0])}
 
-        for i, link in enumerate(root.findall(".//link")):
-            from_node = link.get("from")
-            to_node = link.get("to")
-            from_idx = self.node_mapping[from_node]
-            to_idx = self.node_mapping[to_node]
-            edge_index.append([from_idx, to_idx])
-            curr_link_attr = torch.zeros(tot_attr)
-            self.edge_mapping[link.get("id")] = i
+    def save_clusters(self, filepath):
 
-            for key, value in self.edge_attr_mapping.items():
-                if key in link.attrib:
-                    curr_link_attr[value] = float(link.get(key))
-
-            edge_attr.append(curr_link_attr)
-
-        num_nodes = len(node_ids)
-        node_ids = torch.tensor(node_ids).view(-1, 1)
-        node_probs = torch.rand((num_nodes, 24), dtype=torch.float)
-        node_quantity = torch.softmax(torch.rand_like(node_probs, dtype=torch.float), dim=0)
-        """
-        self.graph.x.shape = (num_nodes, 49), 
-        [:,0] = node ids, 
-        [:,1-24] = node stop probabilities for every hour of the day, 
-        [:,25-49] = node quantities for every hour of the day
-        """
-        self.graph.x = torch.cat([node_ids, node_probs, node_quantity], dim=1)
-        edge_attr = torch.stack(edge_attr)
-        edge_take_probabilities = torch.rand((len(edge_attr[:,0]), 24), dtype=torch.float)
-        self.graph.pos = torch.tensor(node_pos)
-        self.graph.edge_index = torch.tensor(edge_index).t()
-        """ 
-        self.graph.edge_attr.shape = (num_edges, 27)
-        [:,0] = edge length,
-        [:,1] = edge freespeed,
-        [:,2] = edge capacity,
-        [:,3-27] = edge take probabilities for every hour of the day
-        """
-        self.graph.edge_attr = torch.cat((edge_attr, edge_take_probabilities), dim=1)
-        self.linegraph: Data = self.linegraph_transform(self.graph)
-
-        self.graph.edge_attr[:,:3] = self._min_max_normalize(
-            self.graph.edge_attr[:,:3]
-        )
-        self.state = self.graph.edge_attr
-
+        with open(filepath, "w") as f:
+            for cluster_id, nodes in self.clusters.items():
+                f.write(f"{cluster_id}:")
+                for node_idx in nodes:
+                    f.write(f"{self.node_mapping.inverse[node_idx]},")
+                f.write('\n')
 
     def get_graph(self):
         """
