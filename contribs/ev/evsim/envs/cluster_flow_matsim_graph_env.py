@@ -43,17 +43,21 @@ class ClusterFlowMatsimGraphEnv(gym.Env):
         self.dataset = ClusterFlowMatsimXMLDataset(
             self.config_path,
             self.time_string,
-            10000,
-            50
+            1000,
+            10
         )
 
         self.reward: float = 0
         self.best_reward = -np.inf
         
+        """
+        The action represents the log_10 of the quantity of cars leaving every cluster at every hour,
+        we limit it to -1 to 4 or 0.1 (0) to 10000 cars.
+        """
         self.action_space : spaces.Box = spaces.Box(
-            low=0,
-            high=np.inf,
-            shape=(self.dataset.num_clusters, self.dataset.num_clusters, 24)
+            low=-1,
+            high=4,
+            shape=(24, self.dataset.num_clusters, self.dataset.num_clusters)
         )
         
         self.done: bool = False
@@ -61,9 +65,9 @@ class ClusterFlowMatsimGraphEnv(gym.Env):
         self.best_output_response = None
 
         self.observation_space: spaces.Box = spaces.Box(
-            low=0,
-            high=np.inf,
-            shape=(self.dataset.num_clusters, self.dataset.num_clusters, 24)
+            low=-1,
+            high=4,
+            shape=(24, self.dataset.num_clusters, self.dataset.num_clusters, 24)
         )
 
     def save_server_output(self, response, filetype):
@@ -105,7 +109,6 @@ class ClusterFlowMatsimGraphEnv(gym.Env):
             "config": open(self.dataset.config_path, "rb"),
             "network": open(self.dataset.network_xml_path, "rb"),
             "plans": open(self.dataset.plan_xml_path, "rb"),
-            # "vehicles": open(self.dataset.vehicle_xml_path, "rb"),
             "counts": open(self.dataset.counts_xml_path, "rb"),
         }
         response = requests.post(
@@ -141,15 +144,8 @@ class ClusterFlowMatsimGraphEnv(gym.Env):
         Returns:
             tuple: Next state, reward, done flags, and additional info.
         """
-        action_type, action_vals = actions
-        action_vals = torch.from_numpy(action_vals.reshape(-1, 24))
-        if action_type == "quantity":
-            self.dataset.graph.x[:,self.dataset.node_quantity_idx] = action_vals
-        elif action_type == "node_probability":
-            self.dataset.graph.x[:,self.dataset.node_stop_probability_idx] = action_vals
-        elif action_type == "edge_probability":
-            self.dataset.graph.edge_attr[:,self.dataset.edge_take_prob_idx] = action_vals
-
+        self.dataset.flow_tensor = actions
+        self.dataset.generate_plans_from_flow_tensor()
         flow_dist_reward, server_response = self.send_reward_request()
         self.reward = flow_dist_reward
         if self.reward > self.best_reward:
@@ -157,25 +153,12 @@ class ClusterFlowMatsimGraphEnv(gym.Env):
             self.best_output_response = server_response
 
         return (
-            dict(
-            x=self.dataset.graph.x.numpy().astype(np.int32),
-            edge_index=self.dataset.graph.edge_index.numpy().astype(np.int32),
-            edge_attr=self.dataset.graph.edge_attr.numpy().astype(np.float32),
-            ),
+            self.dataset.flow_tensor,
             self.reward,
             self.done,
             self.done,
             dict(graph_env_inst=self),
         )
-    
-
-    def get_ods(self):
-        for hour in range(24):
-            for node in self.dataset.graph.x:
-                node_id = node[0].item()
-                node_quantity = node[self.dataset.node_quantity_idx + hour].item()
-                node_stop_probability = node[self.dataset.node_stop_probability_idx + hour].item()
-                print(f"Node {node_id} Hour {hour}: Quantity = {node_quantity}, Stop Probability = {node_stop_probability}")
     
     def close(self):
         """

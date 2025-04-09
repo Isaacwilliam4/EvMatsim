@@ -67,10 +67,7 @@ class ClusterFlowMatsimXMLDataset:
             bidict()
         )  #: key: edge attribute name, value: index in edge attribute list
         self.parse_matsim_network()
-        self.flow_tensor = torch.rand(24, self.num_clusters, self.num_clusters)
-        self.flow_tensor = self.flow_tensor.reshape(24, -1)
-        self.flow_tensor = torch.softmax(self.flow_tensor, dim=1)
-        self.flow_tensor = self.flow_tensor.reshape(24, self.num_clusters, self.num_clusters).numpy()
+        self.flow_tensor = np.random.rand(24, self.num_clusters, self.num_clusters).astype(np.float32)
 
     def parse_matsim_network(self):
         """
@@ -102,21 +99,22 @@ class ClusterFlowMatsimXMLDataset:
 
     def generate_plans_from_flow_tensor(self):
         plans = ET.Element("plans", attrib={"xml:lang": "de-CH"})
-        node_ids = list(self.node_coords.keys())
         person_ids = []
         person_count = 1
 
-        for hour in range(len(self.flow_tensor)):
-            for cluster1 in range(len(self.flow_tensor[hour])):
-                for cluster2 in range(len(self.flow_tensor[hour:cluster1])):
-                    count = int(self.max_agents*self.flow_tensor[hour][cluster1][cluster2])
+        for hour in range(self.flow_tensor.shape[0]):
+            for cluster1 in range(self.flow_tensor.shape[1]):
+                for cluster2 in range(self.flow_tensor.shape[2]):
+                    count = int(10**self.flow_tensor[hour][cluster1][cluster2])
                     for _ in range(count):
-                        origin_node_id = random.choice(
+                        origin_node_idx = random.choice(
                             self.clusters[cluster1]
                         )
-                        dest_node_id = random.choice(
+                        dest_node_idx = random.choice(
                             self.clusters[cluster2]
                         )
+                        origin_node_id = self.node_mapping.inverse[origin_node_idx]
+                        dest_node_id = self.node_mapping.inverse[dest_node_idx]
                         origin_node = self.node_coords[origin_node_id]
                         dest_node = self.node_coords[dest_node_id]
                         person = ET.SubElement(plans, "person", id=str(person_count))
@@ -150,20 +148,13 @@ class ClusterFlowMatsimXMLDataset:
                             end_time=end_time_str,
                         )
 
-        vehicle_tree = create_vehicle_definitions(person_ids, initial_soc)
-        save_xml(vehicle_tree, vehicles_output)
-
         tree = ET.ElementTree(plans)
-        with open(plans_output, "wb") as f:
+        with open(self.plan_xml_path, "wb") as f:
             f.write(b'<?xml version="1.0" ?>\n')
             f.write(
                 b'<!DOCTYPE plans SYSTEM "http://www.matsim.org/files/dtd/plans_v4.dtd">\n'
             )
             tree.write(f)
-
-
-
-
 
     def save_clusters(self, filepath):
 

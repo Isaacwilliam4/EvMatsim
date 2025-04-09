@@ -55,7 +55,7 @@ import argparse
 import os
 import numpy as np
 import torch
-from stable_baselines3 import MultiActorPPO
+from stable_baselines3 import PPO
 from stable_baselines3.common.vec_env import SubprocVecEnv
 from stable_baselines3.common.callbacks import (
     BaseCallback,
@@ -135,16 +135,6 @@ def main(args: argparse.Namespace):
     save_dir = f"{args.results_dir}/{datetime.now().strftime('%Y%m%d_%H%M%S_%f')}/"
     os.makedirs(save_dir)
 
-    policy_kwargs = dict(net_arch=args.mlp_dims, 
-                         features_extractor_class=
-                         dict(
-                             quantity=GNNNodeExtractor, 
-                             node_probability=GNNNodeExtractor, 
-                             edge_probability=GNNEdgeExtractor
-                             )
-                        )
-    
-
     with open(Path(save_dir, "args.txt"), "w") as f:
         for key, val in args.__dict__.items():
             f.write(f"{key}:{val}\n")
@@ -184,7 +174,7 @@ def main(args: argparse.Namespace):
 
 
     if args.model_path:
-        model = MultiActorPPO.load(
+        model = PPO.load(
             args.model_path,
             env,
             n_steps=args.num_steps,
@@ -193,10 +183,9 @@ def main(args: argparse.Namespace):
             tensorboard_log=save_dir,
             batch_size=args.batch_size,
             learning_rate=args.learning_rate,
-            policy_kwargs=policy_kwargs,    
         )
     else:
-        model = MultiActorPPO(
+        model = PPO(
             args.policy_type,
             env,
             n_steps=args.num_steps,
@@ -206,7 +195,6 @@ def main(args: argparse.Namespace):
             batch_size=args.batch_size,
             learning_rate=args.learning_rate,
             clip_range=args.clip_range,
-            policy_kwargs=policy_kwargs,    
         )
 
     # total_timesteps = n_steps * num_envs * iterations

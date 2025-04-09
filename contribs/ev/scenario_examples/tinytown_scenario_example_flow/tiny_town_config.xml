@@ -1,10 +1,6 @@
 <?xml version="1.0" ?>
 <!DOCTYPE config SYSTEM "http://www.matsim.org/files/dtd/config_v2.dtd">
 <config>
-	<!-- <module name="vehicles">
-        <param name="vehiclesFile" value="tiny_town_evehicles.xml" />
-    </module> -->
-
     <module name="global">
         <param name="randomSeed" value="4711" />
         <param name="coordinateSystem" value="Atlantis" />
