@@ -57,7 +57,7 @@ class ClusterFlowMatsimGraphEnv(gym.Env):
         """
         self.action_space : spaces.Box = spaces.Box(
             low=-1,
-            high=4,
+            high=2,
             shape=(24, self.dataset.num_clusters, self.dataset.num_clusters)
         )
         
@@ -67,7 +67,7 @@ class ClusterFlowMatsimGraphEnv(gym.Env):
 
         self.observation_space: spaces.Box = spaces.Box(
             low=-1,
-            high=4,
+            high=2,
             shape=(24, self.dataset.num_clusters, self.dataset.num_clusters)
         )
 
