@@ -46,6 +46,7 @@ class ClusterFlowMatsimGraphEnv(gym.Env):
             1000,
             10
         )
+        self.dataset.save_clusters(Path(self.save_dir, "clusters.txt"))
 
         self.reward: float = 0
         self.best_reward = -np.inf
