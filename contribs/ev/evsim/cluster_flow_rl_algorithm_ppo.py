@@ -65,7 +65,7 @@ from stable_baselines3.common.callbacks import (
 from stable_baselines3.common.torch_layers import GNNNodeExtractor, GNNEdgeExtractor
 from datetime import datetime
 from pathlib import Path
-from evsim.envs.grid_flow_matsim_graph_env import GridFlowMatsimGraphEnv
+from contribs.ev.evsim.envs.cluster_flow_matsim_graph_env import ClusterFlowMatsimGraphEnv
 class TensorboardCallback(BaseCallback):
     """
     A custom callback for reinforcement learning algorithms that integrates
@@ -97,7 +97,7 @@ class TensorboardCallback(BaseCallback):
         super(TensorboardCallback, self).__init__(verbose)
         self.save_dir = save_dir
         self.best_reward = -np.inf
-        self.best_env: GridFlowMatsimGraphEnv = None
+        self.best_env: ClusterFlowMatsimGraphEnv = None
 
     def _on_step(self) -> bool:
         """
@@ -111,7 +111,7 @@ class TensorboardCallback(BaseCallback):
         avg_reward = 0
 
         for i, infos in enumerate(self.locals["infos"]):
-            env_inst: GridFlowMatsimGraphEnv = infos["graph_env_inst"]
+            env_inst: ClusterFlowMatsimGraphEnv = infos["graph_env_inst"]
             reward = env_inst.reward
             avg_reward += reward
             if reward > self.best_reward:
@@ -158,7 +158,7 @@ def main(args: argparse.Namespace):
         """
 
         return gym.make(
-            "GridFlowMatsimGraphEnv-v0",
+            "ClusterFlowMatsimGraphEnv-v0",
             config_path=args.matsim_config,
             num_agents=args.num_agents,
             save_dir=save_dir

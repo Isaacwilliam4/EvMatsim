@@ -8,14 +8,14 @@ import zipfile
 import pandas as pd
 from abc import abstractmethod
 from gymnasium import spaces
-from evsim.classes.matsim_xml_dataset_grid_flow import GridFlowMatsimXMLDataset
+from evsim.classes.matsim_xml_dataset_cluster_flow import ClusterFlowMatsimXMLDataset
 from datetime import datetime
 from pathlib import Path
 from typing import List
 from filelock import FileLock
 
 1
-class GridFlowMatsimGraphEnv(gym.Env):
+class ClusterFlowMatsimGraphEnv(gym.Env):
     """
     A custom Gymnasium environment for Matsim graph-based simulations.
     """
@@ -40,71 +40,29 @@ class GridFlowMatsimGraphEnv(gym.Env):
         # Initialize the dataset with custom variables
         self.config_path: Path = Path(config_path)
 
-        self.dataset = GridFlowMatsimXMLDataset(
+        self.dataset = ClusterFlowMatsimXMLDataset(
             self.config_path,
             self.time_string,
-            num_agents=self.num_agents,
-            initial_soc=0.5,
+            50
         )
-        self.num_links_reward_scale = -100
+
         self.reward: float = 0
         self.best_reward = -np.inf
-
-        self.quantity_action_space : spaces.Box = spaces.Box(
-            low=0,
-            high=1,
-            shape=(self.dataset.graph.x.shape[0], 24),
-            dtype=np.float32,
-        )
-        self.node_probability_action_space : spaces.Box = spaces.Box(
-            low=0,
-            high=1,
-            shape=(self.dataset.graph.x.shape[0], 24),
-            dtype=np.float32,
-        )
-
-        self.edge_probability_action_space : spaces.Box = spaces.Box(
-            low=0,
-            high=1,
-            shape=(self.dataset.linegraph.x.shape[0], 24),
-            dtype=np.float32,
-        )
-
-        self.action_space : spaces.Dict = spaces.Dict(
-            spaces=dict(
-                quantity=self.quantity_action_space,
-                node_probability=self.node_probability_action_space,
-                edge_probability=self.edge_probability_action_space,
-            )
-        )
         
-        self.x = spaces.Box(
+        self.action_space : spaces.Box = spaces.Box(
             low=0,
             high=np.inf,
-            shape=self.dataset.graph.x.shape,
-            dtype=np.int32,
+            shape=(self.dataset.num_clusters, self.dataset.num_clusters, 24)
         )
-        self.edge_index = self.dataset.graph.edge_index.to(torch.int32)
-        edge_index_np = self.edge_index.numpy()
-        max_edge_index = np.max(edge_index_np) + 1
-        self.edge_index_space = spaces.Box(
-            low=edge_index_np,
-            high=np.full(edge_index_np.shape, max_edge_index),
-            shape=self.edge_index.shape,
-            dtype=np.int32,
-        )
-        self.edge_attr_space = spaces.Box(
-            low=0,
-            high=1,
-            shape=self.dataset.graph.edge_attr.shape,
-            dtype=np.float32,
-        )
+        
         self.done: bool = False
         self.lock_file = Path(self.save_dir, "lockfile.lock")
         self.best_output_response = None
 
-        self.observation_space: spaces.Dict = spaces.Dict(
-            spaces=dict(x=self.x, edge_index=self.edge_index_space, edge_attr=self.edge_attr_space)
+        self.observation_space: spaces.Box = spaces.Box(
+            low=0,
+            high=np.inf,
+            shape=(self.dataset.num_clusters, self.dataset.num_clusters, 24)
         )
 
     def save_server_output(self, response, filetype):
@@ -169,11 +127,7 @@ class GridFlowMatsimGraphEnv(gym.Env):
             np.ndarray: Initial state of the environment.
             dict: Additional information.
         """
-        return dict(
-            x=self.dataset.graph.x.numpy().astype(np.int32),
-            edge_index=self.dataset.graph.edge_index.numpy().astype(np.int32),
-            edge_attr=self.dataset.graph.edge_attr.numpy().astype(np.float32),
-        ), dict(info="info")
+        return self.dataset.flow_tensor, dict(info="info")
 
 
     def step(self, actions):
