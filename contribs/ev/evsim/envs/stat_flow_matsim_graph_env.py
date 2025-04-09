@@ -213,6 +213,15 @@ class StatFlowMatsimGraphEnv(gym.Env):
             dict(graph_env_inst=self),
         )
     
+
+    def get_ods(self):
+        for hour in range(24):
+            for node in self.dataset.graph.x:
+                node_id = node[0].item()
+                node_quantity = node[self.dataset.node_quantity_idx + hour].item()
+                node_stop_probability = node[self.dataset.node_stop_probability_idx + hour].item()
+                print(f"Node {node_id} Hour {hour}: Quantity = {node_quantity}, Stop Probability = {node_stop_probability}")
+    
     def close(self):
         """
         Clean up resources used by the environment.

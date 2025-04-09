@@ -35,6 +35,7 @@ class StatFlowMatsimXMLDataset(Dataset):
         """
         super().__init__(transform=None)
 
+        self.max_agents = 10000
         self.node_id_idx = 0
         self.node_stop_probability_idx = slice(1, 25)
         self.node_quantity_idx = slice(25, 49)
