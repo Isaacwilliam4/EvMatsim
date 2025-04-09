@@ -67,7 +67,7 @@ class ClusterFlowMatsimGraphEnv(gym.Env):
         self.observation_space: spaces.Box = spaces.Box(
             low=-1,
             high=4,
-            shape=(24, self.dataset.num_clusters, self.dataset.num_clusters, 24)
+            shape=(24, self.dataset.num_clusters, self.dataset.num_clusters)
         )
 
     def save_server_output(self, response, filetype):
