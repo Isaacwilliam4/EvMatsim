@@ -78,16 +78,4 @@ SensorID,NodeID,Latitude,Longitude,TransformedX,TransformedY,Distance
 ```
 
 
-### CheckCoordinates.java Checking Transformed Coordinates in the Network
-- **Description**: A new function, `CheckCoordinates`, was added to verify whether the transformed coordinates (`TransformedX` and `TransformedY`) from the `combined_coordinates.csv` file appear in the `utahevnetwork.xml` file.
-- **Usage**:
-  - Run the `CheckCoordinates` program to compare the transformed coordinates against the network XML file.
-  - Example output: Prints whether each coordinate pair was found or not.
-
-### ElevationFetcher.java Fetching Elevation Data
-- **Description**: The `ElevationFetcher` function retrieves elevation data for the original sensor coordinates. This data can be used to calculate slopes or enrich the network with elevation information.
-- **Usage**:
-  - The function fetches elevation data for each sensor and integrates it into the workflow.
-  - Example output: Elevation data is added to the sensor data structure or written to a CSV file.
-
 ---

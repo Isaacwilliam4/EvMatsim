@@ -118,11 +118,8 @@ public class Osm2matsim {
                     double nodeLat = node.getCoord().getY(); // Latitude
                     double nodeLon = node.getCoord().getX(); // Longitude
 
-                    // Calculate Euclidean distance
-                    double distance = CoordUtils.calcEuclideanDistance(
-                        new org.matsim.api.core.v01.Coord(sensorLon, sensorLat),
-                        new org.matsim.api.core.v01.Coord(nodeLon, nodeLat)
-                    );
+                    // Calculate Haversine distance
+                    double distance = haversineDistance(sensorLat, sensorLon, nodeLat, nodeLon);
 
                     // Find the closest node
                     if (distance < minDistance) {
@@ -208,8 +205,12 @@ public class Osm2matsim {
             String closestLinkId = null;
     
             for (Link link : network.getLinks().values()) {
-                double distance = CoordUtils.calcEuclideanDistance(sensorCoord, link.getCoord());
-    
+                double linkLat = link.getCoord().getY(); // Latitude
+                double linkLon = link.getCoord().getX(); // Longitude
+            
+                // Calculate Haversine distance
+                double distance = haversineDistance(sensorCoord.getY(), sensorCoord.getX(), linkLat, linkLon);
+            
                 // Only assign if the link ID hasn't been used yet
                 if (distance < minDistance && !usedLinkIds.contains(link.getId().toString())) {
                     minDistance = distance;
@@ -289,6 +290,30 @@ public class Osm2matsim {
     
         System.out.println("Counts XML successfully written to: " + file.getAbsolutePath());
     }
+
+    private static double haversineDistance(double lat1, double lon1, double lat2, double lon2) {
+        final int EARTH_RADIUS = 6371000; // Radius of the Earth in meters
+    
+        // Convert latitude and longitude from degrees to radians
+        double lat1Rad = Math.toRadians(lat1);
+        double lon1Rad = Math.toRadians(lon1);
+        double lat2Rad = Math.toRadians(lat2);
+        double lon2Rad = Math.toRadians(lon2);
+    
+        // Calculate the differences
+        double deltaLat = lat2Rad - lat1Rad;
+        double deltaLon = lon2Rad - lon1Rad;
+    
+        // Apply the Haversine formula
+        double a = Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2) +
+                   Math.cos(lat1Rad) * Math.cos(lat2Rad) *
+                   Math.sin(deltaLon / 2) * Math.sin(deltaLon / 2);
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    
+        // Calculate the distance
+        return EARTH_RADIUS * c;
+    }
+
 
 }
 
