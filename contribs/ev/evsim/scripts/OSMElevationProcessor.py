@@ -164,10 +164,10 @@ class ElevationProcessor:
                     slope = elev_diff / distance
                     
                     # Calculate slope as a percentage
-                    slope_percent = slope * 100
+                    slope_percent = slope# * 100 # Convert to percentage if needed
                     
                     # Add slope directly as an attribute to the link element
-                    link.set("slope", f"{slope_percent:.6f}")
+                    link.set("slopes", f"{slope_percent:.6f}")
                     
                     slopes_calculated += 1
             else:
