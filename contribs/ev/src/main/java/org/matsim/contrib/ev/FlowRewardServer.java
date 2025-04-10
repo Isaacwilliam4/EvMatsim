@@ -180,7 +180,7 @@ public class FlowRewardServer {
                 double reward = 0;
 
                 if (totRecords > 1){
-                    reward = Math.exp(-totDistributionDiff);
+                    reward = 1 / (1 + Math.log10(totDistributionDiff + 1));
                     response.put("reward", Double.toString(reward));
                     if (reward > getBestReward()){
                         setBestReward(reward);

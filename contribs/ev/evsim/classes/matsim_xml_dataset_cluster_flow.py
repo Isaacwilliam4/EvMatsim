@@ -55,6 +55,7 @@ class ClusterFlowMatsimXMLDataset:
         self.plan_xml_path = Path(tmp_dir / plans_file_name) if plans_file_name else None
         self.vehicle_xml_path = Path(tmp_dir / vehicles_file_name) if vehicles_file_name else None
         self.counts_xml_path = Path(tmp_dir / counts_file_name) if counts_file_name else None
+        self.error_path = Path(tmp_dir / "errors.txt")
 
         self.node_mapping: bidict[str, int] = (
             bidict()
@@ -68,6 +69,16 @@ class ClusterFlowMatsimXMLDataset:
         )  #: key: edge attribute name, value: index in edge attribute list
         self.parse_matsim_network()
         self.flow_tensor = np.random.rand(24, self.num_clusters, self.num_clusters).astype(np.float32)
+
+    def write_to_error_log(self, message: str):
+        """
+        Writes an error message to the error log.
+
+        Args:
+            message (str): The error message to log.
+        """
+        with open(self.error_path, "a") as f:
+            f.write(f"{message}\n")
 
     def parse_matsim_network(self):
         """

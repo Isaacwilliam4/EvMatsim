@@ -145,21 +145,31 @@ class ClusterFlowMatsimGraphEnv(gym.Env):
         Returns:
             tuple: Next state, reward, done flags, and additional info.
         """
-        self.dataset.flow_tensor = actions
-        self.dataset.generate_plans_from_flow_tensor()
-        flow_dist_reward, server_response = self.send_reward_request()
-        self.reward = flow_dist_reward
-        if self.reward > self.best_reward:
-            self.best_reward = self.reward
-            self.best_output_response = server_response
+        try:
+            self.dataset.flow_tensor = actions
+            self.dataset.generate_plans_from_flow_tensor()
+            flow_dist_reward, server_response = self.send_reward_request()
+            self.reward = flow_dist_reward
+            if self.reward > self.best_reward:
+                self.best_reward = self.reward
+                self.best_output_response = server_response
 
-        return (
-            self.dataset.flow_tensor,
-            self.reward,
-            self.done,
-            self.done,
-            dict(graph_env_inst=self),
-        )
+            return (
+                self.dataset.flow_tensor,
+                self.reward,
+                self.done,
+                self.done,
+                dict(graph_env_inst=self),
+            )
+        except Exception as e:
+            self.dataset.write_to_error_log(f"Error in step: {str(e)}")
+            return (
+                self.dataset.flow_tensor,
+                -np.inf,
+                True,
+                True,
+                dict(graph_env_inst=self),
+            )
     
     def close(self):
         """
