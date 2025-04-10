@@ -293,6 +293,13 @@ if __name__ == "__main__":
         help="The policy type to use for the PPO algorithm.",
     )
 
+    parser.add_argument(
+        "--num_clusters",
+        default=50,
+        type=int,
+        help="The number of clusters to dived the road network for OD optimization.",
+    )
+
     parser.print_help()
     args = parser.parse_args()
     args.mlp_dims = [int(x) for x in args.mlp_dims.split(" ")]

@@ -20,7 +20,7 @@ class ClusterFlowMatsimGraphEnv(gym.Env):
     A custom Gymnasium environment for Matsim graph-based simulations.
     """
 
-    def __init__(self, config_path, num_agents=100, save_dir=None):
+    def __init__(self, config_path, num_agents=100, save_dir=None, num_clusters=50):
         """
         Initialize the environment.
 
@@ -43,8 +43,7 @@ class ClusterFlowMatsimGraphEnv(gym.Env):
         self.dataset = ClusterFlowMatsimXMLDataset(
             self.config_path,
             self.time_string,
-            1000,
-            10
+            num_clusters=num_clusters
         )
         self.dataset.save_clusters(Path(self.save_dir, "clusters.txt"))
 
@@ -53,7 +52,7 @@ class ClusterFlowMatsimGraphEnv(gym.Env):
         
         """
         The action represents the log_10 of the quantity of cars leaving every cluster at every hour,
-        we limit it to -1 to 4 or 0.1 (0) to 10000 cars.
+        we limit it to -1 to 2 or 0.1 (0) to 100 cars per cluster per hour.
         """
         self.action_space : spaces.Box = spaces.Box(
             low=-1,

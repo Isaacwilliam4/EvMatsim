@@ -19,7 +19,6 @@ class ClusterFlowMatsimXMLDataset:
         self,
         config_path: Path,
         time_string: str,
-        max_agents: int,
         num_clusters: int,
     ):
         """
@@ -33,7 +32,6 @@ class ClusterFlowMatsimXMLDataset:
                 is 0.5.
         """
         # The grid with be split into grid_dim x grid_dim clusters
-        self.max_agents = max_agents
         self.num_clusters = num_clusters
         self.clusters = {}
         tmp_dir = Path("/tmp/" + time_string)
