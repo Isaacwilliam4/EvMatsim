@@ -33,6 +33,7 @@ class FlowSimEnv(gym.Env):
         # Initialize the dataset with custom variables
         self.config_path: Path = Path(config_path)
         self.counts_path: Path = Path(counts_path)
+        self.error_path: Path = Path(self.save_dir, "errors")
         self.num_clusters = num_clusters
 
         self.dataset = FlowSimDataset(
@@ -64,33 +65,6 @@ class FlowSimEnv(gym.Env):
             shape=(24, self.dataset.num_clusters, self.dataset.num_clusters)
         )
 
-    def save_server_output(self, response, filetype):
-        """
-        Save server output to a zip file and extract its contents.
-
-        Args:
-            response (requests.Response): Server response object.
-            filetype (str): Type of file to save.
-        """
-        zip_filename = Path(self.save_dir, f"{filetype}.zip")
-        extract_folder = Path(self.save_dir, filetype)
-
-        # Use a lock to prevent simultaneous access
-        lock = FileLock(self.lock_file)
-
-        with lock:
-            # Save the zip file
-            with open(zip_filename, "wb") as f:
-                f.write(response.content)
-
-            print(f"Saved zip file: {zip_filename}")
-
-            # Extract the zip file
-            with zipfile.ZipFile(zip_filename, "r") as zip_ref:
-                zip_ref.extractall(extract_folder)
-
-            print(f"Extracted files to: {extract_folder}")
-
     def reset(self, **kwargs):
         """
         Reset the environment to its initial state.
@@ -107,20 +81,17 @@ class FlowSimEnv(gym.Env):
         for hour in range(actions.shape[0]):
             for cluster1 in range(actions.shape[1]):
                 for cluster2 in range(actions.shape[2]):
-                    count = int(10**self.flow_tensor[hour][cluster1][cluster2])
-                    for _ in count:
-                        origin_node_idx = random.choice(
-                            self.dataset.clusters[cluster1]
-                        )
-                        dest_node_idx = random.choice(
-                            self.dataset.clusters[cluster2]
-                        )
-                        path = nx.shortest_path(self.dataset.target_graph, origin_node_idx, dest_node_idx, backend="cugraph")
-                        print(path)
-        
-
-
-
+                    if cluster1 != cluster2:
+                        count = int(10**actions[hour][cluster1][cluster2])
+                        for _ in range(count):
+                            origin_node_idx = random.choice(
+                                self.dataset.clusters[cluster1]
+                            )
+                            dest_node_idx = random.choice(
+                                self.dataset.clusters[cluster2]
+                            )
+                            path = nx.shortest_path(self.dataset.target_graph, origin_node_idx, dest_node_idx, backend="cugraph")
+                            print(path)
 
     def step(self, actions):
         """
@@ -134,12 +105,9 @@ class FlowSimEnv(gym.Env):
         """
         try:
             self.dataset.flow_tensor = actions
-            self.dataset.generate_plans_from_flow_tensor()
-            flow_dist_reward, server_response = self.send_reward_request()
-            self.reward = flow_dist_reward
+            self.reward = self.compute_reward(actions)
             if self.reward > self.best_reward:
                 self.best_reward = self.reward
-                self.best_output_response = server_response
 
             return (
                 self.dataset.flow_tensor,
@@ -149,7 +117,7 @@ class FlowSimEnv(gym.Env):
                 dict(graph_env_inst=self),
             )
         except Exception as e:
-            self.dataset.write_to_error_log(f"Error in step: {str(e)}")
+            self.write_to_error(f"Error in step: {str(e)}")
             return (
                 self.dataset.flow_tensor,
                 -np.inf,
@@ -165,4 +133,9 @@ class FlowSimEnv(gym.Env):
         This method is optional and can be customized.
         """
         shutil.rmtree(self.dataset.config_path.parent)
+
+    def write_to_error(self, message):
+        with open(self.error_path, "a") as f:
+            f.write(message)
+
 

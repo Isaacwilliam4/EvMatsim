@@ -46,6 +46,7 @@ class FlowSimDataset:
         )  #: key: edge attribute name, value: index in edge attribute list
         self.target_graph: Data = Data()
         self.parse_network()
+        self.flow_tensor = torch.rand(24, num_clusters, num_clusters)
 
     def len(self):
         """
@@ -83,7 +84,7 @@ class FlowSimDataset:
         edge_attr = []
         node_coords_list = []
         self.node_coords = {}
-
+        self.clusters = {}
 
         network_tree = ET.parse(self.network_path)
         network_root = network_tree.getroot()
@@ -128,7 +129,7 @@ class FlowSimDataset:
         self.target_graph.x = torch.tensor(node_ids).view(-1, 1)
         self.target_graph.pos = torch.tensor(node_pos)
         self.target_graph.edge_index = torch.tensor(edge_index).t()
-        self.target_graph.edge_attr = torch.stack(edge_attr)
+        self.target_graph.edge_attr = torch.tensor(edge_attr)
         self.state = self.target_graph.edge_attr
 
         kmeans = KMeans(n_clusters=self.num_clusters)

@@ -62,10 +62,9 @@ from stable_baselines3.common.callbacks import (
     CheckpointCallback,
     CallbackList,
 )
-from stable_baselines3.common.torch_layers import GNNNodeExtractor, GNNEdgeExtractor
 from datetime import datetime
 from pathlib import Path
-from evsim.envs.cluster_flow_matsim_graph_env import ClusterFlowMatsimGraphEnv
+from evsim.envs.flow_matsim_graph_env import FlowMatsimGraphEnv
 class TensorboardCallback(BaseCallback):
     """
     A custom callback for reinforcement learning algorithms that integrates
@@ -97,7 +96,7 @@ class TensorboardCallback(BaseCallback):
         super(TensorboardCallback, self).__init__(verbose)
         self.save_dir = save_dir
         self.best_reward = -np.inf
-        self.best_env: ClusterFlowMatsimGraphEnv = None
+        self.best_env: FlowMatsimGraphEnv = None
 
     def _on_step(self) -> bool:
         """
@@ -111,15 +110,12 @@ class TensorboardCallback(BaseCallback):
         avg_reward = 0
 
         for i, infos in enumerate(self.locals["infos"]):
-            env_inst: ClusterFlowMatsimGraphEnv = infos["graph_env_inst"]
+            env_inst: FlowMatsimGraphEnv = infos["graph_env_inst"]
             reward = env_inst.reward
             avg_reward += reward
             if reward > self.best_reward:
                 self.best_env = env_inst
                 self.best_reward = self.best_env.best_reward
-                self.best_env.save_server_output(
-                    self.best_env.best_output_response, "bestoutput"
-                )
 
         self.logger.record("Avg Reward", (avg_reward / (i + 1)))
         self.logger.record("Best Reward", self.best_reward)
@@ -151,8 +147,9 @@ def main(args: argparse.Namespace):
         """
 
         return gym.make(
-            "ClusterFlowMatsimGraphEnv-v0",
+            "FlowSimEnv-v0",
             config_path=args.matsim_config,
+            counts_path=args.counts_path,
             save_dir=save_dir,
             num_clusters=args.num_clusters,
         )
@@ -212,6 +209,9 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "matsim_config", type=str, help="Path to the matsim config.xml file."
+    )
+    parser.add_argument(
+        "counts_path", type=str, help="Path to the matsim counts.xml file."
     )
     parser.add_argument(
         "--num_timesteps",
