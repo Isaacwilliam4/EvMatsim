@@ -78,6 +78,11 @@ class FlowSimEnv(gym.Env):
 
     def compute_reward(self, actions):
         result = torch.zeros(self.dataset.target_graph.edge_attr.shape)
+        nx_graph = nx.DiGraph()
+        nx_graph.add_nodes_from(self.dataset.target_graph.x.flatten().tolist())
+        nx_graph.add_edges_from(self.dataset.target_graph.edge_index.t().tolist())
+        import time
+        start = time.time()
         for hour in range(actions.shape[0]):
             for cluster1 in range(actions.shape[1]):
                 for cluster2 in range(actions.shape[2]):
@@ -90,8 +95,18 @@ class FlowSimEnv(gym.Env):
                             dest_node_idx = random.choice(
                                 self.dataset.clusters[cluster2]
                             )
-                            path = nx.shortest_path(self.dataset.target_graph, origin_node_idx, dest_node_idx, backend="cugraph")
-                            print(path)
+                            path = nx.shortest_path(nx_graph, origin_node_idx, dest_node_idx)
+                            result[path, hour] += 1
+
+        res = 1 / (torch.log(((result[self.dataset.sensor_idxs, :] - 
+                      self.dataset.target_graph.edge_attr[self.dataset.sensor_idxs, :])**2).sum() + 1) + 1)
+        end = time.time()
+
+        print(f"Reward computed in {end-start} s")
+
+        return res
+        
+
 
     def step(self, actions):
         """
@@ -103,28 +118,19 @@ class FlowSimEnv(gym.Env):
         Returns:
             tuple: Next state, reward, done flags, and additional info.
         """
-        try:
-            self.dataset.flow_tensor = actions
-            self.reward = self.compute_reward(actions)
-            if self.reward > self.best_reward:
-                self.best_reward = self.reward
+        self.dataset.flow_tensor = actions
+        self.reward = self.compute_reward(actions)
+        if self.reward > self.best_reward:
+            self.best_reward = self.reward
 
-            return (
-                self.dataset.flow_tensor,
-                self.reward,
-                self.done,
-                self.done,
-                dict(graph_env_inst=self),
-            )
-        except Exception as e:
-            self.write_to_error(f"Error in step: {str(e)}")
-            return (
-                self.dataset.flow_tensor,
-                -np.inf,
-                True,
-                True,
-                dict(graph_env_inst=self),
-            )
+        return (
+            self.dataset.flow_tensor,
+            self.reward,
+            self.done,
+            self.done,
+            dict(graph_env_inst=self),
+        )
+
     
     def close(self):
         """

@@ -143,6 +143,8 @@ class FlowSimDataset:
             self.clusters[cluster_id].append(idx)
 
         self.clusters = {k: v for k,v in sorted(self.clusters.items(), key=lambda x: x[0])}
+        self.sensor_idxs = [self.edge_mapping[edge_id] for edge_id in sensor_flows.keys()]
+
 
     def save_clusters(self, filepath):
         with open(filepath, "w") as f:
