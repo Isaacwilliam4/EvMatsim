@@ -65,6 +65,9 @@ from stable_baselines3.common.callbacks import (
 from datetime import datetime
 from pathlib import Path
 from evsim.envs.flow_matsim_graph_env import FlowMatsimGraphEnv
+from multiprocessing import Manager
+
+
 class TensorboardCallback(BaseCallback):
     """
     A custom callback for reinforcement learning algorithms that integrates
@@ -213,6 +216,8 @@ if __name__ == "__main__":
     parser.add_argument(
         "counts_path", type=str, help="Path to the matsim counts.xml file."
     )
+    parser.add_argument("--shortest_paths", type=str, help="Path to pickled dictionary that contains the shortest paths\
+                        between every node, if none is given, one will be created")
     parser.add_argument(
         "--num_timesteps",
         type=int,

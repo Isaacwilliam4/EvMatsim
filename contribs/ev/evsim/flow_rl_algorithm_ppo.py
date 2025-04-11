@@ -64,7 +64,8 @@ from stable_baselines3.common.callbacks import (
 )
 from datetime import datetime
 from pathlib import Path
-from evsim.envs.flow_matsim_graph_env import FlowMatsimGraphEnv
+from evsim.envs.flowsim_env import FlowSimEnv
+from multiprocessing import Manager
 
 class TensorboardCallback(BaseCallback):
     """
@@ -97,7 +98,7 @@ class TensorboardCallback(BaseCallback):
         super(TensorboardCallback, self).__init__(verbose)
         self.save_dir = save_dir
         self.best_reward = -np.inf
-        self.best_env: FlowMatsimGraphEnv = None
+        self.best_env: FlowSimEnv = None
 
     def _on_step(self) -> bool:
         """
@@ -111,7 +112,7 @@ class TensorboardCallback(BaseCallback):
         avg_reward = 0
 
         for i, infos in enumerate(self.locals["infos"]):
-            env_inst: FlowMatsimGraphEnv = infos["graph_env_inst"]
+            env_inst: FlowSimEnv = infos["graph_env_inst"]
             reward = env_inst.reward
             avg_reward += reward
             if reward > self.best_reward:
@@ -227,6 +228,7 @@ if __name__ == "__main__":
         help="Total number of timesteps to train. \
                         num_timesteps = n_steps * num_envs * iterations.",
     )
+
     parser.add_argument(
         "--num_envs",
         type=int,

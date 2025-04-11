@@ -11,6 +11,7 @@ from filelock import FileLock
 import networkx as nx
 import random
 
+
 class FlowSimEnv(gym.Env):
     """
     A custom Gymnasium environment for Matsim graph-based simulations.
@@ -65,7 +66,8 @@ class FlowSimEnv(gym.Env):
             shape=(24, self.dataset.num_clusters, self.dataset.num_clusters)
         )
 
-        self.shortest_paths: dict[tuple, list] = dict()
+        self.shortest_paths = dict()
+        
 
     def reset(self, **kwargs):
         """
@@ -75,7 +77,7 @@ class FlowSimEnv(gym.Env):
             np.ndarray: Initial state of the environment.
             dict: Additional information.
         """
-        return self.dataset.flow_tensor, dict(info="info")
+        return self.dataset.flow_tensor.numpy(), dict(info="info")
 
 
     def compute_reward(self, actions):

@@ -6,6 +6,7 @@ from pathlib import Path
 from bidict import bidict
 import numpy as np
 from sklearn.cluster import KMeans
+import networkx as nx
 
 class FlowSimDataset:
     """
@@ -153,6 +154,7 @@ class FlowSimDataset:
                 for node_idx in nodes:
                     f.write(f"{self.node_mapping.inverse[node_idx]},")
                 f.write('\n')
+
 
 if __name__ == "__main__":
     n_path = "/home/isaacp/repos/EvMatsim/contribs/ev/scenario_examples/tinytown_scenario_example_flow/tiny_town_network.xml"
