@@ -153,8 +153,8 @@ def main(args: argparse.Namespace):
         return gym.make(
             "ClusterFlowMatsimGraphEnv-v0",
             config_path=args.matsim_config,
-            num_agents=args.num_agents,
-            save_dir=save_dir
+            save_dir=save_dir,
+            num_clusters=args.num_clusters,
         )
 
     env = SubprocVecEnv([make_env for _ in range(args.num_envs)])
@@ -182,7 +182,7 @@ def main(args: argparse.Namespace):
             env,
             n_steps=args.num_steps,
             verbose=1,
-            device="cpu",
+            device=args.device,
             tensorboard_log=save_dir,
             batch_size=args.batch_size,
             learning_rate=args.learning_rate,
@@ -193,7 +193,7 @@ def main(args: argparse.Namespace):
             env,
             n_steps=args.num_steps,
             verbose=1,
-            device="cpu",
+            device=args.device,
             tensorboard_log=save_dir,
             batch_size=args.batch_size,
             learning_rate=args.learning_rate,
@@ -297,7 +297,14 @@ if __name__ == "__main__":
         "--num_clusters",
         default=50,
         type=int,
-        help="The number of clusters to dived the road network for OD optimization.",
+        help="The number of clusters to divide the road network for OD optimization.",
+    )
+
+    parser.add_argument(
+        "--device",
+        default="cuda:0",
+        type=str,
+        help="The device to run the MLP on",
     )
 
     parser.print_help()

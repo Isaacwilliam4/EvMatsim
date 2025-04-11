@@ -1,3 +1,9 @@
+# Running Cluser flow optimization
+
+
+
+
+
 # WARNING
 I state this at the end because I wasted several hours trying to figure out this problem. Formatting the xml files with a pretty formatter of 
 some sort can make the the xml files UNUSABLE for matsim. Your best bet is to remove all new lines and let the xml interpreter interpret the xml

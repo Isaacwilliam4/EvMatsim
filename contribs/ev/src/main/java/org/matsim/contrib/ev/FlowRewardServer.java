@@ -115,10 +115,11 @@ public class FlowRewardServer {
     @SuppressWarnings("unchecked")
     public void processRequest() {
         while (!Thread.currentThread().isInterrupted()) {
+            HttpExchange exchange = null;
             try {
                 System.out.println(Thread.currentThread().getName() + " Waiting for request...");
                 RequestData data = this.requestQueue.take();
-                HttpExchange exchange = data.getExchange();
+                exchange = data.getExchange();
                 Path configPath = data.getFilePath();
                 System.out.println("Processing request for config file: " +
                  configPath + " with thread: " + Thread.currentThread().getName());
@@ -159,20 +160,17 @@ public class FlowRewardServer {
                 double totDistributionDiff = 0.0;
                 int totRecords = 0;
 
-                try (Reader reader = new FileReader(csvPath.toString())) {
-                    Iterable<CSVRecord> records = CSVFormat.DEFAULT
-                            .withFirstRecordAsHeader()
-                            .parse(reader);
-                    //Columns: Link Id	Count Station Id	Hour	MATSIM volumes	Count volumes	Relative Error	Normalized Relative Error	GEH
-                    for (CSVRecord record : records) {
-                        String[] vals = record.values()[0].split("\t");
-                        var matsimVolume = Double.parseDouble(vals[3]);
-                        var countVolume = Double.parseDouble(vals[4]);
-                        totDistributionDiff += Math.abs(matsimVolume - countVolume);
-                        totRecords += 1;
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
+                Reader reader = new FileReader(csvPath.toString());
+                Iterable<CSVRecord> records = CSVFormat.DEFAULT
+                        .withFirstRecordAsHeader()
+                        .parse(reader);
+                //Columns: Link Id	Count Station Id	Hour	MATSIM volumes	Count volumes	Relative Error	Normalized Relative Error	GEH
+                for (CSVRecord record : records) {
+                    String[] vals = record.values()[0].split("\t");
+                    var matsimVolume = Double.parseDouble(vals[3]);
+                    var countVolume = Double.parseDouble(vals[4]);
+                    totDistributionDiff += Math.abs(matsimVolume - countVolume);
+                    totRecords += 1;
                 }
 
                 JSONObject response = new JSONObject();
@@ -209,11 +207,15 @@ public class FlowRewardServer {
                     OutputStream os = exchange.getResponseBody();
                     os.write(zipContent);
                 }
-                exchange.close();
                 FileUtils.deleteDirectory(configPath.getParent().toFile());
                 System.out.println("Folder and subdirectories deleted successfully.");
             } catch (Exception e) {
                 e.printStackTrace();
+            }
+            finally{
+                if (exchange != null){
+                    exchange.close();
+                }
             }
         }
     }

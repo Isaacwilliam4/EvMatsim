@@ -20,7 +20,7 @@ class ClusterFlowMatsimGraphEnv(gym.Env):
     A custom Gymnasium environment for Matsim graph-based simulations.
     """
 
-    def __init__(self, config_path, num_agents=100, save_dir=None, num_clusters=50):
+    def __init__(self, config_path, save_dir=None, num_clusters=50):
         """
         Initialize the environment.
 
@@ -33,9 +33,6 @@ class ClusterFlowMatsimGraphEnv(gym.Env):
         self.save_dir = save_dir
         current_time = datetime.now()
         self.time_string = current_time.strftime("%Y%m%d_%H%M%S_%f")
-        if num_agents < 0:
-            num_agents = None
-        self.num_agents = num_agents
 
         # Initialize the dataset with custom variables
         self.config_path: Path = Path(config_path)
