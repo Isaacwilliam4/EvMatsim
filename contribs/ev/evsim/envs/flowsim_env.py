@@ -65,6 +65,8 @@ class FlowSimEnv(gym.Env):
             shape=(24, self.dataset.num_clusters, self.dataset.num_clusters)
         )
 
+        self.shortest_paths: dict[tuple, list] = dict()
+
     def reset(self, **kwargs):
         """
         Reset the environment to its initial state.
@@ -81,8 +83,6 @@ class FlowSimEnv(gym.Env):
         nx_graph = nx.DiGraph()
         nx_graph.add_nodes_from(self.dataset.target_graph.x.flatten().tolist())
         nx_graph.add_edges_from(self.dataset.target_graph.edge_index.t().tolist())
-        import time
-        start = time.time()
         for hour in range(actions.shape[0]):
             for cluster1 in range(actions.shape[1]):
                 for cluster2 in range(actions.shape[2]):
@@ -95,17 +95,17 @@ class FlowSimEnv(gym.Env):
                             dest_node_idx = random.choice(
                                 self.dataset.clusters[cluster2]
                             )
-                            path = nx.shortest_path(nx_graph, origin_node_idx, dest_node_idx)
+                            node_pair = (origin_node_idx, dest_node_idx)
+                            if node_pair not in self.shortest_paths:
+                                path = nx.shortest_path(nx_graph, origin_node_idx, dest_node_idx)
+                                self.shortest_paths[node_pair] = path
+                            else:
+                                path = self.shortest_paths[node_pair]
                             result[path, hour] += 1
 
         res = 1 / (torch.log(((result[self.dataset.sensor_idxs, :] - 
                       self.dataset.target_graph.edge_attr[self.dataset.sensor_idxs, :])**2).sum() + 1) + 1)
-        end = time.time()
-
-        print(f"Reward computed in {end-start} s")
-
-        return res
-        
+        return res.item()
 
 
     def step(self, actions):
