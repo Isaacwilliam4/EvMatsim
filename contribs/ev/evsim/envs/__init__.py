@@ -24,3 +24,8 @@ register(
     id="ClusterFlowMatsimGraphEnv-v0", 
     entry_point="evsim.envs.cluster_flow_matsim_graph_env:ClusterFlowMatsimGraphEnv",
 )
+
+register(
+    id="FlowSimEnv-v0", 
+    entry_point="evsim.envs.flowsim_env:FlowSimEnv",
+)
