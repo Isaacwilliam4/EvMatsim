@@ -33,6 +33,7 @@ class FlowSimDataset:
         """
         self.network_path = Path(network_path)
         self.sensor_path = Path(counts_path)
+        self.plan_output_path = Path()
         self.num_clusters = num_clusters
 
         self.node_mapping: bidict[str, int] = (
@@ -154,6 +155,7 @@ class FlowSimDataset:
                 for node_idx in nodes:
                     f.write(f"{self.node_mapping.inverse[node_idx]},")
                 f.write('\n')
+
 
 
 if __name__ == "__main__":

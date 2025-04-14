@@ -14,7 +14,6 @@ from pathlib import Path
 from typing import List
 from filelock import FileLock
 
-1
 class ClusterFlowMatsimGraphEnv(gym.Env):
     """
     A custom Gymnasium environment for Matsim graph-based simulations.

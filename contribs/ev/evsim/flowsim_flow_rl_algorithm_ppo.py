@@ -64,7 +64,7 @@ from stable_baselines3.common.callbacks import (
 )
 from datetime import datetime
 from pathlib import Path
-from evsim.envs.flow_matsim_graph_env import FlowMatsimGraphEnv
+from evsim.envs.flowsim_env import FlowSimEnv
 from multiprocessing import Manager
 
 
@@ -99,7 +99,7 @@ class TensorboardCallback(BaseCallback):
         super(TensorboardCallback, self).__init__(verbose)
         self.save_dir = save_dir
         self.best_reward = -np.inf
-        self.best_env: FlowMatsimGraphEnv = None
+        self.best_env: FlowSimEnv = None
 
     def _on_step(self) -> bool:
         """
@@ -113,12 +113,13 @@ class TensorboardCallback(BaseCallback):
         avg_reward = 0
 
         for i, infos in enumerate(self.locals["infos"]):
-            env_inst: FlowMatsimGraphEnv = infos["graph_env_inst"]
+            env_inst: FlowSimEnv = infos["graph_env_inst"]
             reward = env_inst.reward
             avg_reward += reward
             if reward > self.best_reward:
                 self.best_env = env_inst
                 self.best_reward = self.best_env.best_reward
+                self.best_env.save_plans_from_flow_res()
 
         self.logger.record("Avg Reward", (avg_reward / (i + 1)))
         self.logger.record("Best Reward", self.best_reward)
@@ -151,7 +152,7 @@ def main(args: argparse.Namespace):
 
         return gym.make(
             "FlowSimEnv-v0",
-            config_path=args.matsim_config,
+            network_path=args.network_path,
             counts_path=args.counts_path,
             save_dir=save_dir,
             num_clusters=args.num_clusters,
@@ -211,7 +212,7 @@ if __name__ == "__main__":
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument(
-        "matsim_config", type=str, help="Path to the matsim config.xml file."
+        "network_path", type=str, help="Path to the matsim network.xml file."
     )
     parser.add_argument(
         "counts_path", type=str, help="Path to the matsim counts.xml file."
