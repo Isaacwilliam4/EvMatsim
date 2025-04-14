@@ -66,7 +66,8 @@ class FlowSimEnv(gym.Env):
             shape=(24, self.dataset.num_clusters, self.dataset.num_clusters)
         )
 
-        self.shortest_paths = dict()
+        # self.shortest_paths_set = set()
+        # self.shortest_paths = np.zeros(self.dataset.target_graph)
         
 
     def reset(self, **kwargs):
@@ -97,12 +98,13 @@ class FlowSimEnv(gym.Env):
                             dest_node_idx = random.choice(
                                 self.dataset.clusters[cluster2]
                             )
-                            node_pair = (origin_node_idx, dest_node_idx)
-                            if node_pair not in self.shortest_paths:
-                                path = nx.shortest_path(nx_graph, origin_node_idx, dest_node_idx)
-                                self.shortest_paths[node_pair] = path
-                            else:
-                                path = self.shortest_paths[node_pair]
+                            # node_pair = (origin_node_idx, dest_node_idx)
+                            # if node_pair not in self.shortest_paths:
+                            #     path = nx.shortest_path(nx_graph, origin_node_idx, dest_node_idx)
+                            #     self.shortest_paths[node_pair] = path
+                            # else:
+                            #     path = self.shortest_paths[node_pair]
+                            path = nx.shortest_path(nx_graph, origin_node_idx, dest_node_idx)
                             result[path, hour] += 1
 
         res = 1 / (torch.log(((result[self.dataset.sensor_idxs, :] - 
