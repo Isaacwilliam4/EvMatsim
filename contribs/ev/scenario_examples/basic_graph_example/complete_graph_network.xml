@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE network SYSTEM "http://www.matsim.org/files/dtd/network_v2.dtd">
+<network>
+	<nodes>
+		<node id="9365927423" x="-1.4449375243744638E7" y="3989720.099050841">
+		</node>
+		<node id="351969923" x="-1.4445739301886853E7" y="3989910.490777338">
+		</node>
+		<node id="351978650" x="-1.444150959784064E7" y="3989984.0001794267">
+		</node>
+		<node id="2780647152" x="-1.444882459651633E7" y="3986071.002394126">
+		</node>
+		<node id="352880477" x="-1.4445141241730459E7" y="3986150.871996646">
+		</node>
+		<node id="8746214723" x="-1.4440269249848126E7" y="3986593.7067802143">
+		</node>
+	</nodes>
+	<links>
+		<link id="1" from="9365927423" to="351969923" length="10" freespeed="1" capacity="1500" permlanes="1" oneway="1" modes="car" />
+		<link id="2" from="9365927423" to="351978650" length="10" freespeed="1" capacity="1500" permlanes="1" oneway="1" modes="car" />
+		<link id="3" from="9365927423" to="2780647152" length="10" freespeed="1" capacity="1500" permlanes="1" oneway="1" modes="car" />
+		<link id="4" from="9365927423" to="352880477" length="10" freespeed="1" capacity="1500" permlanes="1" oneway="1" modes="car" />
+		<link id="5" from="9365927423" to="8746214723" length="10" freespeed="1" capacity="1500" permlanes="1" oneway="1" modes="car" />
+		<link id="6" from="351969923" to="9365927423" length="10" freespeed="1" capacity="1500" permlanes="1" oneway="1" modes="car" />
+		<link id="7" from="351969923" to="351978650" length="10" freespeed="1" capacity="1500" permlanes="1" oneway="1" modes="car" />
+		<link id="8" from="351969923" to="2780647152" length="10" freespeed="1" capacity="1500" permlanes="1" oneway="1" modes="car" />
+		<link id="9" from="351969923" to="352880477" length="10" freespeed="1" capacity="1500" permlanes="1" oneway="1" modes="car" />
+		<link id="10" from="351969923" to="8746214723" length="10" freespeed="1" capacity="1500" permlanes="1" oneway="1" modes="car" />
+		<link id="11" from="351978650" to="9365927423" length="10" freespeed="1" capacity="1500" permlanes="1" oneway="1" modes="car" />
+		<link id="12" from="351978650" to="351969923" length="10" freespeed="1" capacity="1500" permlanes="1" oneway="1" modes="car" />
+		<link id="13" from="351978650" to="2780647152" length="10" freespeed="1" capacity="1500" permlanes="1" oneway="1" modes="car" />
+		<link id="14" from="351978650" to="352880477" length="10" freespeed="1" capacity="1500" permlanes="1" oneway="1" modes="car" />
+		<link id="15" from="351978650" to="8746214723" length="10" freespeed="1" capacity="1500" permlanes="1" oneway="1" modes="car" />
+		<link id="16" from="2780647152" to="9365927423" length="10" freespeed="1" capacity="1500" permlanes="1" oneway="1" modes="car" />
+		<link id="17" from="2780647152" to="351969923" length="10" freespeed="1" capacity="1500" permlanes="1" oneway="1" modes="car" />
+		<link id="18" from="2780647152" to="351978650" length="10" freespeed="1" capacity="1500" permlanes="1" oneway="1" modes="car" />
+		<link id="19" from="2780647152" to="352880477" length="10" freespeed="1" capacity="1500" permlanes="1" oneway="1" modes="car" />
+		<link id="20" from="2780647152" to="8746214723" length="10" freespeed="1" capacity="1500" permlanes="1" oneway="1" modes="car" />
+		<link id="21" from="352880477" to="9365927423" length="10" freespeed="1" capacity="1500" permlanes="1" oneway="1" modes="car" />
+		<link id="22" from="352880477" to="351969923" length="10" freespeed="1" capacity="1500" permlanes="1" oneway="1" modes="car" />
+		<link id="23" from="352880477" to="351978650" length="10" freespeed="1" capacity="1500" permlanes="1" oneway="1" modes="car" />
+		<link id="24" from="352880477" to="2780647152" length="10" freespeed="1" capacity="1500" permlanes="1" oneway="1" modes="car" />
+		<link id="25" from="352880477" to="8746214723" length="10" freespeed="1" capacity="1500" permlanes="1" oneway="1" modes="car" />
+		<link id="26" from="8746214723" to="9365927423" length="10" freespeed="1" capacity="1500" permlanes="1" oneway="1" modes="car" />
+		<link id="27" from="8746214723" to="351969923" length="10" freespeed="1" capacity="1500" permlanes="1" oneway="1" modes="car" />
+		<link id="28" from="8746214723" to="351978650" length="10" freespeed="1" capacity="1500" permlanes="1" oneway="1" modes="car" />
+		<link id="29" from="8746214723" to="2780647152" length="10" freespeed="1" capacity="1500" permlanes="1" oneway="1" modes="car" />
+		<link id="30" from="8746214723" to="352880477" length="10" freespeed="1" capacity="1500" permlanes="1" oneway="1" modes="car" />
+	</links>
+</network>
