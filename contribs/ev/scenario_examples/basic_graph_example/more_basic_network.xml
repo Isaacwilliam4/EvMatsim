@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE network SYSTEM "http://www.matsim.org/files/dtd/network_v2.dtd">
+<network>
+	<nodes>
+		<node id="9365927423" x="-1.4449375243744638E7" y="3989720.099050841">
+		</node>
+		<node id="351969923" x="-1.4445739301886853E7" y="3989910.490777338">
+		</node>
+		<node id="351978650" x="-1.444150959784064E7" y="3989984.0001794267">
+		</node>
+	</nodes>
+	<links>
+		<link id="1" from="9365927423" to="351969923" length="10" freespeed="1" capacity="1500" permlanes="1" oneway="1" modes="car" />
+		<link id="2" from="351969923" to="351978650" length="10" freespeed="1" capacity="1500" permlanes="1" oneway="1" modes="car" />
+		<link id="3" from="351978650" to="9365927423" length="10" freespeed="1" capacity="1500" permlanes="1" oneway="1" modes="car" />
+	</links>
+</network>

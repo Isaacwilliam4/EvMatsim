@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<counts xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://matsim.org/files/dtd/counts_v1.xsd" name="default" desc="default" year="2024">
+	<count loc_id="1" cs_id="1">
+		<volume h="1" val="11" />
+		<volume h="2" val="3" />
+		<volume h="3" val="6" />
+		<volume h="4" val="18" />
+		<volume h="5" val="5" />
+		<volume h="6" val="14" />
+		<volume h="7" val="9" />
+		<volume h="8" val="16" />
+		<volume h="9" val="7" />
+		<volume h="10" val="13" />
+		<volume h="11" val="2" />
+		<volume h="12" val="15" />
+		<volume h="13" val="12" />
+		<volume h="14" val="6" />
+		<volume h="15" val="4" />
+		<volume h="16" val="17" />
+		<volume h="17" val="8" />
+		<volume h="18" val="10" />
+		<volume h="19" val="19" />
+		<volume h="20" val="1" />
+		<volume h="21" val="7" />
+		<volume h="22" val="0" />
+		<volume h="23" val="6" />
+		<volume h="24" val="13" />
+	</count>
+	<count loc_id="2" cs_id="1">
+		<volume h="1" val="8" />
+		<volume h="2" val="14" />
+		<volume h="3" val="4" />
+		<volume h="4" val="7" />
+		<volume h="5" val="18" />
+		<volume h="6" val="1" />
+		<volume h="7" val="11" />
+		<volume h="8" val="9" />
+		<volume h="9" val="20" />
+		<volume h="10" val="6" />
+		<volume h="11" val="16" />
+		<volume h="12" val="3" />
+		<volume h="13" val="5" />
+		<volume h="14" val="15" />
+		<volume h="15" val="13" />
+		<volume h="16" val="2" />
+		<volume h="17" val="10" />
+		<volume h="18" val="17" />
+		<volume h="19" val="8" />
+		<volume h="20" val="12" />
+		<volume h="21" val="19" />
+		<volume h="22" val="0" />
+		<volume h="23" val="11" />
+		<volume h="24" val="7" />
+	</count>
+	<count loc_id="3" cs_id="1">
+		<volume h="1" val="5" />
+		<volume h="2" val="13" />
+		<volume h="3" val="9" />
+		<volume h="4" val="2" />
+		<volume h="5" val="15" />
+		<volume h="6" val="6" />
+		<volume h="7" val="14" />
+		<volume h="8" val="18" />
+		<volume h="9" val="3" />
+		<volume h="10" val="11" />
+		<volume h="11" val="1" />
+		<volume h="12" val="20" />
+		<volume h="13" val="10" />
+		<volume h="14" val="7" />
+		<volume h="15" val="16" />
+		<volume h="16" val="4" />
+		<volume h="17" val="12" />
+		<volume h="18" val="17" />
+		<volume h="19" val="8" />
+		<volume h="20" val="9" />
+		<volume h="21" val="19" />
+		<volume h="22" val="0" />
+		<volume h="23" val="6" />
+		<volume h="24" val="13" />
+	</count>
+</counts>
