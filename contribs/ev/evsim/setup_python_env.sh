@@ -1,7 +1,7 @@
 eval "$(conda shell.bash hook)"
 conda create -n matsimenv python=3.10 -y
 conda activate matsimenv
-conda install -c conda-forge pandas numpy matplotlib tqdm bidict gymnasium requests tensorboard rich osmnx -y
+conda install -c conda-forge pandas numpy matplotlib tqdm bidict gymnasium requests tensorboard rich osmnx cython -y
 git clone https://github.com/Isaacwilliam4/stable-baselines3-gnn.git ~/.local/stable_baselines3_gnn
 cd ~/.local/stable_baselines3_gnn
 pip install -e .

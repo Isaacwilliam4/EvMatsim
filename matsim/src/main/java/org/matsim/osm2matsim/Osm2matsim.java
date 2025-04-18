@@ -66,12 +66,97 @@ public class Osm2matsim {
         // Generate MATSim sensor counts XML
         writeCountsXML(outputPath, sensorToLinkMap, sensorFlows);
         System.out.println("Sensor counts written to sensor_counts.xml!");
+
+        // Use a relative path for the combined output file
+        String combinedOutputFile = "sensor_mapping_with_coordinates.csv";
+        writeSensorToNodeMappingWithCoordinates(combinedOutputFile, sensorCoords, network, ct);
+        }
+
+    private static void writeSensorToNodeMappingWithCoordinates(
+        String outputCsvFile,
+        Map<String, double[]> sensorCoords, 
+        Network network,
+        CoordinateTransformation transformation) {
+        
+        File file = new File(outputCsvFile);
+        
+        // Create parent directories if they don't exist
+        if (file.getParentFile() != null) {
+            file.getParentFile().mkdirs();
+        }
+        
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
+            // Write the CSV header
+            System.out.println("Writing combined sensor mapping and coordinates to CSV...");
+            writer.write("SensorID,NodeID,Latitude,Longitude,TransformedX,TransformedY,Distance");
+            writer.newLine();
+
+            // Process each sensor
+            for (Map.Entry<String, double[]> entry : sensorCoords.entrySet()) {
+                String sensorId = entry.getKey();
+                double[] coords = entry.getValue(); // [latitude, longitude]
+
+                // Validate coordinates
+                if (coords.length != 2) {
+                    System.err.println("Invalid coordinates for sensor ID: " + sensorId);
+                    continue;
+                }
+
+                double sensorLat = coords[0];
+                double sensorLon = coords[1];
+
+                // Transform the coordinates
+                org.matsim.api.core.v01.Coord transformedCoord = transformation.transform(
+                        new org.matsim.api.core.v01.Coord(sensorLon, sensorLat)); // lon, lat order
+
+                // Find closest node
+                double minDistance = Double.MAX_VALUE;
+                String closestNodeId = null;
+
+                // Iterate through all nodes in the network
+                for (org.matsim.api.core.v01.network.Node node : network.getNodes().values()) {
+                    double nodeLat = node.getCoord().getY(); // Latitude
+                    double nodeLon = node.getCoord().getX(); // Longitude
+
+                    // Calculate Haversine distance
+                    double distance = haversineDistance(sensorLat, sensorLon, nodeLat, nodeLon);
+
+                    // Find the closest node
+                    if (distance < minDistance) {
+                        minDistance = distance;
+                        closestNodeId = node.getId().toString();
+                    }
+                }
+
+                if (closestNodeId != null) {
+                    // Write all the data to the CSV file
+                    writer.write(sensorId + "," + 
+                                closestNodeId + "," + 
+                                sensorLat + "," + 
+                                sensorLon + "," + 
+                                transformedCoord.getX() + "," + 
+                                transformedCoord.getY() + "," + 
+                                minDistance);
+                    writer.newLine();
+                    
+                    System.out.println("Sensor " + sensorId + " mapped to node " + closestNodeId + " (distance: " + minDistance + "m)");
+                } else {
+                    System.out.println("Warning: No node found for sensor " + sensorId);
+                }
+            }
+
+            System.out.println("Combined data written to: " + file.getAbsolutePath());
+        } catch (IOException e) {
+            System.err.println("Error writing combined data to CSV: " + e.getMessage());
+        }
     }
+
+
+
 
     private static void readSensorData(String filename, Map<String, double[]> sensorCoords, Map<String, int[]> sensorFlows) throws IOException {
         BufferedReader br = new BufferedReader(new FileReader(filename));
         String line;
-        
         // Skip the first line (header row)
         br.readLine();
     
@@ -98,6 +183,7 @@ public class Osm2matsim {
     }
 
 
+
     private static Map<String, String> mapSensorsToLinks(Map<String, double[]> sensorCoords, Network network) {
         Map<String, String> sensorToLink = new HashMap<>();
         Set<String> usedLinkIds = new HashSet<>(); // Track assigned location IDs
@@ -119,8 +205,12 @@ public class Osm2matsim {
             String closestLinkId = null;
     
             for (Link link : network.getLinks().values()) {
-                double distance = CoordUtils.calcEuclideanDistance(sensorCoord, link.getCoord());
-    
+                double linkLat = link.getCoord().getY(); // Latitude
+                double linkLon = link.getCoord().getX(); // Longitude
+            
+                // Calculate Haversine distance
+                double distance = haversineDistance(sensorCoord.getY(), sensorCoord.getX(), linkLat, linkLon);
+            
                 // Only assign if the link ID hasn't been used yet
                 if (distance < minDistance && !usedLinkIds.contains(link.getId().toString())) {
                     minDistance = distance;
@@ -200,6 +290,30 @@ public class Osm2matsim {
     
         System.out.println("Counts XML successfully written to: " + file.getAbsolutePath());
     }
+
+    private static double haversineDistance(double lat1, double lon1, double lat2, double lon2) {
+        final int EARTH_RADIUS = 6371000; // Radius of the Earth in meters
+    
+        // Convert latitude and longitude from degrees to radians
+        double lat1Rad = Math.toRadians(lat1);
+        double lon1Rad = Math.toRadians(lon1);
+        double lat2Rad = Math.toRadians(lat2);
+        double lon2Rad = Math.toRadians(lon2);
+    
+        // Calculate the differences
+        double deltaLat = lat2Rad - lat1Rad;
+        double deltaLon = lon2Rad - lon1Rad;
+    
+        // Apply the Haversine formula
+        double a = Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2) +
+                   Math.cos(lat1Rad) * Math.cos(lat2Rad) *
+                   Math.sin(deltaLon / 2) * Math.sin(deltaLon / 2);
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    
+        // Calculate the distance
+        return EARTH_RADIUS * c;
+    }
+
 
 }
 
