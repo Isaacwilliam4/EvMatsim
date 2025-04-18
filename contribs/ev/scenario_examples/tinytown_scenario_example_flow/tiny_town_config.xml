@@ -17,7 +17,7 @@
     </module>
 
     <module name="plans">
-        <param name="inputPlansFile" value="tiny_town_plans.xml" />
+        <param name="inputPlansFile" value="output_plans.xml" />
     </module>
 
     <module name="controller">

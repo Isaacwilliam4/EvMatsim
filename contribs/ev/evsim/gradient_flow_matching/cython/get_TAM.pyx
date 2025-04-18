@@ -85,12 +85,12 @@ def get_TAM(dict cluster_lists,
 
     cdef:
         int cluster1, cluster2
-        int origin, dest, i
+        int origin, dest, i, idx
         object origins, dests
         vector[int] path
         np.ndarray[np.float64_t, ndim=3] TAM = np.zeros((n_edges, n_clusters, n_clusters), dtype=np.float64)
     
-    pbar = tqdm(total=n_clusters**2, desc="Creating TAM")
+    pbar = tqdm(total=(n_clusters*(n_clusters-1)), desc="Creating TAM")
     for cluster1 in range(n_clusters):
         for cluster2 in range(n_clusters):
             if cluster1 == cluster2:
@@ -104,11 +104,14 @@ def get_TAM(dict cluster_lists,
                 origin = origins[np.random.randint(0, len(origins))]
                 dest = dests[np.random.randint(0, len(dests))]
                 path = bfs(origin, dest, n_nodes, edge_index, use_memoization, gb_threshold)
+                used = set()
+
                 for idx in path:
+                    used.add(idx)
+
+                for idx in used:
                     TAM[idx, cluster1, cluster2] += 1
 
-    TAM_sum = np.sum(TAM, axis=0, keepdims=True)
-    TAM_sum[TAM_sum == 0] = 1
-    TAM = TAM / TAM_sum
+    TAM = TAM / n_samples
 
     return TAM

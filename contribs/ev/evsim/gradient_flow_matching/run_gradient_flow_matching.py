@@ -31,20 +31,20 @@ def main(args):
     dataset.save_clusters(Path(save_path, "clusters.txt"))
     Z_2 = args.num_clusters**2
     TAM = torch.from_numpy(dataset.TAM).to(device).to(torch.float32)
-    W = torch.rand(Z_2, 24).to(device).to(torch.float32)
-    W.requires_grad = True
+    W = torch.nn.Parameter(torch.rand(Z_2, 24).to(device).to(torch.float32))
     #TAM (|E|, Z^2)
     TAM = TAM.reshape(-1, Z_2)
     TARGET = dataset.target_graph.edge_attr.to(device).to(torch.float32)
 
-    optimizer = torch.optim.Adam([W], lr=0.1)
+    optimizer = torch.optim.Adam([W], lr=0.001)
     pbar = tqdm(range(args.training_steps))
     target_size = TARGET.numel()
     sensor_idxs = dataset.sensor_idxs
 
     for step in pbar:
         optimizer.zero_grad()
-        W = W.clip(0, torch.inf)
+        with torch.no_grad():
+            W.data.clamp_(0, torch.inf)
         R = torch.matmul(TAM, W)
         loss = torch.nn.functional.mse_loss(R[sensor_idxs], TARGET[sensor_idxs])
         loss.backward()
@@ -58,6 +58,8 @@ def main(args):
         if args.save_interval is not None and step % args.save_interval == 0:
             torch.save(W, Path(save_path, f"flows_step_{step}.pt"))
 
+    with torch.no_grad():
+        W.data.clamp_(0, torch.inf)
     torch.save(W, Path(save_path, f"flows_step_{step}.pt"))
     dataset.save_plans_from_flow_res(W.reshape(args.num_clusters, args.num_clusters, 24), Path(save_path, "output_plans.xml"))
 
