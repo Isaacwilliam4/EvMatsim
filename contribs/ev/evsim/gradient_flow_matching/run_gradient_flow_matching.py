@@ -40,18 +40,20 @@ def main(args):
     optimizer = torch.optim.Adam([W], lr=0.1)
     pbar = tqdm(range(args.training_steps))
     target_size = TARGET.numel()
+    sensor_idxs = dataset.sensor_idxs
 
     for step in pbar:
         optimizer.zero_grad()
+        W = W.clip(0, torch.inf)
         R = torch.matmul(TAM, W)
-        loss = torch.nn.functional.mse_loss(R, TARGET)
+        loss = torch.nn.functional.mse_loss(R[sensor_idxs], TARGET[sensor_idxs])
         loss.backward()
         optimizer.step()
 
         if step % args.log_interval == 0:
             pbar.set_description(f"Loss: {loss.item()}")
             writer.add_scalar("Loss/mse", loss.item(), step)
-            writer.add_scalar("Logs/mad", torch.abs(R - TARGET).sum() / target_size, step)
+            writer.add_scalar("Logs/mad", torch.abs(R[sensor_idxs] - TARGET[sensor_idxs]).sum() / target_size, step)
 
         if args.save_interval is not None and step % args.save_interval == 0:
             torch.save(W, Path(save_path, f"flows_step_{step}.pt"))

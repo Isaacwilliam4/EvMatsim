@@ -1,7 +1,5 @@
-from libc.stdlib cimport rand, srand
 from libcpp.vector cimport vector
 from libcpp.queue cimport queue
-from cython.parallel import prange
 import numpy as np
 cimport numpy as np
 cimport cython
@@ -86,34 +84,28 @@ def get_TAM(dict cluster_lists,
             double gb_threshold):
 
     cdef:
-        int job_idx, total_jobs = n_clusters * n_clusters
         int cluster1, cluster2
-        int origin, dest, i, flat_idx
+        int origin, dest, i
         object origins, dests
         vector[int] path
         np.ndarray[np.float64_t, ndim=3] TAM = np.zeros((n_edges, n_clusters, n_clusters), dtype=np.float64)
     
-    with tqdm(total=total_jobs, desc="TAM Calculation Progress") as pbar:
-        for job_idx in prange(total_jobs, nogil=True):
-            flat_idx = job_idx % total_jobs
-            cluster1 = flat_idx // n_clusters
-            cluster2 = flat_idx % n_clusters
-
+    pbar = tqdm(total=n_clusters**2, desc="Creating TAM")
+    for cluster1 in range(n_clusters):
+        for cluster2 in range(n_clusters):
             if cluster1 == cluster2:
                 continue
 
-            with gil:
-                pbar.update(1)
-                origins = cluster_lists[cluster1]
-                dests = cluster_lists[cluster2]
+            pbar.update(1)
+            origins = cluster_lists[cluster1]
+            dests = cluster_lists[cluster2]
 
             for i in range(n_samples):
-                with gil:
-                    origin = origins[np.random.randint(0, len(origins))]
-                    dest = dests[np.random.randint(0, len(dests))]
-                    path = bfs(origin, dest, n_nodes, edge_index, use_memoization, gb_threshold)
-                    for idx in path:
-                        TAM[idx, cluster1, cluster2] += 1
+                origin = origins[np.random.randint(0, len(origins))]
+                dest = dests[np.random.randint(0, len(dests))]
+                path = bfs(origin, dest, n_nodes, edge_index, use_memoization, gb_threshold)
+                for idx in path:
+                    TAM[idx, cluster1, cluster2] += 1
 
     TAM_sum = np.sum(TAM, axis=0, keepdims=True)
     TAM_sum[TAM_sum == 0] = 1

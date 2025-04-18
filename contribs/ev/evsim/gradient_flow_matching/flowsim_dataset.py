@@ -75,7 +75,7 @@ class FlowSimDataset:
         return len(self.data_list)
     
     def build_TAM(self):
-        tam_path = Path(self.output_path, f"{self.network_path.stem}_TAM_nclusters_{self.num_clusters}.npz")
+        tam_path = Path(self.output_path, f"{self.network_path.stem}_TAM_nclusters_{self.num_clusters}_nsamples_{self.num_samples}.npz")
         if not tam_path.exists():
             self.TAM = get_TAM(self.clusters,
                             self.edge_index,
@@ -204,9 +204,12 @@ class FlowSimDataset:
         person_ids = []
         person_count = 1
 
-        for cluster1 in tqdm(range(flows.shape[0]), desc="Saving plans xml file..."):
+        pbar = tqdm(range(flows.numel()), desc="Saving XML file")
+
+        for cluster1 in range(flows.shape[0]):
             for cluster2 in range(flows.shape[1]):
                 for hour in range(flows.shape[2]):
+                    pbar.update(1)
                     count = flows[cluster1, cluster2, hour].to(torch.int64)
                     for _ in range(count):
                         origin_node_idx = random.choice(self.clusters[cluster1]) 
