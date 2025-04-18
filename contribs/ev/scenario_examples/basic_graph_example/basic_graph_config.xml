@@ -7,17 +7,17 @@
     </module>
 
     <module name="counts">
-        <param name="inputCountsFile" value="basic_graph_counts.xml" />
+        <param name="inputCountsFile" value="more_basic_graph_counts.xml" />
         <param name="writeCountsInterval" value="1" />
         <param name="averageCountsOverIterations" value="1" />
     </module>
 
     <module name="network">
-        <param name="inputNetworkFile" value="basic_graph_network.xml" />
+        <param name="inputNetworkFile" value="more_basic_network.xml" />
     </module>
 
     <module name="plans">
-        <param name="inputPlansFile" value="basic_graph_plans.xml" />
+        <param name="inputPlansFile" value="initial_output_plans.xml" />
     </module>
 
     <module name="controller">
