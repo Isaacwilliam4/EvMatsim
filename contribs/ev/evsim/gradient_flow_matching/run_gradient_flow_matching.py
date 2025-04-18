@@ -70,7 +70,7 @@ if __name__ == "__main__":
     parser.add_argument("network_path", help="path to matsim xml network")
     parser.add_argument("counts_path", help="path to matsim xml counts")
     parser.add_argument("num_clusters", type=int, help="number of clusters for the network")
-    parser.add_argument("--num_samples", type=int, default=1000, desc="the number of times to sample between two clusters to get the\
+    parser.add_argument("--num_samples", type=int, default=1000, help="the number of times to sample between two clusters to get the\
                         conditional probability of traveling through edge e given the od (v_i,v_j)")
     parser.add_argument("--training_steps", type=int, default=10_000_000)
     parser.add_argument("--log_interval", type=int, default=1000)
