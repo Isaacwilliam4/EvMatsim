@@ -6,6 +6,7 @@ from bidict import bidict
 import numpy as np
 from sklearn.cluster import KMeans
 import os
+import datetime
 from evsim.gradient_flow_matching.cython.get_TAM import get_TAM
 
 class FlowSimDataset:
@@ -20,7 +21,9 @@ class FlowSimDataset:
         network_path: str,
         counts_path: str,
         num_clusters: int,
-        num_samples: int = 100
+        num_samples: int = 100,
+        use_memoization: bool = True,
+        gb_threshold = 10.0
     ):
         """
         Initializes the MatsimXMLDataset.
@@ -33,12 +36,17 @@ class FlowSimDataset:
             initial_soc (float): Initial state of charge for agents. Default
                 is 0.5.
         """
-        self.output_path = Path(output_path)
+        current_time = datetime.datetime.now()
+        unique_time_string = current_time.strftime("%Y%m%d%H%M%S%f")
+        self.output_path = output_path
+        self.save_dir = Path(output_path, unique_time_string)
         self.network_path = Path(network_path)
         self.sensor_path = Path(counts_path)
         self.plan_output_path = Path()
         self.num_clusters = num_clusters
         self.num_samples = num_samples
+        self.use_memoization = use_memoization
+        self.gb_threshold = gb_threshold
 
         self.node_mapping: bidict[str, int] = (
             bidict()
@@ -53,7 +61,7 @@ class FlowSimDataset:
         self.target_graph: Data = Data()
         self.parse_network()
 
-        self.edge_index = self.target_graph.edge_index.t().numpy()
+        self.edge_index = self.target_graph.edge_index.t().numpy().astype(np.int32)
 
         # traffic assignment matrix (TAM)
         self.build_TAM()
@@ -68,13 +76,19 @@ class FlowSimDataset:
         return len(self.data_list)
     
     def build_TAM(self):
-        self.TAM = get_TAM(self.clusters,
-                           self.edge_index,
-                           self.target_graph.num_nodes,
-                           self.target_graph.num_edges,
-                           self.num_clusters,
-                           self.num_samples)
-        print()
+        tam_path = Path(self.output_path, f"{self.network_path.stem}_TAM.npz")
+        if not tam_path.exists():
+            self.TAM = get_TAM(self.clusters,
+                            self.edge_index,
+                            self.target_graph.num_nodes,
+                            self.target_graph.num_edges,
+                            self.num_clusters,
+                            self.num_samples,
+                            self.use_memoization,
+                            self.gb_threshold)
+            np.savez(tam_path, TAM=self.TAM)
+        else:
+            self.TAM = np.load(tam_path)['TAM']
 
     def _min_max_normalize(self, tensor, reverse=False):
         """

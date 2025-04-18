@@ -5,12 +5,12 @@ import os
 
 def main(args):
     output_path = Path(args.results_path)
-    if os.path.exists(output_path):
+    if not os.path.exists(output_path):
         os.makedirs(output_path)
 
     
 
-    dataset = FlowSimDataset(args.network_path, args.counts_path, args.num_clusters)
+    dataset = FlowSimDataset(output_path, args.network_path, args.counts_path, args.num_clusters)
 
 
 
