@@ -6,7 +6,6 @@ from bidict import bidict
 import numpy as np
 from sklearn.cluster import KMeans
 import os
-import datetime
 from evsim.gradient_flow_matching.cython.get_TAM import get_TAM
 
 class FlowSimDataset:
@@ -36,10 +35,8 @@ class FlowSimDataset:
             initial_soc (float): Initial state of charge for agents. Default
                 is 0.5.
         """
-        current_time = datetime.datetime.now()
-        unique_time_string = current_time.strftime("%Y%m%d%H%M%S%f")
+
         self.output_path = output_path
-        self.save_dir = Path(output_path, unique_time_string)
         self.network_path = Path(network_path)
         self.sensor_path = Path(counts_path)
         self.plan_output_path = Path()
@@ -76,7 +73,7 @@ class FlowSimDataset:
         return len(self.data_list)
     
     def build_TAM(self):
-        tam_path = Path(self.output_path, f"{self.network_path.stem}_TAM.npz")
+        tam_path = Path(self.output_path, f"{self.network_path.stem}_TAM_nclusters_{self.num_clusters}.npz")
         if not tam_path.exists():
             self.TAM = get_TAM(self.clusters,
                             self.edge_index,
