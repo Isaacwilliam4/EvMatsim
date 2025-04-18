@@ -27,7 +27,7 @@ def main(args):
     if not os.path.exists(output_path):
         os.makedirs(output_path)
 
-    dataset = FlowSimDataset(output_path, args.network_path, args.counts_path, args.num_clusters)
+    dataset = FlowSimDataset(output_path, args.network_path, args.counts_path, args.num_clusters, num_samples=args.num_samples)
     dataset.save_clusters(Path(save_path, "clusters.txt"))
     Z_2 = args.num_clusters**2
     TAM = torch.from_numpy(dataset.TAM).to(device).to(torch.float32)
@@ -70,7 +70,9 @@ if __name__ == "__main__":
     parser.add_argument("network_path", help="path to matsim xml network")
     parser.add_argument("counts_path", help="path to matsim xml counts")
     parser.add_argument("num_clusters", type=int, help="number of clusters for the network")
-    parser.add_argument("--training_steps", type=int, default=1_000_000)
+    parser.add_argument("--num_samples", type=int, default=1000, desc="the number of times to sample between two clusters to get the\
+                        conditional probability of traveling through edge e given the od (v_i,v_j)")
+    parser.add_argument("--training_steps", type=int, default=10_000_000)
     parser.add_argument("--log_interval", type=int, default=1000)
     parser.add_argument("--save_interval", type=int, default=None)
     args = parser.parse_args()
