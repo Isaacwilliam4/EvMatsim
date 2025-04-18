@@ -6100,7 +6100,7 @@ static PyObject *__pyx_pf_5evsim_22gradient_flow_matching_6cython_7get_TAM_2get_
   /* "evsim/gradient_flow_matching/cython/get_TAM.pyx":94
  *         object origins, dests
  *         vector[int] path
- *         np.ndarray[np.float64_t, ndim=4] TAM = np.zeros((n_edges, n_clusters, n_clusters), dtype=np.float64)             # <<<<<<<<<<<<<<
+ *         np.ndarray[np.float64_t, ndim=3] TAM = np.zeros((n_edges, n_clusters, n_clusters), dtype=np.float64)             # <<<<<<<<<<<<<<
  * 
  *     with tqdm(total=total_jobs, desc="TAM Calculation Progress") as pbar:
  */
@@ -6149,10 +6149,10 @@ static PyObject *__pyx_pf_5evsim_22gradient_flow_matching_6cython_7get_TAM_2get_
   __pyx_t_6 = ((PyArrayObject *)__pyx_t_1);
   {
     __Pyx_BufFmt_StackElem __pyx_stack[1];
-    if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_TAM.rcbuffer->pybuffer, (PyObject*)__pyx_t_6, &__Pyx_TypeInfo_nn___pyx_t_5numpy_float64_t, PyBUF_FORMAT| PyBUF_STRIDES, 4, 0, __pyx_stack) == -1)) {
+    if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_TAM.rcbuffer->pybuffer, (PyObject*)__pyx_t_6, &__Pyx_TypeInfo_nn___pyx_t_5numpy_float64_t, PyBUF_FORMAT| PyBUF_STRIDES, 3, 0, __pyx_stack) == -1)) {
       __pyx_v_TAM = ((PyArrayObject *)Py_None); __Pyx_INCREF(Py_None); __pyx_pybuffernd_TAM.rcbuffer->pybuffer.buf = NULL;
       __PYX_ERR(0, 94, __pyx_L1_error)
-    } else {__pyx_pybuffernd_TAM.diminfo[0].strides = __pyx_pybuffernd_TAM.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_TAM.diminfo[0].shape = __pyx_pybuffernd_TAM.rcbuffer->pybuffer.shape[0]; __pyx_pybuffernd_TAM.diminfo[1].strides = __pyx_pybuffernd_TAM.rcbuffer->pybuffer.strides[1]; __pyx_pybuffernd_TAM.diminfo[1].shape = __pyx_pybuffernd_TAM.rcbuffer->pybuffer.shape[1]; __pyx_pybuffernd_TAM.diminfo[2].strides = __pyx_pybuffernd_TAM.rcbuffer->pybuffer.strides[2]; __pyx_pybuffernd_TAM.diminfo[2].shape = __pyx_pybuffernd_TAM.rcbuffer->pybuffer.shape[2]; __pyx_pybuffernd_TAM.diminfo[3].strides = __pyx_pybuffernd_TAM.rcbuffer->pybuffer.strides[3]; __pyx_pybuffernd_TAM.diminfo[3].shape = __pyx_pybuffernd_TAM.rcbuffer->pybuffer.shape[3];
+    } else {__pyx_pybuffernd_TAM.diminfo[0].strides = __pyx_pybuffernd_TAM.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_TAM.diminfo[0].shape = __pyx_pybuffernd_TAM.rcbuffer->pybuffer.shape[0]; __pyx_pybuffernd_TAM.diminfo[1].strides = __pyx_pybuffernd_TAM.rcbuffer->pybuffer.strides[1]; __pyx_pybuffernd_TAM.diminfo[1].shape = __pyx_pybuffernd_TAM.rcbuffer->pybuffer.shape[1]; __pyx_pybuffernd_TAM.diminfo[2].strides = __pyx_pybuffernd_TAM.rcbuffer->pybuffer.strides[2]; __pyx_pybuffernd_TAM.diminfo[2].shape = __pyx_pybuffernd_TAM.rcbuffer->pybuffer.shape[2];
     }
   }
   __pyx_t_6 = 0;
@@ -6160,7 +6160,7 @@ static PyObject *__pyx_pf_5evsim_22gradient_flow_matching_6cython_7get_TAM_2get_
   __pyx_t_1 = 0;
 
   /* "evsim/gradient_flow_matching/cython/get_TAM.pyx":96
- *         np.ndarray[np.float64_t, ndim=4] TAM = np.zeros((n_edges, n_clusters, n_clusters), dtype=np.float64)
+ *         np.ndarray[np.float64_t, ndim=3] TAM = np.zeros((n_edges, n_clusters, n_clusters), dtype=np.float64)
  * 
  *     with tqdm(total=total_jobs, desc="TAM Calculation Progress") as pbar:             # <<<<<<<<<<<<<<
  *         for job_idx in prange(total_jobs, nogil=True):
@@ -6829,7 +6829,7 @@ static PyObject *__pyx_pf_5evsim_22gradient_flow_matching_6cython_7get_TAM_2get_
           }
 
           /* "evsim/gradient_flow_matching/cython/get_TAM.pyx":96
- *         np.ndarray[np.float64_t, ndim=4] TAM = np.zeros((n_edges, n_clusters, n_clusters), dtype=np.float64)
+ *         np.ndarray[np.float64_t, ndim=3] TAM = np.zeros((n_edges, n_clusters, n_clusters), dtype=np.float64)
  * 
  *     with tqdm(total=total_jobs, desc="TAM Calculation Progress") as pbar:             # <<<<<<<<<<<<<<
  *         for job_idx in prange(total_jobs, nogil=True):
@@ -6965,10 +6965,10 @@ static PyObject *__pyx_pf_5evsim_22gradient_flow_matching_6cython_7get_TAM_2get_
   {
     __Pyx_BufFmt_StackElem __pyx_stack[1];
     __Pyx_SafeReleaseBuffer(&__pyx_pybuffernd_TAM.rcbuffer->pybuffer);
-    __pyx_t_14 = __Pyx_GetBufferAndValidate(&__pyx_pybuffernd_TAM.rcbuffer->pybuffer, (PyObject*)__pyx_t_6, &__Pyx_TypeInfo_nn___pyx_t_5numpy_float64_t, PyBUF_FORMAT| PyBUF_STRIDES, 4, 0, __pyx_stack);
+    __pyx_t_14 = __Pyx_GetBufferAndValidate(&__pyx_pybuffernd_TAM.rcbuffer->pybuffer, (PyObject*)__pyx_t_6, &__Pyx_TypeInfo_nn___pyx_t_5numpy_float64_t, PyBUF_FORMAT| PyBUF_STRIDES, 3, 0, __pyx_stack);
     if (unlikely(__pyx_t_14 < 0)) {
       PyErr_Fetch(&__pyx_t_7, &__pyx_t_11, &__pyx_t_10);
-      if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_TAM.rcbuffer->pybuffer, (PyObject*)__pyx_v_TAM, &__Pyx_TypeInfo_nn___pyx_t_5numpy_float64_t, PyBUF_FORMAT| PyBUF_STRIDES, 4, 0, __pyx_stack) == -1)) {
+      if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_TAM.rcbuffer->pybuffer, (PyObject*)__pyx_v_TAM, &__Pyx_TypeInfo_nn___pyx_t_5numpy_float64_t, PyBUF_FORMAT| PyBUF_STRIDES, 3, 0, __pyx_stack) == -1)) {
         Py_XDECREF(__pyx_t_7); Py_XDECREF(__pyx_t_11); Py_XDECREF(__pyx_t_10);
         __Pyx_RaiseBufferFallbackError();
       } else {
@@ -6976,7 +6976,7 @@ static PyObject *__pyx_pf_5evsim_22gradient_flow_matching_6cython_7get_TAM_2get_
       }
       __pyx_t_7 = __pyx_t_11 = __pyx_t_10 = 0;
     }
-    __pyx_pybuffernd_TAM.diminfo[0].strides = __pyx_pybuffernd_TAM.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_TAM.diminfo[0].shape = __pyx_pybuffernd_TAM.rcbuffer->pybuffer.shape[0]; __pyx_pybuffernd_TAM.diminfo[1].strides = __pyx_pybuffernd_TAM.rcbuffer->pybuffer.strides[1]; __pyx_pybuffernd_TAM.diminfo[1].shape = __pyx_pybuffernd_TAM.rcbuffer->pybuffer.shape[1]; __pyx_pybuffernd_TAM.diminfo[2].strides = __pyx_pybuffernd_TAM.rcbuffer->pybuffer.strides[2]; __pyx_pybuffernd_TAM.diminfo[2].shape = __pyx_pybuffernd_TAM.rcbuffer->pybuffer.shape[2]; __pyx_pybuffernd_TAM.diminfo[3].strides = __pyx_pybuffernd_TAM.rcbuffer->pybuffer.strides[3]; __pyx_pybuffernd_TAM.diminfo[3].shape = __pyx_pybuffernd_TAM.rcbuffer->pybuffer.shape[3];
+    __pyx_pybuffernd_TAM.diminfo[0].strides = __pyx_pybuffernd_TAM.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_TAM.diminfo[0].shape = __pyx_pybuffernd_TAM.rcbuffer->pybuffer.shape[0]; __pyx_pybuffernd_TAM.diminfo[1].strides = __pyx_pybuffernd_TAM.rcbuffer->pybuffer.strides[1]; __pyx_pybuffernd_TAM.diminfo[1].shape = __pyx_pybuffernd_TAM.rcbuffer->pybuffer.shape[1]; __pyx_pybuffernd_TAM.diminfo[2].strides = __pyx_pybuffernd_TAM.rcbuffer->pybuffer.strides[2]; __pyx_pybuffernd_TAM.diminfo[2].shape = __pyx_pybuffernd_TAM.rcbuffer->pybuffer.shape[2];
     if (unlikely((__pyx_t_14 < 0))) __PYX_ERR(0, 120, __pyx_L1_error)
   }
   __pyx_t_6 = 0;
@@ -7159,7 +7159,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_GIVEREF(__pyx_tuple__2);
 
   /* "evsim/gradient_flow_matching/cython/get_TAM.pyx":96
- *         np.ndarray[np.float64_t, ndim=4] TAM = np.zeros((n_edges, n_clusters, n_clusters), dtype=np.float64)
+ *         np.ndarray[np.float64_t, ndim=3] TAM = np.zeros((n_edges, n_clusters, n_clusters), dtype=np.float64)
  * 
  *     with tqdm(total=total_jobs, desc="TAM Calculation Progress") as pbar:             # <<<<<<<<<<<<<<
  *         for job_idx in prange(total_jobs, nogil=True):

@@ -91,7 +91,7 @@ def get_TAM(dict cluster_lists,
         int origin, dest, i, flat_idx
         object origins, dests
         vector[int] path
-        np.ndarray[np.float64_t, ndim=4] TAM = np.zeros((n_edges, n_clusters, n_clusters), dtype=np.float64)
+        np.ndarray[np.float64_t, ndim=3] TAM = np.zeros((n_edges, n_clusters, n_clusters), dtype=np.float64)
     
     with tqdm(total=total_jobs, desc="TAM Calculation Progress") as pbar:
         for job_idx in prange(total_jobs, nogil=True):
