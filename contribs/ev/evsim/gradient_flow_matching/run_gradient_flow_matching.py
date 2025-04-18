@@ -39,6 +39,7 @@ def main(args):
 
     optimizer = torch.optim.Adam([W], lr=0.1)
     pbar = tqdm(range(args.training_steps))
+    target_size = TARGET.numel()
 
     for step in pbar:
         optimizer.zero_grad()
@@ -49,11 +50,14 @@ def main(args):
 
         if step % args.log_interval == 0:
             pbar.set_description(f"Loss: {loss.item()}")
-            writer.add_scalar("loss", loss.item(), step)
+            writer.add_scalar("Loss/mse", loss.item(), step)
+            writer.add_scalar("Logs/mad", torch.abs(R - TARGET).sum() / target_size, step)
 
-
-        if step % args.save_interval == 0:
+        if args.save_interval is not None and step % args.save_interval == 0:
             torch.save(W, Path(save_path, f"flows_step_{step}.pt"))
+
+    torch.save(W, Path(save_path, f"flows_step_{step}.pt"))
+    dataset.save_plans_from_flow_res(W.reshape(args.num_clusters, args.num_clusters, 24), Path(save_path, "output_plans.xml"))
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -64,6 +68,6 @@ if __name__ == "__main__":
     parser.add_argument("num_clusters", type=int, help="number of clusters for the network")
     parser.add_argument("--training_steps", type=int, default=1_000_000)
     parser.add_argument("--log_interval", type=int, default=1000)
-    parser.add_argument("--save_interval", type=int, default=100_000)
+    parser.add_argument("--save_interval", type=int, default=None)
     args = parser.parse_args()
     main(args)

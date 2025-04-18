@@ -6,6 +6,8 @@ from bidict import bidict
 import numpy as np
 from sklearn.cluster import KMeans
 import os
+import random
+from tqdm import tqdm
 from evsim.gradient_flow_matching.cython.get_TAM import get_TAM
 
 class FlowSimDataset:
@@ -185,3 +187,72 @@ class FlowSimDataset:
                 for node_idx in nodes:
                     f.write(f"{self.node_mapping.inverse[node_idx]},")
                 f.write('\n')
+
+    def save_plans_from_flow_res(self, flows:torch.Tensor, filepath:Path):
+        """Generates MATSIM xml plans from the optimized flow tensor
+
+        Args:
+            flows (torch.Tensor): shape (n_clusters, n_clusters, 24)
+            filepath (Path): path to save plans to 
+        """
+
+        if not os.path.exists(filepath.parent):
+            os.makedirs(filepath.parent)
+
+        
+        plans = ET.Element("plans", attrib={"xml:lang": "de-CH"})
+        person_ids = []
+        person_count = 1
+
+        for cluster1 in tqdm(range(flows.shape[0]), desc="Saving plans xml file..."):
+            for cluster2 in range(flows.shape[1]):
+                for hour in range(flows.shape[2]):
+                    count = flows[cluster1, cluster2, hour].to(torch.int64)
+                    for _ in range(count):
+                        origin_node_idx = random.choice(self.clusters[cluster1]) 
+                        dest_node_idx = random.choice(self.clusters[cluster2]) 
+                        origin_node_id = self.node_mapping.inverse[origin_node_idx]
+                        dest_node_id = self.node_mapping.inverse[dest_node_idx]
+                        origin_node = self.node_coords[origin_node_id]
+                        dest_node = self.node_coords[dest_node_id]
+                        start_time = hour
+                        end_time = (start_time + 8) % 24
+                        person = ET.SubElement(plans, "person", id=str(person_count))
+                        person_ids.append(person_count)
+                        person_count += 1
+                        plan = ET.SubElement(person, "plan", selected="yes")
+
+                        minute = random.randint(0,59)
+                        minute_str = "0" + str(minute) if minute < 10 else str(minute)
+                        start_time_str = (
+                            f"0{start_time}:{minute_str}:00" if start_time < 10 else f"{start_time}:{minute_str}:00"
+                        )
+                        end_time_str = (
+                            f"0{end_time}:{minute_str}:00" if end_time < 10 else f"{end_time}:{minute_str}:00"
+                        )
+                        ET.SubElement(
+                            plan,
+                            "act",
+                            type="h",
+                            x=str(origin_node[0]),
+                            y=str(origin_node[1]),
+                            end_time=start_time_str,
+                        )
+                        ET.SubElement(plan, "leg", mode="car")
+                        ET.SubElement(
+                            plan,
+                            "act",
+                            type="h",
+                            x=str(dest_node[0]),
+                            y=str(dest_node[1]),
+                            start_time=start_time_str,
+                            end_time=end_time_str,
+                        )
+
+        tree = ET.ElementTree(plans)
+        with open(filepath, "wb") as f:
+            f.write(b'<?xml version="1.0" ?>\n')
+            f.write(
+                b'<!DOCTYPE plans SYSTEM "http://www.matsim.org/files/dtd/plans_v4.dtd">\n'
+            )
+            tree.write(f)
