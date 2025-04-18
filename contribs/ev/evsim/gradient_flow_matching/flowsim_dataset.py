@@ -6,6 +6,7 @@ from bidict import bidict
 import numpy as np
 from sklearn.cluster import KMeans
 import os
+from evsim.gradient_flow_matching.cython.get_TAM import get_TAM
 
 class FlowSimDataset:
     """
@@ -15,9 +16,11 @@ class FlowSimDataset:
 
     def __init__(
         self,
+        output_path: str,
         network_path: str,
         counts_path: str,
         num_clusters: int,
+        num_samples: int = 100
     ):
         """
         Initializes the MatsimXMLDataset.
@@ -30,10 +33,12 @@ class FlowSimDataset:
             initial_soc (float): Initial state of charge for agents. Default
                 is 0.5.
         """
+        self.output_path = Path(output_path)
         self.network_path = Path(network_path)
         self.sensor_path = Path(counts_path)
         self.plan_output_path = Path()
         self.num_clusters = num_clusters
+        self.num_samples = num_samples
 
         self.node_mapping: bidict[str, int] = (
             bidict()
@@ -47,8 +52,11 @@ class FlowSimDataset:
         )  #: key: edge attribute name, value: index in edge attribute list
         self.target_graph: Data = Data()
         self.parse_network()
-        self.flow_tensor = torch.rand(24*num_clusters, num_clusters)
-        self.build_A_matrix
+
+        self.edge_index = self.target_graph.edge_index.t().numpy()
+
+        # traffic assignment matrix (TAM)
+        self.build_TAM()
 
     def len(self):
         """
@@ -59,10 +67,14 @@ class FlowSimDataset:
         """
         return len(self.data_list)
     
-    def build_A_matrix(self):
-        for edge in range(self.target_graph.num_edges):
-            np.savez(f'./graph_db/{edge}.npz', val=np.zeros((self.num_clusters**2)))
-
+    def build_TAM(self):
+        self.TAM = get_TAM(self.clusters,
+                           self.edge_index,
+                           self.target_graph.num_nodes,
+                           self.target_graph.num_edges,
+                           self.num_clusters,
+                           self.num_samples)
+        print()
 
     def _min_max_normalize(self, tensor, reverse=False):
         """
