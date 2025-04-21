@@ -15,10 +15,7 @@ def main(args):
     device = "cuda:0" if torch.cuda.is_available() else "cpu"
     output_path = Path(args.results_path)
     network_name = Path(args.network_path).stem
-    save_path = Path(output_path, f"{unique_time_string}_\
-                     nclusters_{args.num_clusters}_\
-                     nsamples_{args.num_samples}_\
-                     {network_name}")
+    save_path = Path(output_path, f"{unique_time_string}_nclusters_{args.num_clusters}_nsamples_{args.num_samples}_{network_name}")
     tensorboard_path = Path(save_path, "logs")
     os.makedirs(tensorboard_path)
 
