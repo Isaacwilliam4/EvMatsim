@@ -6,3 +6,4 @@
 *pylint*
 !consumption_map.csv
 evsim/evsim.egg-info/
+!best_plans.xml

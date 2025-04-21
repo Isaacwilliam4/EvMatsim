@@ -104,12 +104,7 @@ def get_TAM(dict cluster_lists,
                 origin = origins[np.random.randint(0, len(origins))]
                 dest = dests[np.random.randint(0, len(dests))]
                 path = bfs(origin, dest, n_nodes, edge_index, use_memoization, gb_threshold)
-                used = set()
-
                 for idx in path:
-                    used.add(idx)
-
-                for idx in used:
                     TAM[idx, cluster1, cluster2] += 1
 
     TAM = TAM / n_samples

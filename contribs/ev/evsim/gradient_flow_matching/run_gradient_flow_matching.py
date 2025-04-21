@@ -11,10 +11,14 @@ import os
 def main(args):
     
     current_time = datetime.datetime.now()
-    unique_time_string = current_time.strftime("%Y%m%d%H%M%S%f")
+    unique_time_string = current_time.strftime("%m%d%H%M%S")
     device = "cuda:0" if torch.cuda.is_available() else "cpu"
     output_path = Path(args.results_path)
-    save_path = Path(output_path, unique_time_string)
+    network_name = Path(args.network_path).stem
+    save_path = Path(output_path, f"{unique_time_string}_\
+                     nclusters_{args.num_clusters}_\
+                     nsamples_{args.num_samples}_\
+                     {network_name}")
     tensorboard_path = Path(save_path, "logs")
     os.makedirs(tensorboard_path)
 
@@ -62,7 +66,9 @@ def main(args):
             writer.add_scalar("Loss/mse", loss.item(), step)
             writer.add_scalar("Logs/mad", torch.abs(R[sensor_idxs] - TARGET[sensor_idxs]).sum() / target_size, step)
 
-        if step != 0 and args.save_interval is not None and step % args.save_interval == 0:
+        if step != 0 and \
+        args.save_interval > 0 and \
+        step % args.save_interval == 0:
             if best_model is not None:
                 torch.save(best_model, Path(save_path, f"best_flows.pt"))
                 dataset.save_plans_from_flow_res(best_model.reshape(args.num_clusters,
@@ -71,12 +77,11 @@ def main(args):
                                                                      Path(save_path, "best_plans.xml"))
 
     if best_model is not None:
-        if loss.item() < best_loss:
-            torch.save(best_model, Path(save_path, f"best_flows.pt"))
-            dataset.save_plans_from_flow_res(best_model.reshape(args.num_clusters,
-                                                                    args.num_clusters,
-                                                                    24),
-                                                                    Path(save_path, "best_plans.xml"))
+        torch.save(best_model, Path(save_path, f"best_flows.pt"))
+        dataset.save_plans_from_flow_res(best_model.reshape(args.num_clusters,
+                                                                args.num_clusters,
+                                                                24),
+                                                                Path(save_path, "best_plans.xml"))
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -84,11 +89,12 @@ if __name__ == "__main__":
     parser.add_argument("results_path", help="path to the output folder for the results of the algorithm")
     parser.add_argument("network_path", help="path to matsim xml network")
     parser.add_argument("counts_path", help="path to matsim xml counts")
-    parser.add_argument("num_clusters", type=int, help="number of clusters for the network")
-    parser.add_argument("--num_samples", type=int, default=1000, help="the number of times to sample between two clusters to get the\
+    parser.add_argument("--num_clusters", type=int, required=True, help="number of clusters for the network")
+    parser.add_argument("--num_samples", type=int, required=True, help="the number of times to sample between two clusters to get the\
                         conditional probability of traveling through edge e given the od (v_i,v_j)")
-    parser.add_argument("--training_steps", type=int, default=10_000_000)
-    parser.add_argument("--log_interval", type=int, default=1000)
-    parser.add_argument("--save_interval", type=int, default=None)
+    parser.add_argument("--training_steps", type=int, required=True, help="the number of iterations to run the optimizer for flow matching")
+    parser.add_argument("--log_interval", type=int, required=True, help="How often the progress bar and tensorboard logs are updated")
+    parser.add_argument("--save_interval", type=int, required=True, help="How often the best model is saved and the resulting plans.xml file is saved,\
+                        if save_interval < 0, then the model will only be saved at the end")
     args = parser.parse_args()
     main(args)
