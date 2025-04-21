@@ -30,6 +30,11 @@ def main(args):
 
     dataset = FlowSimDataset(output_path, args.network_path, args.counts_path, args.num_clusters, num_samples=args.num_samples)
     dataset.save_clusters(Path(save_path, "clusters.txt"))
+
+    with open(Path(save_path, "sensor_ids.txt"), "w") as f:
+        for sensor_idx in dataset.sensor_idxs:
+            f.write(f"{dataset.edge_mapping.inv[sensor_idx]},")
+
     Z_2 = args.num_clusters**2
     TAM = torch.from_numpy(dataset.TAM).to(device).to(torch.float32)
     W = torch.nn.Parameter(torch.rand(Z_2, 24).to(device).to(torch.float32))
