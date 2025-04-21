@@ -8,4 +8,5 @@
 evsim/evsim.egg-info/
 !best_plans.xml
 *.so
+*.o
 *.cpp
