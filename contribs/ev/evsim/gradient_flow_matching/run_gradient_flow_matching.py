@@ -38,8 +38,11 @@ def main(args):
 
     optimizer = torch.optim.Adam([W], lr=0.001)
     pbar = tqdm(range(args.training_steps))
-    target_size = TARGET.numel()
     sensor_idxs = dataset.sensor_idxs
+    target_size = TARGET[sensor_idxs].numel()
+
+    best_loss = torch.inf
+    best_model = None
 
     for step in pbar:
         optimizer.zero_grad()
@@ -50,18 +53,30 @@ def main(args):
         loss.backward()
         optimizer.step()
 
+        if loss.item() < best_loss:
+            best_loss = loss.item()
+            best_model = W.clone()
+
         if step % args.log_interval == 0:
             pbar.set_description(f"Loss: {loss.item()}")
             writer.add_scalar("Loss/mse", loss.item(), step)
             writer.add_scalar("Logs/mad", torch.abs(R[sensor_idxs] - TARGET[sensor_idxs]).sum() / target_size, step)
 
-        if args.save_interval is not None and step % args.save_interval == 0:
-            torch.save(W, Path(save_path, f"flows_step_{step}.pt"))
+        if step != 0 and args.save_interval is not None and step % args.save_interval == 0:
+            if best_model is not None:
+                torch.save(best_model, Path(save_path, f"best_flows.pt"))
+                dataset.save_plans_from_flow_res(best_model.reshape(args.num_clusters,
+                                                                     args.num_clusters,
+                                                                       24),
+                                                                     Path(save_path, "best_plans.xml"))
 
-    with torch.no_grad():
-        W.data.clamp_(0, torch.inf)
-    torch.save(W, Path(save_path, f"flows_step_{step}.pt"))
-    dataset.save_plans_from_flow_res(W.reshape(args.num_clusters, args.num_clusters, 24), Path(save_path, "output_plans.xml"))
+    if best_model is not None:
+        if loss.item() < best_loss:
+            torch.save(best_model, Path(save_path, f"best_flows.pt"))
+            dataset.save_plans_from_flow_res(best_model.reshape(args.num_clusters,
+                                                                    args.num_clusters,
+                                                                    24),
+                                                                    Path(save_path, "best_plans.xml"))
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
