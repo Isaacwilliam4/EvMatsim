@@ -1,0 +1,78 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="Page-1" id="0">
+<mxGraphModel dx="1294" dy="741" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+  <root>
+    <mxCell id="0"/>
+    <mxCell id="1" parent="0"/>
+    <!-- Nodes -->
+    <mxCell id="2" value="Java OpenStreetMaps - JOSM" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+      <mxGeometry x="60" y="40" width="180" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="3" value="Data Cleaning" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+      <mxGeometry x="60" y="100" width="180" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="4" value="OSM to MATSim" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+      <mxGeometry x="60" y="160" width="180" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="5" value="XML to Tensor Parser" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+      <mxGeometry x="60" y="220" width="180" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="6" value="Ĝ(V,E)" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+      <mxGeometry x="300" y="40" width="100" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="7" value="K-means Clustering" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+      <mxGeometry x="300" y="100" width="140" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="8" value="G*(C,E)" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+      <mxGeometry x="300" y="160" width="100" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="9" value="G_t(V,E)" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+      <mxGeometry x="300" y="220" width="100" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="10" value="UDOT Traffic Flows" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+      <mxGeometry x="300" y="280" width="140" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="11" value="Traffic Assignment Matrix Algorithm" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+      <mxGeometry x="500" y="40" width="220" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="12" value="A" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+      <mxGeometry x="560" y="100" width="40" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="13" value="ADAM Optimizer" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+      <mxGeometry x="520" y="160" width="140" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="14" value="W" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+      <mxGeometry x="560" y="220" width="40" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="15" value="MATSim XML Plans" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+      <mxGeometry x="700" y="40" width="140" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="16" value="MATSim" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+      <mxGeometry x="720" y="100" width="100" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="17" value="Flow Results" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+      <mxGeometry x="720" y="160" width="100" height="40" as="geometry"/>
+    </mxCell>
+
+    <!-- Edges -->
+    <mxCell id="e1" style="endArrow=block" edge="1" source="2" target="3" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+    <mxCell id="e2" style="endArrow=block" edge="1" source="3" target="4" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+    <mxCell id="e3" style="endArrow=block" edge="1" source="4" target="5" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+    <mxCell id="e4" style="endArrow=block" edge="1" source="5" target="9" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+    <mxCell id="e5" style="endArrow=block" edge="1" source="2" target="6" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+    <mxCell id="e6" style="endArrow=block" edge="1" source="6" target="7" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+    <mxCell id="e7" style="endArrow=block" edge="1" source="7" target="8" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+    <mxCell id="e8" style="endArrow=block" edge="1" source="8" target="9" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+    <mxCell id="e9" style="endArrow=block" edge="1" source="10" target="9" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+    <mxCell id="e10" style="endArrow=block" edge="1" source="6" target="11" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+    <mxCell id="e11" style="endArrow=block" edge="1" source="11" target="12" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+    <mxCell id="e12" style="endArrow=block" edge="1" source="12" target="13" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+    <mxCell id="e13" style="endArrow=block" edge="1" source="13" target="14" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+    <mxCell id="e14" style="endArrow=block" edge="1" source="9" target="13" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+    <mxCell id="e15" style="endArrow=block" edge="1" source="14" target="15" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+    <mxCell id="e16" style="endArrow=block" edge="1" source="15" target="16" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+    <mxCell id="e17" style="endArrow=block" edge="1" source="16" target="17" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+  </root>
+</mxGraphModel>
+</diagram>
+</mxfile>
