@@ -14,7 +14,7 @@ def main(args):
     device = "cuda:0" if torch.cuda.is_available() else "cpu"
     output_path = Path(args.results_path)
     network_name = Path(args.network_path).stem
-    save_path = Path(output_path, f"{unique_time_string}_nclusters_{args.num_clusters}_{network_name}_bias_{args.use_bias}")
+    save_path = Path(output_path, f"{unique_time_string}_nclusters_{args.num_clusters}_{network_name}")
     tensorboard_path = Path(save_path, "logs")
     os.makedirs(tensorboard_path)
 
@@ -39,12 +39,6 @@ def main(args):
     W = torch.nn.Parameter(torch.rand(Z_2, 24).to(device).to(torch.float32))
     parameters = [W]
 
-    if args.use_bias:
-        b = torch.nn.Parameter(torch.zeros(24).to(device).to(torch.float32))
-        parameters.append(b)
-    else:
-        b = None
-
     TAM = TAM.reshape(-1, Z_2)
     TARGET = dataset.target_graph.edge_attr.to(device).to(torch.float32)
 
@@ -55,15 +49,12 @@ def main(args):
 
     best_loss = torch.inf
     best_model = None
-    best_bias = None
 
     for step in pbar:
         optimizer.zero_grad()
         with torch.no_grad():
             W.data.clamp_(0, torch.inf)
         R = torch.matmul(TAM, W)
-        if b is not None:
-            R = R + b
         loss = torch.nn.functional.mse_loss(R[sensor_idxs], TARGET[sensor_idxs])
         loss.backward()
         optimizer.step()
@@ -71,8 +62,6 @@ def main(args):
         if loss.item() < best_loss:
             best_loss = loss.item()
             best_model = W.clone()
-            if b is not None:
-                best_bias = b.clone()
 
         if step % args.log_interval == 0:
             pbar.set_description(f"Loss: {loss.item()}")
@@ -83,16 +72,19 @@ def main(args):
         args.save_interval > 0 and \
         step % args.save_interval == 0:
             if best_model is not None:
-                torch.save({'W': best_model, 'b': best_bias if best_bias is not None else None}, Path(save_path, f"best_flows.pt"))
+                torch.save({'W': best_model}, Path(save_path, f"best_flows.pt"))
                 dataset.save_plans_from_flow_res(
-                    best_model.reshape(args.num_clusters, args.num_clusters, 24) + (best_bias.view(1, 1, 24) if best_bias is not None else 0),
+                    best_model.reshape(args.num_clusters, args.num_clusters, 24),
                     Path(save_path, "best_plans.xml")
                 )
 
+    with torch.no_grad():
+        W.data.clamp_(0, torch.inf)
+
     if best_model is not None:
-        torch.save({'W': best_model, 'b': best_bias if best_bias is not None else None}, Path(save_path, f"best_flows.pt"))
+        torch.save({'W': best_model}, Path(save_path, f"best_flows.pt"))
         dataset.save_plans_from_flow_res(
-            best_model.reshape(args.num_clusters, args.num_clusters, 24) + (best_bias.view(1, 1, 24) if best_bias is not None else 0),
+            best_model.reshape(args.num_clusters, args.num_clusters, 24),
             Path(save_path, "best_plans.xml")
         )
 
@@ -106,7 +98,6 @@ if __name__ == "__main__":
     parser.add_argument("--training_steps", type=int, required=True, help="number of training iterations")
     parser.add_argument("--log_interval", type=int, required=True, help="tensorboard logging interval")
     parser.add_argument("--save_interval", type=int, required=True, help="model save interval")
-    parser.add_argument("--use_bias", action='store_true', help="include a bias vector in flow prediction")
 
     args = parser.parse_args()
     main(args)

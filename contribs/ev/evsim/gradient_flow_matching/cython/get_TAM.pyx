@@ -89,8 +89,8 @@ def get_TAM(np.ndarray[np.int32_t, ndim=1] centroids,
             centroid2 = centroids[idx2]
 
             path = bfs(centroid1, centroid2, n_nodes, edge_index, adj)
-            for idx in path:
-                TAM[idx, idx1, idx2] = 1
+            
+            TAM[path, idx1, idx2] = 1
 
     return TAM
 
