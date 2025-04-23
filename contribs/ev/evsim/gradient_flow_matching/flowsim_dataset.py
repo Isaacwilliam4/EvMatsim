@@ -9,6 +9,7 @@ import os
 import random
 from tqdm import tqdm
 from evsim.gradient_flow_matching.cython.get_TAM import get_TAM
+from sklearn.metrics import pairwise_distances_argmin
 
 class FlowSimDataset:
     """
@@ -61,6 +62,7 @@ class FlowSimDataset:
         self.parse_network()
 
         self.edge_index = self.target_graph.edge_index.t().numpy().astype(np.int32)
+        self.centroid_idx = pairwise_distances_argmin(self.kmeans.cluster_centers_, self.target_graph.pos.numpy())
 
         # traffic assignment matrix (TAM)
         self.build_TAM()
@@ -77,12 +79,11 @@ class FlowSimDataset:
     def build_TAM(self):
         tam_path = Path(self.output_path, f"{self.network_path.stem}_TAM_nclusters_{self.num_clusters}_nsamples_{self.num_samples}.npz")
         if not tam_path.exists():
-            self.TAM = get_TAM(self.clusters,
+            self.TAM = get_TAM(self.centroid_idx,
                             self.edge_index,
                             self.target_graph.num_nodes,
                             self.target_graph.num_edges,
                             self.num_clusters,
-                            self.num_samples,
                             self.use_memoization,
                             self.gb_threshold)
             np.savez(tam_path, TAM=self.TAM)

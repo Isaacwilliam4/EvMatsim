@@ -80,40 +80,36 @@ cdef vector[int] bfs(int source, int target, int n_nodes,
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-def get_TAM(dict cluster_lists,
+def get_TAM(list centroids,
             np.ndarray[np.int32_t, ndim=2] edge_index,
             int n_nodes,
             int n_edges,
             int n_clusters,
-            int n_samples,
             bint use_memoization,
             double gb_threshold):
 
     cdef:
-        int cluster1, cluster2
-        int origin, dest, i, idx
-        object origins, dests
+        np.ndarray[np.int32_t, ndim=1] centroids_arr = np.array(centroids, dtype=np.int32)
+        int centroid1, centroid2, idx1, idx2, idx
         vector[int] path
         np.ndarray[np.float64_t, ndim=3] TAM = np.zeros((n_edges, n_clusters, n_clusters), dtype=np.float64)
         vector[vector[int]] adj = build_adjacency_list(edge_index, n_nodes)
 
     pbar = tqdm(total=(n_clusters * (n_clusters - 1)), desc="Creating TAM")
-    for cluster1 in range(n_clusters):
-        for cluster2 in range(n_clusters):
-            if cluster1 == cluster2:
+
+    for idx1 in range(n_clusters):
+        for idx2 in range(n_clusters):
+            if idx1 == idx2:
                 continue
 
             pbar.update(1)
-            origins = cluster_lists[cluster1]
-            dests = cluster_lists[cluster2]
 
-            for i in range(n_samples):
-                origin = origins[np.random.randint(0, len(origins))]
-                dest = dests[np.random.randint(0, len(dests))]
-                path = bfs(origin, dest, n_nodes, edge_index, adj, use_memoization, gb_threshold)
-                for idx in path:
-                    TAM[idx, cluster1, cluster2] += 1
+            centroid1 = centroids_arr[idx1]
+            centroid2 = centroids_arr[idx2]
 
-    TAM = TAM / n_samples
+            path = bfs(centroid1, centroid2, n_nodes, edge_index, adj, use_memoization, gb_threshold)
+            for idx in path:
+                TAM[idx, idx1, idx2] = 1
+
     return TAM
 
