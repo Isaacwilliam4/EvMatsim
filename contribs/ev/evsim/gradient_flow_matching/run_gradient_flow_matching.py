@@ -14,7 +14,7 @@ def main(args):
     device = "cuda:0" if torch.cuda.is_available() else "cpu"
     output_path = Path(args.results_path)
     network_name = Path(args.network_path).stem
-    save_path = Path(output_path, f"{unique_time_string}_nclusters_{args.num_clusters}_nsamples_{args.num_samples}_{network_name}_bias_{args.use_bias}")
+    save_path = Path(output_path, f"{unique_time_string}_nclusters_{args.num_clusters}_{network_name}_bias_{args.use_bias}")
     tensorboard_path = Path(save_path, "logs")
     os.makedirs(tensorboard_path)
 
@@ -27,7 +27,7 @@ def main(args):
     if not os.path.exists(output_path):
         os.makedirs(output_path)
 
-    dataset = FlowSimDataset(output_path, args.network_path, args.counts_path, args.num_clusters, num_samples=args.num_samples)
+    dataset = FlowSimDataset(output_path, args.network_path, args.counts_path, args.num_clusters)
     dataset.save_clusters(Path(save_path, "clusters.txt"))
 
     with open(Path(save_path, "sensor_ids.txt"), "w") as f:
@@ -103,7 +103,6 @@ if __name__ == "__main__":
     parser.add_argument("network_path", help="path to matsim xml network")
     parser.add_argument("counts_path", help="path to matsim xml counts")
     parser.add_argument("--num_clusters", type=int, required=True, help="number of clusters for the network")
-    parser.add_argument("--num_samples", type=int, required=True, help="number of times to sample between clusters")
     parser.add_argument("--training_steps", type=int, required=True, help="number of training iterations")
     parser.add_argument("--log_interval", type=int, required=True, help="tensorboard logging interval")
     parser.add_argument("--save_interval", type=int, required=True, help="model save interval")

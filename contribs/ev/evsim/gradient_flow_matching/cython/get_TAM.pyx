@@ -80,7 +80,7 @@ cdef vector[int] bfs(int source, int target, int n_nodes,
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-def get_TAM(list centroids,
+def get_TAM(np.ndarray[np.int32_t, ndim=1] centroids,
             np.ndarray[np.int32_t, ndim=2] edge_index,
             int n_nodes,
             int n_edges,
@@ -89,7 +89,6 @@ def get_TAM(list centroids,
             double gb_threshold):
 
     cdef:
-        np.ndarray[np.int32_t, ndim=1] centroids_arr = np.array(centroids, dtype=np.int32)
         int centroid1, centroid2, idx1, idx2, idx
         vector[int] path
         np.ndarray[np.float64_t, ndim=3] TAM = np.zeros((n_edges, n_clusters, n_clusters), dtype=np.float64)
@@ -104,8 +103,8 @@ def get_TAM(list centroids,
 
             pbar.update(1)
 
-            centroid1 = centroids_arr[idx1]
-            centroid2 = centroids_arr[idx2]
+            centroid1 = centroids[idx1]
+            centroid2 = centroids[idx2]
 
             path = bfs(centroid1, centroid2, n_nodes, edge_index, adj, use_memoization, gb_threshold)
             for idx in path:

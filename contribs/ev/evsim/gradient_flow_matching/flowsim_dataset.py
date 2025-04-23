@@ -23,7 +23,6 @@ class FlowSimDataset:
         network_path: str,
         counts_path: str,
         num_clusters: int,
-        num_samples: int = 100,
         use_memoization: bool = True,
         gb_threshold = 10.0
     ):
@@ -44,7 +43,6 @@ class FlowSimDataset:
         self.sensor_path = Path(counts_path)
         self.plan_output_path = Path()
         self.num_clusters = num_clusters
-        self.num_samples = num_samples
         self.use_memoization = use_memoization
         self.gb_threshold = gb_threshold
 
@@ -62,7 +60,7 @@ class FlowSimDataset:
         self.parse_network()
 
         self.edge_index = self.target_graph.edge_index.t().numpy().astype(np.int32)
-        self.centroid_idx = pairwise_distances_argmin(self.kmeans.cluster_centers_, self.target_graph.pos.numpy())
+        self.centroid_idx = pairwise_distances_argmin(self.kmeans.cluster_centers_, self.target_graph.pos.numpy()).astype(np.int32)
 
         # traffic assignment matrix (TAM)
         self.build_TAM()
@@ -77,7 +75,7 @@ class FlowSimDataset:
         return len(self.data_list)
     
     def build_TAM(self):
-        tam_path = Path(self.output_path, f"{self.network_path.stem}_TAM_nclusters_{self.num_clusters}_nsamples_{self.num_samples}.npz")
+        tam_path = Path(self.output_path, f"{self.network_path.stem}_TAM_nclusters_{self.num_clusters}.npz")
         if not tam_path.exists():
             self.TAM = get_TAM(self.centroid_idx,
                             self.edge_index,
