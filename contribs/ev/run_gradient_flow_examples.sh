@@ -9,7 +9,6 @@ python3 -m evsim.gradient_flow_matching.run_gradient_flow_matching \
 "--training_steps" "1_000_000" \
 "--log_interval" "1_000" \
 "--save_interval" "-1" \
-"--use_bias"
 
 python3 -m evsim.gradient_flow_matching.run_gradient_flow_matching \
 "./evsim/gradient_flow_matching/utah_flow_results" \
@@ -19,7 +18,6 @@ python3 -m evsim.gradient_flow_matching.run_gradient_flow_matching \
 "--training_steps" "1_000_000" \
 "--log_interval" "1_000" \
 "--save_interval" "-1" \
-"--use_bias"
 
 python3 -m evsim.gradient_flow_matching.run_gradient_flow_matching \
 "./evsim/gradient_flow_matching/utah_flow_results" \
@@ -29,7 +27,6 @@ python3 -m evsim.gradient_flow_matching.run_gradient_flow_matching \
 "--training_steps" "1_000_000" \
 "--log_interval" "1_000" \
 "--save_interval" "-1" \
-"--use_bias"
 
 python3 -m evsim.gradient_flow_matching.run_gradient_flow_matching \
 "./evsim/gradient_flow_matching/utah_flow_results" \
@@ -39,4 +36,3 @@ python3 -m evsim.gradient_flow_matching.run_gradient_flow_matching \
 "--training_steps" "1_000_000" \
 "--log_interval" "1_000" \
 "--save_interval" "-1" \
-"--use_bias"
