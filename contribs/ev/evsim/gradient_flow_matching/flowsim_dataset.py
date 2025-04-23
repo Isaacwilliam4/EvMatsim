@@ -22,9 +22,7 @@ class FlowSimDataset:
         output_path: str,
         network_path: str,
         counts_path: str,
-        num_clusters: int,
-        use_memoization: bool = True,
-        gb_threshold = 10.0
+        num_clusters: int
     ):
         """
         Initializes the MatsimXMLDataset.
@@ -43,8 +41,6 @@ class FlowSimDataset:
         self.sensor_path = Path(counts_path)
         self.plan_output_path = Path()
         self.num_clusters = num_clusters
-        self.use_memoization = use_memoization
-        self.gb_threshold = gb_threshold
 
         self.node_mapping: bidict[str, int] = (
             bidict()
@@ -81,9 +77,7 @@ class FlowSimDataset:
                             self.edge_index,
                             self.target_graph.num_nodes,
                             self.target_graph.num_edges,
-                            self.num_clusters,
-                            self.use_memoization,
-                            self.gb_threshold)
+                            self.num_clusters)
             np.savez(tam_path, TAM=self.TAM)
         else:
             self.TAM = np.load(tam_path)['TAM']
