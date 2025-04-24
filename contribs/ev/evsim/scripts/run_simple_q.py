@@ -4,7 +4,7 @@ import os
 import argparse
 import shutil
 from contribs.ev.evsim.scripts.util import setup_config, load_Q, save_csv_and_plot, get_link_ids, e_greedy
-from evsim.scripts.create_population import (
+from evsim.scripts.create_population_ev import (
     create_population_and_plans_xml_counts,
     get_node_coords,
 )
