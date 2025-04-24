@@ -7,7 +7,7 @@ from torch_geometric.data import Data
 from pathlib import Path
 from evsim.scripts.util import setup_config
 from bidict import bidict
-from evsim.scripts.create_population import create_population_and_plans_xml_counts
+from contribs.ev.evsim.scripts.create_population_ev import create_population_and_plans_xml_counts
 
 
 class StatFlowMatsimXMLDataset(Dataset):
