@@ -72,7 +72,7 @@ def main(args):
         args.save_interval > 0 and \
         step % args.save_interval == 0:
             if best_model is not None:
-                torch.save({'W': best_model}, Path(save_path, f"best_flows.pt"))
+                torch.save({'OD': best_model, 'LinkFlows': R}, Path(save_path, f"best_flows.pt"))
                 dataset.save_plans_from_flow_res(
                     best_model.reshape(args.num_clusters, args.num_clusters, 24),
                     Path(save_path, "best_plans.xml")
@@ -82,7 +82,7 @@ def main(args):
         W.data.clamp_(0, torch.inf)
 
     if best_model is not None:
-        torch.save({'W': best_model}, Path(save_path, f"best_flows.pt"))
+        torch.save({'OD': best_model, 'LinkFlows': R}, Path(save_path, f"best_flows.pt"))
         dataset.save_plans_from_flow_res(
             best_model.reshape(args.num_clusters, args.num_clusters, 24),
             Path(save_path, "best_plans.xml")
