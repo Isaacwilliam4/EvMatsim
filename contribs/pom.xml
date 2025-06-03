@@ -58,7 +58,7 @@
 	</build>
 
 	<modules>
-		<module>ev</module>
+		<module>rlev</module>
 		<module>common</module>
     </modules>
 
