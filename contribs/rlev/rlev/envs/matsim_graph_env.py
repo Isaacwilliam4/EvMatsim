@@ -14,7 +14,7 @@ from pathlib import Path
 from rlev.classes.chargers import Charger, StaticCharger, NoneCharger, DynamicCharger
 from typing import List
 from filelock import FileLock
-
+from rlev.scripts.create_chargers import create_chargers_xml_gymnasium
 
 class MatsimGraphEnv(gym.Env):
     """
@@ -108,13 +108,21 @@ class MatsimGraphEnv(gym.Env):
 
             print(f"Extracted files to: {extract_folder}")
 
-    def send_reward_request(self):
+    def send_reward_request(self, actions):
         """
         Send a reward request to the server and process the response.
 
         Returns:
             tuple: Reward value and server response.
         """
+
+        create_chargers_xml_gymnasium(
+            self.dataset.charger_xml_path,
+            self.charger_list,
+            actions,
+            self.dataset.edge_mapping,
+        )
+        
         url = "http://localhost:8000/getReward"
         files = {
             "config": open(self.dataset.config_path, "rb"),
@@ -128,13 +136,27 @@ class MatsimGraphEnv(gym.Env):
             url, params={"folder_name": self.time_string}, files=files
         )
         json_response = json.loads(response.headers["X-response-message"])
-        reward = json_response["reward"]
+        charge_reward = float(json_response["charge_reward"])
+        time_reward = float(json_response["time_reward"])
+
+        self._charger_efficiency = charge_reward
+        self._time_efficiency = time_reward
+
+        reward = float(charge_reward) - float(time_reward)
         filetype = json_response["filetype"]
 
         if filetype == "initialoutput":
             self.save_server_output(response, filetype)
 
-        return float(reward), response
+        charger_cost = self.dataset.parse_charger_network_get_charger_cost()
+        charger_cost_reward = charger_cost / self.dataset.max_charger_cost
+        reward = (charge_reward - time_reward - charger_cost_reward.item())
+
+        if reward > self.best_reward:
+            self.best_reward = reward
+            self.best_output_response = response
+
+        return reward, response
 
     @abstractmethod
     def reset(self, **kwargs):

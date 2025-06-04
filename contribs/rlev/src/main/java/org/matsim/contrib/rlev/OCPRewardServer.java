@@ -50,6 +50,7 @@ import javax.xml.parsers.*;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.*;
 
 public class OCPRewardServer {
     private final BlockingQueue<RequestData> requestQueue = new LinkedBlockingQueue<>();
@@ -156,10 +157,11 @@ public class OCPRewardServer {
 
                 String vehiclesFileName = config.getParam("vehicles", "vehiclesFile");
                 ConfigUtils.writeConfig(config, configPath.toString());
-
-                // Wait for the process to complete and get the exit value
                 int exitCode = process.waitFor();
                 System.out.println("Process exited with code: " + exitCode);
+
+                // Wait for the process to complete and get the exit value
+                // PROCESS FILE FOR AVERAGE CHARGE TIME PROFILES
                 Path csvPath = new File(configPath.getParent().toString() + "/output/ITERS/it.0/0.average_charge_time_profiles.txt").toPath();
                 Path evehiclesXMLPath = new File(configPath.getParent().toString() + "/" + vehiclesFileName).toPath();
                 double avgEnergyCapacity = getAverageEnergyCapacity(evehiclesXMLPath.toString());
@@ -185,17 +187,30 @@ public class OCPRewardServer {
                 
                 JSONObject response = new JSONObject();
                 response.put("filetype", "none");
-                boolean isBestReward = false;
                 double reward = 0;
 
-                if (totRecords > 1){
-                    reward = avgChargeIntegral / totEnergyCapacity;
-                    response.put("reward", Double.toString(reward));
-                    if (reward > getBestReward()){
-                        setBestReward(reward);
-                        isBestReward = true;
-                    }
+                reward = avgChargeIntegral / totEnergyCapacity;
+                response.put("charge_reward", Double.toString(reward));
+
+                // PROCESS FILE FOR AVERAGE LEG DURATION
+                Path legDurationPath = new File(configPath.getParent().toString() + "/output/ITERS/it.0/0.legdurations.txt").toPath();
+
+                var text = new String(Files.readAllBytes(legDurationPath));
+                
+                Pattern pattern = Pattern.compile("average leg duration:\\s+([0-9.]+)\\s+seconds");
+                Matcher matcher = pattern.matcher(text);
+                double time_reward = 0;
+
+                if (matcher.find()) {
+                    String secondsString = matcher.group(1);
+                    double seconds = Double.parseDouble(secondsString);
+                    // Divide by number of seconds in a day to normalize reward
+                    time_reward = seconds / 86400;
+                } else {
+                    System.out.println("No match found.");
                 }
+
+                response.put("time_reward", Double.toString(time_reward));
 
                 File outputFolder = new File(configPath.getParent().toString() + "/output/");
                 File zipFile = new File(configPath.getParent().toString() + "/output.zip");
