@@ -157,7 +157,7 @@ class MatsimGraphEnv(gym.Env):
             self.best_reward = reward
             self.best_output_response = response
 
-        return reward, response
+        return reward
 
     @abstractmethod
     def reset(self, **kwargs):
