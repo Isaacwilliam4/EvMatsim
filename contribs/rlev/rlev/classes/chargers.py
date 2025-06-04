@@ -34,7 +34,7 @@ class DynamicCharger(Charger):
     type: str = "dynamic"
     plug_power: float = 70
     plug_count: int = 9999
-    price: float = 2_600_000  # Cost in USD per km
+    price: float = 5_400_000  # Cost in USD per km
 
 
 class StaticCharger(Charger):
@@ -46,4 +46,4 @@ class StaticCharger(Charger):
     type: str = "default"
     plug_power: float = 150
     plug_count: int = 1
-    price: float = 120_000  # Cost in USD per charger
+    price: float = 136_000  # Cost in USD per charger

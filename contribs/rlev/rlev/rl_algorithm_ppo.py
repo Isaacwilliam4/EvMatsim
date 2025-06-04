@@ -137,6 +137,7 @@ class TensorboardCallback(BaseCallback):
         self.logger.record("Best Reward", self.best_reward)
         self.logger.record("Avg Charger Cost", (avg_cost / (i + 1)))
         self.logger.record("Avg Charger Efficiency", (avg_charger_efficiency / (i + 1)))
+        self.logger.record("Avg Time Efficiency", (avg_time_efficiency / (i + 1)))
 
         return True
 
