@@ -117,7 +117,7 @@ class TensorboardCallback(BaseCallback):
 
         for i, infos in enumerate(self.locals["infos"]):
             env_inst: MatsimGraphEnvGNN | MatsimGraphEnvMlp = infos["graph_env_inst"]
-            reward = env_inst.reward
+            reward = env_inst._reward
             avg_reward += reward
             avg_cost += env_inst._charger_cost
             avg_charger_efficiency += env_inst._charger_efficiency

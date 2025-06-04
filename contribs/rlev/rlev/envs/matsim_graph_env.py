@@ -157,6 +157,8 @@ class MatsimGraphEnv(gym.Env):
             self.best_reward = reward
             self.best_output_response = response
 
+        self._reward = reward
+        
         return reward
 
     @abstractmethod
