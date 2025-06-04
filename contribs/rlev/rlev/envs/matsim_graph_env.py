@@ -142,15 +142,16 @@ class MatsimGraphEnv(gym.Env):
         self._charger_efficiency = charge_reward
         self._time_efficiency = time_reward
 
-        reward = float(charge_reward) - float(time_reward)
         filetype = json_response["filetype"]
 
         if filetype == "initialoutput":
             self.save_server_output(response, filetype)
 
-        charger_cost = self.dataset.parse_charger_network_get_charger_cost()
+        charger_cost = self.dataset.parse_charger_network_get_charger_cost().item()
+        self._charger_cost = charger_cost
+
         charger_cost_reward = charger_cost / self.dataset.max_charger_cost
-        reward = (charge_reward - time_reward - charger_cost_reward.item())
+        reward = (charge_reward - time_reward - charger_cost_reward)
 
         if reward > self.best_reward:
             self.best_reward = reward

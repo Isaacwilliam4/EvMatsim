@@ -113,13 +113,15 @@ class TensorboardCallback(BaseCallback):
         avg_reward = 0
         avg_cost = 0
         avg_charger_efficiency = 0
+        avg_time_efficiency = 0
 
         for i, infos in enumerate(self.locals["infos"]):
             env_inst: MatsimGraphEnvGNN | MatsimGraphEnvMlp = infos["graph_env_inst"]
             reward = env_inst.reward
             avg_reward += reward
-            avg_cost += env_inst.dataset.charger_cost.item()
+            avg_cost += env_inst._charger_cost
             avg_charger_efficiency += env_inst._charger_efficiency
+            avg_time_efficiency += env_inst._time_efficiency
 
             if reward > self.best_reward:
                 self.best_env = env_inst
