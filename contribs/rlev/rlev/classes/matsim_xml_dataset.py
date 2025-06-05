@@ -57,6 +57,7 @@ class MatsimXMLDataset(Dataset):
         self.network_xml_path = Path(tmp_dir / network_file_name)
         self.plan_xml_path = Path(tmp_dir / plans_file_name)
         self.vehicle_xml_path = Path(tmp_dir / vehicles_file_name)
+        self.counts_xml_path = Path(tmp_dir / counts_file_name)
         self.consumption_map_path = Path(tmp_dir / "consumption_map.csv")
         self.charger_cost = 0
 

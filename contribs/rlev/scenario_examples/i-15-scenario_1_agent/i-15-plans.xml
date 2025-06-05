@@ -3,9 +3,9 @@
 <plans xml:lang="de-CH">
 	<person id="1">
 		<plan selected="yes">
-			<act type="h" x="-14451064.60540639" y="4018207.7736042817" end_time="00:11:00" />
+			<act type="h" x="-14459947.60864424" y="4052732.1523611634" end_time="00:11:00" />
 			<leg mode="car" />
-			<act type="h" x="-14439938.094553197" y="3984294.018155422" start_time="00:11:00" end_time="08:11:00" />
+			<act type="h" x="-14410292.62874661" y="3935093.857099619" start_time="00:11:00" end_time="08:11:00" />
 		</plan>
 	</person>
 </plans>

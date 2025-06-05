@@ -88,7 +88,8 @@ public class RunEvExampleWithEvScoringWithLTHConsumption {
 			@Override public void install(){
 				bind( AuxEnergyConsumption.Factory.class ).toInstance(
 							electricVehicle -> ( beginTime, duration, linkId ) -> 0 ); //a dummy factory, as aux consumption is part of the drive consumption in the model
-				bind(DriveEnergyConsumption.Factory.class).toInstance(ev -> new LTHConsumptionModelReader().readURL( ConfigGroup.getInputFileURL( config.getContext(), "consumption_map.csv" ) ).create(ev) );
+				bind(DriveEnergyConsumption.Factory.class).toInstance(ev -> new LTHConsumptionModelReader().readURL( ConfigGroup.getInputFileURL( config.getContext(), "MidCarMap.csv" ) ).create(ev) );
+				// bind(DriveEnergyConsumption.Factory.class).toInstance(ev -> new LTHConsumptionModelReader().readURL( ConfigGroup.getInputFileURL( config.getContext(), "consumption_map.csv" ) ).create(ev) );
 				bind(ElectricFleet.class).toProvider(new Provider<>() {
 					@Inject private ElectricFleetSpecification fleetSpecification;
 					@Inject private DriveEnergyConsumption.Factory driveConsumptionFactory;
