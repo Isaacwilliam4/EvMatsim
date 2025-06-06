@@ -121,12 +121,13 @@ public class OCPRewardServer {
     public void processRequest() {
         while (!Thread.currentThread().isInterrupted()) {
             try {
+                
                 System.out.println(Thread.currentThread().getName() + " Waiting for request...");
                 RequestData data = this.requestQueue.take();
                 HttpExchange exchange = data.getExchange();
                 Path configPath = data.getFilePath();
                 System.out.println("Processing request for config file: " +
-                 configPath + " with thread: " + Thread.currentThread().getName());
+                    configPath + " with thread: " + Thread.currentThread().getName());
 
                 // Build the process
                 ProcessBuilder processBuilder = new ProcessBuilder(
@@ -142,7 +143,7 @@ public class OCPRewardServer {
                 // Capture the output
                 File logFile = new File(configPath.getParent().toString(), "log.txt");
                 try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-                     BufferedWriter writer = new BufferedWriter(new FileWriter(logFile, true))) {
+                        BufferedWriter writer = new BufferedWriter(new FileWriter(logFile, true))) {
                     String line;
                     while ((line = reader.readLine()) != null) {
                         writer.write(line);
@@ -212,33 +213,55 @@ public class OCPRewardServer {
 
                 response.put("time_reward", Double.toString(time_reward));
 
-                File outputFolder = new File(configPath.getParent().toString() + "/output/");
-                File zipFile = new File(configPath.getParent().toString() + "/output.zip");
-                zipDirectory(outputFolder, zipFile);
-                
-                byte[] zipContent = Files.readAllBytes(zipFile.toPath());
-                
-                //If  its the first iteration we save the output to get something to compare
-                //against, if its the best reward we save it to compare results
-                if (initialResponse.get()){
-                    response.put("filetype", "initialoutput");
+                try {
+                    File outputFolder = new File(configPath.getParent().toString() + "/output/");
+                    File zipFile = new File(configPath.getParent().toString() + "/output.zip");
+
+                    // Create zip from output folder
+                    zipDirectory(outputFolder, zipFile);
+
+                    if (!zipFile.exists()) {
+                        throw new IOException("Zip file not found: " + zipFile.getAbsolutePath());
+                    }
+
+                    long fileSize = zipFile.length();
+                    if (fileSize <= 0) {
+                        throw new IOException("Zip file is empty or invalid: " + fileSize);
+                    }
+
+                    // Set headers
+                    if (initialResponse.get()) {
+                        response.put("filetype", "initialoutput");
+                        initialResponse.set(false);
+                    } else {
+                        response.put("filetype", "output");
+                    }
+
                     exchange.getResponseHeaders().set("X-Response-Message", response.toString());
-                    exchange.sendResponseHeaders(200, zipContent.length);
-                    OutputStream os = exchange.getResponseBody();
-                    os.write(zipContent);
-                    initialResponse.set(false);
+                    exchange.sendResponseHeaders(200, fileSize);
+
+                    // Stream file to response body
+                    try (
+                        OutputStream os = exchange.getResponseBody();
+                        InputStream is = new FileInputStream(zipFile)
+                    ) {
+                        byte[] buffer = new byte[8192];
+                        int bytesRead;
+                        while ((bytesRead = is.read(buffer)) != -1) {
+                            os.write(buffer, 0, bytesRead);
+                        }
+                    }
+
+                    // Cleanup
+                    FileUtils.deleteDirectory(configPath.getParent().toFile());
+                    System.out.println("Folder and subdirectories deleted successfully.");
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    exchange.sendResponseHeaders(500, 0);
+                    exchange.getResponseBody().close();  // Send empty body to complete exchange
                 }
-                else {
-                    response.put("filetype", "output");
-                    exchange.getResponseHeaders().set("X-Response-Message", response.toString());
-                    exchange.sendResponseHeaders(200, zipContent.length);
-                    OutputStream os = exchange.getResponseBody();
-                    os.write(zipContent);
-                }
-                exchange.close();
-                FileUtils.deleteDirectory(configPath.getParent().toFile());
-                System.out.println("Folder and subdirectories deleted successfully.");
-            } catch (Exception e) {
+            }
+            catch (Exception e) {
                 e.printStackTrace();
             }
         }

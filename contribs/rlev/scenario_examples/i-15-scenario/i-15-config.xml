@@ -28,7 +28,7 @@
     </module>
 
     <module name="plans">
-        <param name="inputPlansFile" value="i-15-plans.xml" />
+        <param name="inputPlansFile" value="i-15-plans-1-percent.xml" />
     </module>
 
     <module name="counts">
