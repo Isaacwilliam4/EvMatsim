@@ -1,13 +1,30 @@
 <?xml version="1.0"?>
 <!DOCTYPE config SYSTEM "http://www.matsim.org/files/dtd/config_v2.dtd">
 <config>
+
+    <module name="ev">
+        <param name="auxDischargeTimeStep" value="1" />
+        <param name="chargeTimeStep" value="1" />
+        <param name="chargersFile" value="i-15-chargers.xml" />
+        <param name="chargerPowerTimeProfiles" value="false" />
+        <param name="timeProfiles" value="true" />
+        <param name="transferFinalSoCToNextIteration" value="false" />
+        <param name="chargingDisutility" value="0" />
+        <param name="socUtility" value="100" />
+
+	</module>
+
+    <module name="vehicles">
+        <param name="vehiclesFile" value="i-15-vehicles.xml" />
+    </module>
+
     <module name="global">
         <param name="randomSeed" value="4711" />
         <param name="coordinateSystem" value="Atlantis" />
     </module>
 
     <module name="network">
-        <param name="inputNetworkFile" value="i-15-network.xml" />
+        <param name="inputNetworkFile" value="i-15-network-slopes.xml" />
     </module>
 
     <module name="plans">
@@ -23,7 +40,7 @@
     <module name="controller">
         <param name="outputDirectory" value="./i-15-output" />
         <param name="firstIteration" value="0" />
-        <param name="lastIteration" value="100" />
+        <param name="lastIteration" value="0" />
         <param name="eventsFileFormat" value="xml" />
         <param name="mobsim" value="qsim" />
     </module>
