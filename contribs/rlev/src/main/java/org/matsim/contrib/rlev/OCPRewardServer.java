@@ -130,9 +130,16 @@ public class OCPRewardServer {
                     configPath + " with thread: " + Thread.currentThread().getName());
 
                 // Build the process
+                // ProcessBuilder processBuilder = new ProcessBuilder(
+                //         javaBin, "-cp", classpath, className, configPath.toAbsolutePath().toString()
+                // );
+
                 ProcessBuilder processBuilder = new ProcessBuilder(
-                        javaBin, "-cp", classpath, className, configPath.toAbsolutePath().toString()
+                    "mvn", "exec:java",
+                    "-Dexec.mainClass=" + className,
+                    "-Dexec.args=" + configPath.toAbsolutePath().toString()
                 );
+
 
                 // Redirect error and output streams
                 processBuilder.redirectErrorStream(true);
