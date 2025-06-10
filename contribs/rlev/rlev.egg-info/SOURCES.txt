@@ -21,6 +21,7 @@ rlev/scripts/clean_osm_data.py
 rlev/scripts/convert_udot_counts_to_xml.py
 rlev/scripts/create_chargers.py
 rlev/scripts/create_counts_simulated.py
+rlev/scripts/create_evs_with_plans.py
 rlev/scripts/create_population.py
 rlev/scripts/create_population_ev.py
 rlev/scripts/elevationAPI.py
