@@ -56,7 +56,7 @@ public class Osm2matsim {
         new NetworkWriter(network).write(networkFilename);
 
         System.out.println("Network conversion complete!");
-        if (args.length == 3) {
+        if (args.length == 4) {
             String sensorFilename = args[2];
             String outputFilePath = args[3];
             Path outputPath = Path.of(outputFilePath);

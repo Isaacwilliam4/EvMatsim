@@ -117,6 +117,8 @@ mvn exec:java -Dexec.mainClass="org.matsim.osm2matsim.Osm2matsim" -Dexec.args="p
 
 ```
 
+We also modified this java class to be able to create a `counts.xml` file by mapping sensor data via longitude and latitude to links on your network. 
+
 ## Generating a Population
 
 Now that you have a MATSim-compatible network `.xml`, you can generate a population:
