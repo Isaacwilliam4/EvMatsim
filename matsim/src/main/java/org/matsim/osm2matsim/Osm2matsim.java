@@ -24,17 +24,19 @@ import java.nio.file.Path;
 
 public class Osm2matsim {
     public static void main(String[] args) throws Exception {
-        if (args.length < 3) {
-            System.out.println("usage: java Osm2matsim <osm-file> <network-output> <sensor-file>");
-            System.exit(1);
+        if (args.length < 4) {
+            if (args.length == 2) {
+                System.out.println("No sensor file provided, just converting OSM to MATSim network.");
+            }
+            else {
+                System.out.println("Not enough arguments provided.");
+                System.out.println("usage: java Osm2matsim <osm-file> <network-output> <sensor-file> <counts-output>");
+                System.exit(1);
+            }
         }
 
         String osmFilename = args[0];
         String networkFilename = args[1];
-        String sensorFilename = args[2];
-        String outputFilePath = args[3];
-        
-        Path outputPath = Path.of(outputFilePath);
 
         System.out.println("Converting " + osmFilename + " to " + networkFilename);
         
@@ -49,28 +51,35 @@ public class Osm2matsim {
         // Convert OSM to MATSim
         OsmNetworkReader osmReader = new OsmNetworkReader(network, ct);
         osmReader.parse(osmFilename);
-
+        
         new NetworkCleaner().run(network);
         new NetworkWriter(network).write(networkFilename);
 
         System.out.println("Network conversion complete!");
+        if (args.length == 3) {
+            String sensorFilename = args[2];
+            String outputFilePath = args[3];
+            Path outputPath = Path.of(outputFilePath);
 
-        // Load sensor data
-        Map<String, double[]> sensorCoords = new HashMap<>();
-        Map<String, int[]> sensorFlows = new HashMap<>();
-        
-        readSensorData(sensorFilename, sensorCoords, sensorFlows);
-        
-        // Map sensors to closest network links
-        Map<String, String> sensorToLinkMap = mapSensorsToLinks(sensorCoords, network);
-        // Generate MATSim sensor counts XML
-        writeCountsXML(outputPath, sensorToLinkMap, sensorFlows);
-        System.out.println("Sensor counts written to sensor_counts.xml!");
+                    // Load sensor data
+            Map<String, double[]> sensorCoords = new HashMap<>();
+            Map<String, int[]> sensorFlows = new HashMap<>();
+            
+            readSensorData(sensorFilename, sensorCoords, sensorFlows);
+            
+            // Map sensors to closest network links
+            Map<String, String> sensorToLinkMap = mapSensorsToLinks(sensorCoords, network);
+            // Generate MATSim sensor counts XML
+            writeCountsXML(outputPath, sensorToLinkMap, sensorFlows);
+            System.out.println("Sensor counts written to sensor_counts.xml!");
 
-        // Use a relative path for the combined output file
-        String combinedOutputFile = "sensor_mapping_with_coordinates.csv";
-        writeSensorToNodeMappingWithCoordinates(combinedOutputFile, sensorCoords, network, ct);
+            // Use a relative path for the combined output file
+            String combinedOutputFile = "sensor_mapping_with_coordinates.csv";
+            writeSensorToNodeMappingWithCoordinates(combinedOutputFile, sensorCoords, network, ct);
         }
+
+    }
+
 
     private static void writeSensorToNodeMappingWithCoordinates(
         String outputCsvFile,
