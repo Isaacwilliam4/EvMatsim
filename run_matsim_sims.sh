@@ -1,10 +1,4 @@
 cd matsim/
 export MAVEN_OPTS="-Xmx61G"
-#mvn exec:java -Dexec.mainClass="org.matsim.run.RunMatsim" -Dexec.args="../contribs/ev/scenario_examples/cluster_scenarios/utah_flow_scenario_example_1_000_000/utahconfig.xml"
-#mvn exec:java -Dexec.mainClass="org.matsim.run.RunMatsim" -Dexec.args="../contribs/ev/scenario_examples/cluster_scenarios/utah_flow_scenario_example_2_000_000/utahconfig.xml"
-# mvn exec:java -Dexec.mainClass="org.matsim.run.RunMatsim" -Dexec.args="../contribs/ev/scenario_examples/cluster_scenarios/utah_flow_scenario_example_3_000_000/utahconfig.xml"
-mvn exec:java -Dexec.mainClass="org.matsim.run.RunMatsim" -Dexec.args="../cluster_scenarios/utah_flow_scenario_example_10c/utahconfig.xml"
-mvn exec:java -Dexec.mainClass="org.matsim.run.RunMatsim" -Dexec.args="../cluster_scenarios/utah_flow_scenario_example_50c/utahconfig.xml"
-mvn exec:java -Dexec.mainClass="org.matsim.run.RunMatsim" -Dexec.args="../cluster_scenarios/utah_flow_scenario_example_100c/utahconfig.xml"
-mvn exec:java -Dexec.mainClass="org.matsim.run.RunMatsim" -Dexec.args="../cluster_scenarios/utah_flow_scenario_example_200c/utahconfig.xml"
-mvn exec:java -Dexec.mainClass="org.matsim.run.RunMatsim" -Dexec.args="../cluster_scenarios/utah_flow_scenario_example_500c/utahconfig.xml"
+
+mvn exec:java -Dexec.mainClass="org.matsim.run.RunMatsim" -Dexec.args="/home/isaacp/repos/EvMatsim/contribs/rlev/scenario_examples/i-15-scenario/i-15-config.xml"

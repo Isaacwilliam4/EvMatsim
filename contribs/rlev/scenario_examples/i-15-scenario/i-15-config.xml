@@ -35,7 +35,7 @@
         <param name="inputCountsFile" value="i-15-counts.xml" />
         <param name="writeCountsInterval" value="1" />
         <param name="averageCountsOverIterations" value="1" />
-    <param name="countsScaleFactor" value="5" /></module>
+    <param name="countsScaleFactor" value="1" /></module>
 
     <module name="controller">
         <param name="outputDirectory" value="./i-15-output" />
