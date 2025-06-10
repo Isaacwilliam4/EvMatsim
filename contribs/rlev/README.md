@@ -126,6 +126,9 @@ mvn exec:java -Dexec.mainClass="org.matsim.osm2matsim.GetNetworkAndSensors" -Dex
  20"
 ```
 
+The final argument in the above script is the threshold in meters for mapping a sensor to a freeway link, i.e. whats the maximum distance you will accept between a link and a sensor to consider it mapped.
+
+
 ## Generating a Population
 
 Now that you have a MATSim-compatible network `.xml`, you can generate a population:
