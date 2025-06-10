@@ -34,9 +34,6 @@ public class GetNetworkAndSensors {
         String osmFilename = args[0];
         String networkFilename = args[1];
 
-        
-        Path outputPath = Path.of(outputFilePath);
-
         System.out.println("Converting " + osmFilename + " to " + networkFilename);
         
         // Set up MATSim network conversion
@@ -60,6 +57,8 @@ public class GetNetworkAndSensors {
             String sensorFilename = args[2];
             String outputFilePath = args[3];
             int maxDistanceMeters = Integer.parseInt(args[4]);
+            Path outputPath = Path.of(outputFilePath);
+
             // Load sensor data
             Map<String, double[]> sensorCoords = new HashMap<>();
             Map<String, int[]> sensorFlows = new HashMap<>();

@@ -114,10 +114,17 @@ Another bash script is located at `/matsim/osm2matsim.sh`, from the command line
 
 ```bash
 mvn exec:java -Dexec.mainClass="org.matsim.osm2matsim.Osm2matsim" -Dexec.args="path/to/osmfile.osm path/to/desired/output_network.xml"
-
 ```
 
-We also modified this java class to be able to create a `counts.xml` file by mapping sensor data via longitude and latitude to links on your network. 
+We also modified this java class to be able to create a `counts.xml` file by mapping sensor data via longitude and latitude to links on your network. You need to provide sensor counts in csv format as show in `contribs/rlev/rlev/scripts/udot-sensors/sensor_data.csv`.
+
+```bash
+mvn exec:java -Dexec.mainClass="org.matsim.osm2matsim.GetNetworkAndSensors" -Dexec.args="/path/to/EvMatsim/contribs/rlev/scenario_examples/i-15-scenario_1_agent/i-15-cleaned.osm \
+ /path/to/EvMatsim/contribs/rlev/scenario_examples/i-15-scenario_1_agent/example_network.xml \
+ /path/to/EvMatsim/contribs/rlev/rlev/scripts/udot-sensors/sensor_data.csv \
+ /path/to/EvMatsim/contribs/rlev/scenario_examples/i-15-scenario_1_agent/example_counts.xml \
+ 20"
+```
 
 ## Generating a Population
 
