@@ -8,7 +8,6 @@ import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.network.algorithms.NetworkCleaner;
 import org.matsim.core.scenario.ScenarioUtils;
-import org.matsim.core.utils.geometry.CoordUtils;
 import org.matsim.core.utils.geometry.CoordinateTransformation;
 import org.matsim.core.utils.geometry.transformations.TransformationFactory;
 import org.matsim.core.utils.io.OsmNetworkReader;
@@ -19,20 +18,22 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.*;
 import java.util.*;
-import java.nio.file.Files;
 import java.nio.file.Path;
 
-public class Osm2matsim {
+public class GetNetworkAndSensors {
     public static void main(String[] args) throws Exception {
-        if (args.length < 3) {
-            System.out.println("usage: java Osm2matsim <osm-file> <network-output> <sensor-file>");
+        System.out.print(args);
+        if (args.length == 2){
+            System.out.println("Only two arguments provided, performing network conversion only.");
+        }
+        else if (args.length < 5) {
+            System.out.println("usage: java Osm2matsim <osm-file> <network-output> <sensor-file> <sensor-output> <max-distance-meters>");
             System.exit(1);
         }
 
         String osmFilename = args[0];
         String networkFilename = args[1];
-        String sensorFilename = args[2];
-        String outputFilePath = args[3];
+
         
         Path outputPath = Path.of(outputFilePath);
 
@@ -55,104 +56,25 @@ public class Osm2matsim {
 
         System.out.println("Network conversion complete!");
 
-        // Load sensor data
-        Map<String, double[]> sensorCoords = new HashMap<>();
-        Map<String, int[]> sensorFlows = new HashMap<>();
-        
-        readSensorData(sensorFilename, sensorCoords, sensorFlows);
-        
-        // Map sensors to closest network links
-        Map<String, String> sensorToLinkMap = mapSensorsToLinks(sensorCoords, network);
-        // Generate MATSim sensor counts XML
-        writeCountsXML(outputPath, sensorToLinkMap, sensorFlows);
-        System.out.println("Sensor counts written to sensor_counts.xml!");
-
-        // Use a relative path for the combined output file
-        String combinedOutputFile = "sensor_mapping_with_coordinates.csv";
-        writeSensorToNodeMappingWithCoordinates(combinedOutputFile, sensorCoords, network, ct);
+        if (args.length == 5){
+            String sensorFilename = args[2];
+            String outputFilePath = args[3];
+            int maxDistanceMeters = Integer.parseInt(args[4]);
+            // Load sensor data
+            Map<String, double[]> sensorCoords = new HashMap<>();
+            Map<String, int[]> sensorFlows = new HashMap<>();
+            
+            readSensorData(sensorFilename, sensorCoords, sensorFlows);
+            
+            // Map sensors to closest network links
+            Map<String, String> sensorToLinkMap = mapSensorsToLinks(sensorCoords, network, maxDistanceMeters);
+            // Generate MATSim sensor counts XML
+            writeCountsXML(outputPath, sensorToLinkMap, sensorFlows);
+            System.out.println("Sensor counts written to: " + outputPath.toString());
         }
 
-    private static void writeSensorToNodeMappingWithCoordinates(
-        String outputCsvFile,
-        Map<String, double[]> sensorCoords, 
-        Network network,
-        CoordinateTransformation transformation) {
-        
-        File file = new File(outputCsvFile);
-        
-        // Create parent directories if they don't exist
-        if (file.getParentFile() != null) {
-            file.getParentFile().mkdirs();
-        }
-        
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
-            // Write the CSV header
-            System.out.println("Writing combined sensor mapping and coordinates to CSV...");
-            writer.write("SensorID,NodeID,Latitude,Longitude,TransformedX,TransformedY,Distance");
-            writer.newLine();
 
-            // Process each sensor
-            for (Map.Entry<String, double[]> entry : sensorCoords.entrySet()) {
-                String sensorId = entry.getKey();
-                double[] coords = entry.getValue(); // [latitude, longitude]
-
-                // Validate coordinates
-                if (coords.length != 2) {
-                    System.err.println("Invalid coordinates for sensor ID: " + sensorId);
-                    continue;
-                }
-
-                double sensorLat = coords[0];
-                double sensorLon = coords[1];
-
-                // Transform the coordinates
-                org.matsim.api.core.v01.Coord transformedCoord = transformation.transform(
-                        new org.matsim.api.core.v01.Coord(sensorLon, sensorLat)); // lon, lat order
-
-                // Find closest node
-                double minDistance = Double.MAX_VALUE;
-                String closestNodeId = null;
-
-                // Iterate through all nodes in the network
-                for (org.matsim.api.core.v01.network.Node node : network.getNodes().values()) {
-                    double nodeLat = node.getCoord().getY(); // Latitude
-                    double nodeLon = node.getCoord().getX(); // Longitude
-
-                    // Calculate Haversine distance
-                    double distance = haversineDistance(sensorLat, sensorLon, nodeLat, nodeLon);
-
-                    // Find the closest node
-                    if (distance < minDistance) {
-                        minDistance = distance;
-                        closestNodeId = node.getId().toString();
-                    }
-                }
-
-                if (closestNodeId != null) {
-                    // Write all the data to the CSV file
-                    writer.write(sensorId + "," + 
-                                closestNodeId + "," + 
-                                sensorLat + "," + 
-                                sensorLon + "," + 
-                                transformedCoord.getX() + "," + 
-                                transformedCoord.getY() + "," + 
-                                minDistance);
-                    writer.newLine();
-                    
-                    System.out.println("Sensor " + sensorId + " mapped to node " + closestNodeId + " (distance: " + minDistance + "m)");
-                } else {
-                    System.out.println("Warning: No node found for sensor " + sensorId);
-                }
-            }
-
-            System.out.println("Combined data written to: " + file.getAbsolutePath());
-        } catch (IOException e) {
-            System.err.println("Error writing combined data to CSV: " + e.getMessage());
-        }
     }
-
-
-
 
     private static void readSensorData(String filename, Map<String, double[]> sensorCoords, Map<String, int[]> sensorFlows) throws IOException {
         BufferedReader br = new BufferedReader(new FileReader(filename));
@@ -184,35 +106,36 @@ public class Osm2matsim {
 
 
 
-    private static Map<String, String> mapSensorsToLinks(Map<String, double[]> sensorCoords, Network network) {
+    private static Map<String, String> mapSensorsToLinks(Map<String, double[]> sensorCoords, Network network, int maxDistanceMeters) {
         Map<String, String> sensorToLink = new HashMap<>();
         Set<String> usedLinkIds = new HashSet<>(); // Track assigned location IDs
-    
-        // Get the network's coordinate transformation
-        CoordinateTransformation transformation = TransformationFactory.getCoordinateTransformation(
-                TransformationFactory.WGS84, TransformationFactory.WGS84_Albers); // Change to match your network's projection
-    
+ 
+        CoordinateTransformation inverseTransformation = TransformationFactory.getCoordinateTransformation(
+            TransformationFactory.WGS84_Albers, TransformationFactory.WGS84);
+
         System.out.println("Mapping sensors to network links...");
     
         for (Map.Entry<String, double[]> entry : sensorCoords.entrySet()) {
             String sensorId = entry.getKey();
             double[] coords = entry.getValue();
-    
+
+            double sensorLat = coords[0];
+            double sensorLon = coords[1];
             // Transform sensor coordinates to the same system as the network
-            org.matsim.api.core.v01.Coord sensorCoord = transformation.transform(new org.matsim.api.core.v01.Coord(coords[1], coords[0])); // lon, lat order
     
             double minDistance = Double.MAX_VALUE;
             String closestLinkId = null;
     
             for (Link link : network.getLinks().values()) {
-                double linkLat = link.getCoord().getY(); // Latitude
-                double linkLon = link.getCoord().getX(); // Longitude
+                var linkCoord = inverseTransformation.transform(link.getCoord()); 
+                double linkLat = linkCoord.getY(); // Latitude
+                double linkLon = linkCoord.getX(); // Longitude
             
                 // Calculate Haversine distance
-                double distance = haversineDistance(sensorCoord.getY(), sensorCoord.getX(), linkLat, linkLon);
+                double distance = haversineDistance(sensorLat, sensorLon, linkLat, linkLon);
             
                 // Only assign if the link ID hasn't been used yet
-                if (distance < minDistance && !usedLinkIds.contains(link.getId().toString())) {
+                if (distance < minDistance && !usedLinkIds.contains(link.getId().toString()) && distance < maxDistanceMeters) {
                     minDistance = distance;
                     closestLinkId = link.getId().toString();
                 }
@@ -231,10 +154,8 @@ public class Osm2matsim {
         return sensorToLink;
     }
 
-
-
     private static void writeCountsXML(Path outputFilePath, Map<String, String> sensorToLinkMap, Map<String, int[]> sensorFlows) throws Exception {
-        if (!outputFilePath.getParent().toFile().exists()) {
+        if (!outputFilePath.toAbsolutePath().getParent().toFile().exists()) {
             outputFilePath.getParent().toFile().mkdirs();
         }
 
