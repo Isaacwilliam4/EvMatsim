@@ -44,6 +44,8 @@ From the `EvMatsim/contribs/rlev` directory to get descriptions of each of the a
 
 # Getting a Real Network in MATSim
 
+Scenario examples are located at `contribs/rlev/scenario_examples`, look at these xml files to get a better understanding on how to setup your simulation.
+
 ### Step 1: Download the Network
 
 1. Visit [JOSM's website](https://josm.openstreetmap.de/) and download the `josm-tested.jar` file.
@@ -108,11 +110,11 @@ python -m rlev.scripts.clean_osm_data /path/to/osmfile.osm /path/to/desired/outp
 
 ## Converting .osm to MATSim-Compatible .xml
 
-Use the [osm2matsim converter](https://github.com/gustavocovas/osm2matsim), included in this repository at `/osm2matsim`. Place your `.osm` file in the `osm2matsim/input` directory for simplicity. To convert:
+Another bash script is located at `/matsim/osm2matsim.sh`, from the command line
 
 ```bash
-cd osm2matsim
-./bin/convert.sh input/input.osm output/output.xml
+mvn exec:java -Dexec.mainClass="org.matsim.osm2matsim.Osm2matsim" -Dexec.args="path/to/osmfile.osm path/to/desired/output_network.xml"
+
 ```
 
 ## Generating a Population
@@ -120,22 +122,11 @@ cd osm2matsim
 Now that you have a MATSim-compatible network `.xml`, you can generate a population:
 
 ```bash
-python python/scripts/create_population.py --input path/to/matsimnetwork.xml --output path/to/matsimplansoutput.xml --numagents 100
+cd contribs/rlev/
+python -m rlev.scripts.create_population_ev -h
 ```
 
-The above command generates travel plans for 100 agents.
-
-## Running MATSim
-
-With a network and population ready, you can start the MATSim simulation. Run the .jar file as follows:
-
-```bash
-java -jar matsim-example-project-0.0.1-SNAPSHOT.jar
-```
-
-When the MATSim GUI appears, it will prompt you to load a `config.xml` file. Example configurations can be found in `scenarios/utah/utah_config.xml`. Update the `inputNetworkFile` and `inputPlansFile` parameters in the configuration with the paths to your generated `network.xml` and `plans.xml`.
-
-Once the configuration is loaded, click **Start MATSim**. After the simulation completes, an output directory will be created near the location of your `config.xml` file.
+The above command shows arguments for the script.
 
 ## Visualizing the Simulation
 
@@ -158,37 +149,3 @@ Once Via is open:
 
 Next, add the **Vehicle From Events** layer and click **Load Data**. You can adjust the simulation speed at the bottom right of the interface to see green agents moving throughout the day.
 
-
-# Creating the Counts XML
-
-Matsim lets you provide a counts xml to compare the simulation data against real observed data.
-
-
-```bash
-cd EvMatsim/contribs/ev
-python python/scripts/create_counts.py ./scenarios/utahev/udot_flow_data/ ./scenarios/utahev/station_data.csv ./scenarios/utahev/utahevcounts.xml 
-```
-
----
-
-# Important info
-
-In the source code for matsim, the scoring functions are located at 
-
-```
-/matsim-libs/matsim/src/main/java/org/matsim/core/scoring/functions
-```
-
-The chapter in the matsim book on electric vehicles starts on page 93.
-
----
-
-Running the simulation with the electric vehicle extension can be done as follows
-
-```
-java -cp matsim-example-project-0.0.1-SNAPSHOT.jar org.matsim.contrib.rlev.example.RunEvExample ./scenarios/originalev/evconfig.xml
-```
-
-FORMATING THE XML FILES CAN MAKE THEM UNINTERPRETABLE BY MATSIM. So if you use a formatter
-like prettyxml or something, it makes crucial changes to the xml files that makes them unreadable
-by matsim, it only took me like 3 hours to figure this out.
