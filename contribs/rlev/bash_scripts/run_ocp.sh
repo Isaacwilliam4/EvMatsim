@@ -5,7 +5,7 @@ eval "$(conda shell.bash hook)"
 conda activate ppomatsimenv
 
 python -m rlev.rl_algorithm_ppo \
-"./scenario_examples/i-15-scenario/i-15-config.xml" \
+"./scenario_examples/i-15-scenario_1_agent/i-15-config.xml" \
 "--num_timesteps" "1000000" \
 "--num_envs" "2" \
 "--num_steps" "1" \

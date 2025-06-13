@@ -11,7 +11,11 @@ pip install -e .
 cd -
 if python -c "import torch; print(torch.cuda.is_available())" | grep -q "True"; then
     echo "GPU detected: Installing CUDA version"
-    conda install pytorch torchvision torchaudio pytorch-cuda=12.4 -c pytorch -c nvidia -y
+    # conda install pytorch torchvision torchaudio pytorch-cuda=12.1 -c pytorch -c nvidia -y
+    # pip install torch torchvision torchaudio
+
+    # change the --index-url at cu*** to your cuda version, (ex: CUDA 12.4 -> cu124)
+    pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu124
 else
     echo "No GPU detected: Installing CPU version"
     pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu

@@ -15,11 +15,11 @@ mvn clean install -DskipTests
 First you need to create a conda environment with the appropriate dependencies, you may need to change some things based on your cuda
 version.
 
-The `./setup_python_env.sh` file located in the `EvMatsim/contribs/rlev/rlev` folder will automatically setup the conda environment for you, again,  you may need to change the cuda version based on 
+The `./setup_python_env.sh`([File Link](./rlev/setup_python_env.sh)) file located in the `EvMatsim/contribs/rlev/rlev` folder will automatically setup the conda environment for you, again,  you may need to change the cuda version based on 
 the specs of your machine.
 
 ## Running the Java Server
-The `run_ocp_server.sh` file in `rlev/bash_scripts` provides an example for how to run the server.
+The `run_ocp_server.sh`([File Link](./bash_scripts/run_ocp_server.sh)) file in `rlev/bash_scripts` provides an example for how to run the server.
 
 ```bash
 export MAVEN_OPTS="-Xmx61G"
@@ -31,7 +31,7 @@ The first line allows the java program to utilize up to 61 G of RAM, change this
 ## Running the Reinforcement learning python client 
 
 You should always create the same number
-of environments for the number of threads on the server for the best performance. Just as with the JAVA server, we provide an example script located at `rlev/bash_scripts/run_ocp.sh` that demonstrates how to run the python client. 
+of environments for the number of threads on the server for the best performance. Just as with the JAVA server, we provide an example script located at `rlev/bash_scripts/run_ocp.sh`([File Link](./bash_scripts/run_ocp.sh)) that demonstrates how to run the python client. 
 
 Run 
 
