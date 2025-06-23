@@ -270,6 +270,8 @@ public class OCPRewardServer {
             }
             catch (Exception e) {
                 e.printStackTrace();
+                exchange.sendResponseHeaders(500, 0);
+                exchange.getResponseBody().close();  // Send empty body to complete exchange
             }
         }
     }
