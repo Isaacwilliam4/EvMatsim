@@ -143,7 +143,7 @@ The above command shows arguments for the script.
 ## Visualizing the Simulation
 
 To visualize the simulation results, use [Via](https://www.simunto.com/via/download.html). The Via runnable is included in this repository. To start it:
-
+* Note: `Via v25.1.0` is incompatible with Ubuntu 22.04, it crashes the desktop GUI. Install `v24.1.0`.
 ```bash
 ./Via-24.1.0/via
 ```
