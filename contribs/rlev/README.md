@@ -20,7 +20,7 @@ the specs of your machine.
 
 ## Running the Java Server
 The `run_ocp_server.sh`([File Link](./bash_scripts/run_ocp_server.sh)) file in `rlev/bash_scripts` provides an example for how to run the server.
-
+* Note: These commands must be run from the directory `EvMatsim/contribs/rlev`
 ```bash
 export MAVEN_OPTS="-Xmx61G"
 mvn exec:java -Dexec.mainClass="org.matsim.contrib.rlev.OCPRewardServer" -Dexec.args="2"
