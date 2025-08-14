@@ -104,7 +104,7 @@ public class RunEvExampleWithLTHConsumptionModel {
 			var vehicleType = Id.create("EV_65.0kWh", VehicleType.class);
 			driveEnergyConsumptionFactory.addEnergyConsumptionModelFactory(vehicleType,
 					new LTHConsumptionModelReader()
-							.readURL(ConfigGroup.getInputFileURL(config.getContext(), "MidCarMap.csv")));
+							.readURL(ConfigGroup.getInputFileURL(config.getContext(), "energyConsumption.csv")));
 
 			// controler.addOverridingModule(new EvModule());
 			// controler.addOverridingModule( new AbstractModule(){
@@ -133,7 +133,7 @@ public class RunEvExampleWithLTHConsumptionModel {
 																					// consumption is part of the drive
 																					// consumption in the model
 					bind(DriveEnergyConsumption.Factory.class).toInstance(ev -> new LTHConsumptionModelReader()
-							.readURL(ConfigGroup.getInputFileURL(config.getContext(), "MidCarMap.csv")).create(ev));
+							.readURL(ConfigGroup.getInputFileURL(config.getContext(), "energyConsumption.csv")).create(ev));
 					bind(ElectricFleet.class).toProvider(new Provider<>() {
 						@Inject
 						private ElectricFleetSpecification fleetSpecification;
