@@ -1,0 +1,16 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Maven: clean install (skip tests)",
+            "type": "shell",
+            "command": "mvn clean install -DskipTests",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": [],
+            "detail": "Builds the project using Maven and skips tests"
+        }
+    ]
+}
