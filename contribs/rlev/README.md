@@ -126,13 +126,14 @@ mvn exec:java -Dexec.mainClass="org.matsim.osm2matsim.GetNetworkAndSensors" -Dex
  20"
 ```
 
-The final argument in the above script is the threshold in meters for mapping a sensor to a freeway link, i.e. whats the maximum distance you will accept between a link and a sensor to consider it mapped.
+The final argument in the above script is the threshold in meters for mapping a 
+sensor to a freeway link, i.e. whats the maximum distance you will accept between 
+a link and a sensor to consider it mapped.
 
 
 ## Generating a Population
 
 Now that you have a MATSim-compatible network `.xml`, you can generate a population:
-
 ```bash
 cd contribs/rlev/
 python -m rlev.scripts.create_population_ev -h
@@ -143,7 +144,8 @@ The above command shows arguments for the script.
 ## Visualizing the Simulation
 
 To visualize the simulation results, use [Via](https://www.simunto.com/via/download.html). The Via runnable is included in this repository. To start it:
-* Note: `Via v25.1.0` is incompatible with Ubuntu 22.04, it crashes the desktop GUI. Install `v24.1.0`.
+* Note: `Via v25.1.0` installer is incompatible with Ubuntu 22.04, it crashes the desktop GUI. 
+Install `v24.1.0` or get the application files directly from an installed instance on Ubuntu `v24`.
 ```bash
 ./Via-24.1.0/via
 ```
