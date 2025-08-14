@@ -27,7 +27,7 @@ public class GetNetworkAndSensors {
             System.out.println("Only two arguments provided, performing network conversion only.");
         }
         else if (args.length < 5) {
-            System.out.println("usage: java Osm2matsim <osm-file> <network-output> <sensor-file> <sensor-output> <max-distance-meters>");
+            System.out.println("usage: java GetNetworkAndSensors <osm-file> <network-output> <sensor-file> <sensor-output> <max-distance-meters>");
             System.exit(1);
         }
 

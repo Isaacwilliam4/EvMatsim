@@ -49,6 +49,7 @@ Scenario examples are located at `contribs/rlev/scenario_examples`, look at thes
 ### Step 1: Download the Network
 
 1. Visit [JOSM's website](https://josm.openstreetmap.de/) and download the `josm-tested.jar` file.
+
 2. Run JOSM with the following command:
 
    ```bash
@@ -104,16 +105,17 @@ Once you're satisfied with the network, save it by going to **File → Save As**
 ```bash
 conda activate ppomatsimenv
 cd contribs/rlev
-python -m rlev.scripts.clean_osm_data /path/to/osmfile.osm /path/to/desired/output_network.xml
+python -m rlev.scripts.clean_osm_data /absolute/path/to/osmfile.osm /absolute/path/to/desired/output_network.xml
 
 ```
 
+
 ## Converting .osm to MATSim-Compatible .xml
 
-Another bash script is located at `/matsim/osm2matsim.sh`, from the command line
+Another bash script is located at `EvMatsim/matsim/osm2matsim.sh`, from the command line
 
 ```bash
-mvn exec:java -Dexec.mainClass="org.matsim.osm2matsim.Osm2matsim" -Dexec.args="path/to/osmfile.osm path/to/desired/output_network.xml"
+mvn exec:java -Dexec.mainClass="org.matsim.osm2matsim.GetNetworkAndSensors" -Dexec.args="path/to/osmfile.osm path/to/desired/output_network.xml"
 ```
 
 We also modified this java class to be able to create a `counts.xml` file by mapping sensor data via longitude and latitude to links on your network. You need to provide sensor counts in csv format as show in `contribs/rlev/rlev/scripts/udot-sensors/sensor_data.csv`.
