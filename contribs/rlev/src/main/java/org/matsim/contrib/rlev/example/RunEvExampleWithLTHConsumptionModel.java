@@ -64,7 +64,7 @@ import com.google.inject.Provider;
  * Biomedical Engineering, Lund university, 2018. 169 p., PhD thesis
  */
 public class RunEvExampleWithLTHConsumptionModel {
-	static final String DEFAULT_CONFIG_FILE = "test/input/org/matsim/contrib/evWireless/example/RunEvExample/config.xml";
+	static final String DEFAULT_CONFIG_FILE = "test/input/org/matsim/contrib/ev/example/RunEvExample/config.xml";
 	private static final Logger log = LogManager.getLogger(RunEvExampleWithLTHConsumptionModel.class);
 
 	public static void main(String[] args) throws IOException {
