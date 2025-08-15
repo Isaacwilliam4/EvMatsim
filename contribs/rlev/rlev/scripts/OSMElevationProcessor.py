@@ -196,8 +196,8 @@ if __name__ == "__main__":
     import argparse
     
     parser = argparse.ArgumentParser(description="Process XML and OSM data to calculate slopes between nodes.")
-    parser.add_argument("xml_file", help="Input XML file with links")
-    parser.add_argument("osm_file", help="Input OSM file with node coordinates")
+    parser.add_argument("xml_network_file", help="Input XML file with links")
+    parser.add_argument("osm_network_file", help="Input OSM file with node coordinates")
     parser.add_argument("output_file", help="Output XML file with added slope data")
     
     args = parser.parse_args()

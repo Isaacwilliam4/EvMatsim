@@ -132,6 +132,15 @@ The final argument in the above script is the threshold in meters for mapping a
 sensor to a freeway link, i.e. whats the maximum distance you will accept between 
 a link and a sensor to consider it mapped.
 
+## Generating a network-slopes.xml File
+
+In order to create a network.xml file that includes the road grades, the OSMElevationProcessor.py script needs to be run. This Python script expects the clean OSM network file and the XML network file produced in the previous section as input. It then produces the desired network-slopes.xml file.
+
+```bash
+python -m rlev.scripts.OSMElevationProcessor.py -h
+```
+
+The above command shows arguments for the script.
 
 ## Generating a Population
 
