@@ -7,9 +7,9 @@ conda activate ppomatsimenv
 python -m rlev.rl_algorithm_ppo \
 "./scenario_examples/i-15-scenario_1_agent/i-15-config.xml" \
 "--num_timesteps" "1000000" \
-"--num_envs" "2" \
+"--num_envs" "32" \
 "--num_steps" "1" \
-"--batch_size" "2" \
+"--batch_size" "32" \
 "--results_dir" "./i-15-results" \
 "--learning_rate" "0.0001" \
 "--clip_range" "0.3" \
